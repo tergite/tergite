@@ -11,18 +11,20 @@
 # that they have been altered from the originals.
 
 from qiskit.providers import BaseBackend
-from qiskit.providers.models import BackendConfiguration
+from qiskit.providers.models import BackendConfiguration, BackendProperties
 from qiskit.result import Result
 from .job import Job
 import pathlib
 import json
 import requests
 from uuid import uuid4
+from .hardcoded_backend_data import properties as pingu_prop_dict
 
 
 class Backend(BaseBackend):
     def __init__(self, configuration: BackendConfiguration, provider):
         super().__init__(configuration=configuration, provider=provider)
+        self._properties = None
         print("Tergite: Class Backend initialized")
 
     def run(self, qobj):
@@ -51,5 +53,12 @@ class Backend(BaseBackend):
 
         job_file.unlink()
 
-        job = Job("pingu", job_id, qobj)
+        backend_name = self.name()
+        job = Job(backend_name, job_id, qobj)
         return job
+
+    def properties(self):
+        if self._properties is None:
+            self._properties = BackendProperties.from_dict(pingu_prop_dict)
+
+        return self._properties
