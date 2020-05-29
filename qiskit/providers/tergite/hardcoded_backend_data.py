@@ -19,7 +19,7 @@ configuration = {
     "allow_q_object": True,
     "backend_name": "pingu",
     "backend_version": "0.0.1",
-    "basis_gates": ["u1", "u2", "u3", "cz", "id"],
+    "basis_gates": ["u1", "u2", "u3", "rx", "ry", "rz", "x", "y", "z", "h", "cz"],
     "conditional": False,
     "coupling_map": [[0, 1], [1, 0]],
     "credits_required": False,
