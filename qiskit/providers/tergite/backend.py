@@ -53,8 +53,7 @@ class Backend(BaseBackend):
 
         job_file.unlink()
 
-        backend_name = self.name()
-        job = Job(backend_name, job_id, qobj)
+        job = Job(self, job_id, qobj)
         return job
 
     def properties(self):

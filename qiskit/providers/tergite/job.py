@@ -11,6 +11,8 @@
 # that they have been altered from the originals.
 
 from qiskit.providers import BaseJob, JobStatus
+from qiskit.result import Result
+from collections import Counter
 
 
 class Job(BaseJob):
@@ -19,6 +21,7 @@ class Job(BaseJob):
         self._qobj = qobj
         self._backend = backend
         self._status = JobStatus.INITIALIZING
+        self._result = None
 
     def qobj(self):
         return self._qobj
@@ -35,8 +38,44 @@ class Job(BaseJob):
         return None
 
     def result(self):
-        print("Tergite: Job result() not implemented yet")
-        return None
+        if not self._result:
+            # test values
+            # next step is to fetch data from MSS
+            print("Tergite: Simulated results")
+            memory = ["0x0", "0x1", "0x2", "0x2"]
+
+            data = {"counts": dict(Counter(memory)), "memory": memory}
+
+            qobj = self.qobj()
+
+            experiment_results = []
+            experiment_results.append(
+                {
+                    "name": qobj.experiments[0].header.name,
+                    "success": True,
+                    "shots": qobj.config.shots,
+                    "data": data,
+                    "header": qobj.experiments[0].header.to_dict(),
+                }
+            )
+
+            # we currently measure all qubits and ignore classical registers
+            experiment_results[0]["header"][
+                "memory_slots"
+            ] = self._backend.configuration().n_qubits
+
+            self._result = Result.from_dict(
+                {
+                    "results": experiment_results,
+                    "backend_name": self._backend.name(),
+                    "backend_version": self._backend.version(),
+                    "qobj_id": 0,
+                    "job_id": self.job_id(),
+                    "success": True,
+                }
+            )
+
+        return self._result
 
     def submit(self):
         print("Tergite: Job submit() is deprecated")
