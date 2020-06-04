@@ -13,10 +13,11 @@
 from qiskit.providers import BaseJob, JobStatus
 from qiskit.result import Result
 from collections import Counter
+import requests
 
 
 class Job(BaseJob):
-    def __init__(self, backend, job_id, qobj):
+    def __init__(self, backend, job_id: str, qobj):
         super().__init__(backend, job_id)
         self._qobj = qobj
         self._backend = backend
@@ -39,11 +40,18 @@ class Job(BaseJob):
 
     def result(self):
         if not self._result:
-            # test values
-            # next step is to fetch data from MSS
-            print("Tergite: Simulated results")
-            memory = ["0x0", "0x1", "0x2", "0x2"]
+            URL = "http://qdp-git.mc2.chalmers.se:5000/jobs/"
+            job_id = self.job_id()
+            response = requests.get(URL + job_id + "/result")
 
+            if response:
+                self._response = response  # for debugging
+                memory = response.json()["memory"]
+            else:
+                return self._result
+
+            # We currently measure all qubits and ignore classical registers.
+            # Also, only 1 experiment per qobj is supported at the moment.
             data = {"counts": dict(Counter(memory)), "memory": memory}
 
             qobj = self.qobj()
@@ -59,7 +67,6 @@ class Job(BaseJob):
                 }
             )
 
-            # we currently measure all qubits and ignore classical registers
             experiment_results[0]["header"][
                 "memory_slots"
             ] = self._backend.configuration().n_qubits
