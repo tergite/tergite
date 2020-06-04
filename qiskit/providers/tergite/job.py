@@ -14,6 +14,7 @@ from qiskit.providers import BaseJob, JobStatus
 from qiskit.result import Result
 from collections import Counter
 import requests
+from .config import MSS_URL, REST_API_MAP
 
 
 class Job(BaseJob):
@@ -40,9 +41,9 @@ class Job(BaseJob):
 
     def result(self):
         if not self._result:
-            URL = "http://qdp-git.mc2.chalmers.se:5000/jobs/"
+            JOBS_URL = MSS_URL + REST_API_MAP["jobs"]
             job_id = self.job_id()
-            response = requests.get(URL + job_id + "/result")
+            response = requests.get(JOBS_URL + "/" + job_id + REST_API_MAP["result"])
 
             if response:
                 self._response = response  # for debugging

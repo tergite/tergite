@@ -19,6 +19,7 @@ import json
 import requests
 from uuid import uuid4
 from .hardcoded_backend_data import properties as pingu_prop_dict
+from .config import MSS_URL, REST_API_MAP
 
 
 class Backend(BaseBackend):
@@ -28,8 +29,8 @@ class Backend(BaseBackend):
         print("Tergite: Class Backend initialized")
 
     def run(self, qobj):
-        MSS_URL = "http://qdp-git.mc2.chalmers.se:5000/jobs"
-        job_registration = requests.post(MSS_URL).json()
+        JOBS_URL = MSS_URL + REST_API_MAP["jobs"]
+        job_registration = requests.post(JOBS_URL).json()
         job_id = job_registration["job_id"]
         job_upload_url = job_registration["upload_url"]
 
