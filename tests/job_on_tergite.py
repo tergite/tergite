@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 
-# this file is meant to be run interactively for object inspection
+# this file is meant to be run interactively for objects inspection
 # python -i tests/job_on_tergite.py
 
 from qiskit.providers.tergite import Tergite
@@ -21,14 +21,15 @@ from qiskit.visualization import plot_histogram
 provider = Tergite.get_provider()
 backend = provider.get_backend("pingu")
 
-qr = QuantumRegister(2)
+qr = QuantumRegister(3)
 qc = QuantumCircuit(qr)
-qc.cz(qr[0], qr[1])
-qc.h(qr[0])
+# qc.cz(qr[1], qr[2])
+qc.x(qr[1])
+qc.h(qr[2])
 
 mytr = transpile(qc, backend)
 myqobj = assemble(mytr, backend)
 
 job = execute(mytr, backend)
 
-plot_histogram(job.result().get_counts()).show()
+# plot_histogram(job.result().get_counts()).show()

@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 
-# this file is meant to be run interactively for object inspection
+# this file is meant to be run interactively for objects inspection
 # python -i tests/job_on_simulator.py
 
 from qiskit import *
@@ -19,10 +19,14 @@ from qiskit.visualization import plot_histogram
 
 backend = BasicAer.get_backend("qasm_simulator")
 
-circ = QuantumCircuit(2, 2)
-circ.h(0)
-circ.cx(0, 1)
-circ.measure([0, 1], [0, 1])
+circ = QuantumCircuit(3, 3)
+
+circ.x(2)
+circ.h(1)
+circ.measure([0, 1, 2], [0, 1, 2])
 
 job = execute(circ, backend)
-print(job.result().get_counts())
+counts = job.result().get_counts()
+
+print("Counts:", counts)
+# plot_histogram(counts).show()
