@@ -13,6 +13,14 @@
 import datetime
 from dateutil.tz import tzutc
 
+# Note: Both the backend configuration and its properties are very crude
+# and do not reflect Pingu A setup fully. Rather, these dictionaries are
+# the first approximation which makes Qiskit Terra to work with Pingu A
+# backend.
+#
+# Configuration is currently updated to 3 qubits. Properties are only for
+# 2 qubits.
+
 configuration = {
     "allow_object_storage": True,
     "allow_q_circuit": False,
