@@ -39,6 +39,7 @@ class Backend(BaseBackend):
             "type": "script",
             "name": "qiskit_qasm_runner",
             "params": {"qobj": qobj.to_dict()},
+            "hdf5_log_extraction": {"voltages": True, "waveforms": True},
         }
 
         job_file = pathlib.Path("/tmp") / str(uuid4())
