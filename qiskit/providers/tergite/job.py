@@ -15,6 +15,7 @@ from qiskit.result import Result
 from collections import Counter
 import requests
 from .config import MSS_URL, REST_API_MAP
+from pathlib import Path
 
 
 class Job(BaseJob):
@@ -24,6 +25,7 @@ class Job(BaseJob):
         self._backend = backend
         self._status = JobStatus.INITIALIZING
         self._result = None
+        self._download_url = None
 
     def qobj(self):
         return self._qobj
@@ -84,6 +86,31 @@ class Job(BaseJob):
             )
 
         return self._result
+
+    # NOTE: This API is WIP
+    def download_logfile(self, save_location: str):
+        # TODO: improve error handling
+        if not self._download_url:
+            JOBS_URL = MSS_URL + REST_API_MAP["jobs"]
+            job_id = self.job_id()
+            response = requests.get(
+                JOBS_URL + "/" + job_id + REST_API_MAP["download_url"]
+            )
+            print(response.json())
+
+            if response:
+                self._response = response  # for debugging
+                self._download_url = response.json()
+            else:
+                return None
+
+        response = requests.get(self._download_url)
+        if response:
+            file = Path(save_location) / (self.job_id() + ".hdf5")
+            with file.open("wb") as destination:
+                destination.write(response.content)
+
+        return None
 
     def submit(self):
         print("Tergite: Job submit() is deprecated")
