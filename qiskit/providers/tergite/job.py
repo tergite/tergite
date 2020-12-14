@@ -48,38 +48,54 @@ class Job(BaseJob):
             response = requests.get(JOBS_URL + "/" + job_id + REST_API_MAP["result"])
 
             if response:
-                self._response = response  # for debugging
+                self._response = response  # store response for debugging
                 memory = response.json()["memory"]
             else:
                 return self._result
 
-            # We currently measure all qubits and ignore classical registers.
-            # Also, only 1 experiment per qobj is supported at the moment.
-            data = {"counts": dict(Counter(memory)), "memory": memory}
+            # Note: We currently measure all qubits and ignore classical registers.
 
             qobj = self.qobj()
-
             experiment_results = []
-            experiment_results.append(
-                {
-                    "name": qobj.experiments[0].header.name,
-                    "success": True,
-                    "shots": qobj.config.shots,
-                    "data": data,
-                    "header": qobj.experiments[0].header.to_dict(),
+
+            if not len(memory) == len(qobj.experiments):
+                print(
+                    "There is a mismatch between number of experiments in the Qobj \
+                    and number of results recieved!"
+                )
+            else:
+                print("Results OK")
+
+            for index, experiment_memory in enumerate(memory):
+                data = {
+                    "counts": dict(Counter(experiment_memory)),
+                    "memory": experiment_memory,
                 }
-            )
 
-            experiment_results[0]["header"][
-                "memory_slots"
-            ] = self._backend.configuration().n_qubits
+                # Note: Filling in details from qobj is only to make Qiskit happy
+                # In future, much of this information should be provided by MSS
+                experiment_results.append(
+                    {
+                        "name": qobj.experiments[index].header.name,
+                        "success": True,
+                        "shots": qobj.config.shots,
+                        "data": data,
+                        "header": qobj.experiments[index].header.to_dict(),
+                    }
+                )
 
+                experiment_results[index]["header"][
+                    "memory_slots"
+                ] = self._backend.configuration().n_qubits
+
+            # Note: Filling in details from qobj is only to make Qiskit happy
+            # In future, much of this information should be provided by MSS
             self._result = Result.from_dict(
                 {
                     "results": experiment_results,
                     "backend_name": self._backend.name(),
                     "backend_version": self._backend.version(),
-                    "qobj_id": 0,
+                    "qobj_id": qobj.qobj_id,
                     "job_id": self.job_id(),
                     "success": True,
                 }
