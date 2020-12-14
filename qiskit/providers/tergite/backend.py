@@ -37,7 +37,8 @@ class Backend(BaseBackend):
         job_entry = {
             "job_id": job_id,
             "type": "script",
-            "name": "qiskit_qasm_runner",
+            # "name": "qiskit_qasm_runner",
+            "name": "qasm_dummy_job",
             "params": {"qobj": qobj.to_dict()},
             "hdf5_log_extraction": {"voltages": True, "waveforms": True},
         }
