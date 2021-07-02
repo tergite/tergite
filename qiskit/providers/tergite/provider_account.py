@@ -1,6 +1,6 @@
 # This code is part of Tergite
 #
-# (C) Copyright Miroslav Dobsicek 2020, 2021
+# (C) Copyright Miroslav Dobsicek 2021
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,10 +11,15 @@
 # that they have been altered from the originals.
 
 
-from .factory import Factory
-from .provider import Provider
-from .backend import Backend
-from .job import Job
-from .version import __version__
+from copy import deepcopy
 
-Tergite = Factory()
+
+class ProviderAccount:
+    def __init__(self, service_name, url, token=None, **kwargs):
+        self.service_name = service_name
+        self.url = url
+        self.token = token
+        self.extras = kwargs
+
+    def to_dict(self):
+        return deepcopy(vars(self))

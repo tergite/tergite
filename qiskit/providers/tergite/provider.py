@@ -1,6 +1,6 @@
 # This code is part of Tergite
 #
-# (C) Copyright Miroslav Dobsicek 2020
+# (C) Copyright Miroslav Dobsicek 2020, 2021
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,11 +19,11 @@ from .hardcoded_backend_data import configuration as pingu_cfg_dict
 
 
 class Provider(BaseProvider):
-    def __init__(self):
+    def __init__(self, account):
         super().__init__()
 
-        print("Tergite: Provider init called")
         self._backends = None
+        self._provider_account = account
 
     def backends(self, name=None, filters=None, **kwargs):
         # TODO: decide if we should always fetch from DB, or do it only once
@@ -44,7 +44,9 @@ class Provider(BaseProvider):
 
             backend_config = QasmBackendConfiguration.from_dict(pingu_cfg_dict)
             backends[backend_config.backend_name] = Backend(
-                configuration=backend_config, provider=self
+                configuration=backend_config,
+                provider=self,
+                base_url=self._provider_account.url,
             )
         except TypeError as ex:
             backend_name = pingu_cfg_dict.get("backend_name", "unknown")

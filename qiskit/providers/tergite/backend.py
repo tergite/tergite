@@ -1,6 +1,6 @@
 # This code is part of Tergite
 #
-# (C) Copyright Miroslav Dobsicek 2020
+# (C) Copyright Miroslav Dobsicek 2020, 2021
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,17 +19,17 @@ import json
 import requests
 from uuid import uuid4
 from .hardcoded_backend_data import properties as pingu_prop_dict
-from .config import MSS_URL, REST_API_MAP
+from .config import REST_API_MAP
 
 
 class Backend(BaseBackend):
-    def __init__(self, configuration: BackendConfiguration, provider):
+    def __init__(self, configuration: BackendConfiguration, provider, base_url):
         super().__init__(configuration=configuration, provider=provider)
         self._properties = None
-        print("Tergite: Class Backend initialized")
+        self.base_url = base_url
 
     def run(self, qobj):
-        JOBS_URL = MSS_URL + REST_API_MAP["jobs"]
+        JOBS_URL = self.base_url + REST_API_MAP["jobs"]
         job_registration = requests.post(JOBS_URL).json()
         job_id = job_registration["job_id"]
         job_upload_url = job_registration["upload_url"]

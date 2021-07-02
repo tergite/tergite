@@ -1,6 +1,6 @@
 # This code is part of Tergite
 #
-# (C) Copyright Miroslav Dobsicek 2020
+# (C) Copyright Miroslav Dobsicek 2020, 2021
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +14,7 @@ from qiskit.providers import BaseJob, JobStatus
 from qiskit.result import Result
 from collections import Counter
 import requests
-from .config import MSS_URL, REST_API_MAP
+from .config import REST_API_MAP
 from pathlib import Path
 
 
@@ -43,7 +43,7 @@ class Job(BaseJob):
 
     def result(self):
         if not self._result:
-            JOBS_URL = MSS_URL + REST_API_MAP["jobs"]
+            JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
             job_id = self.job_id()
             response = requests.get(JOBS_URL + "/" + job_id + REST_API_MAP["result"])
 
@@ -107,7 +107,7 @@ class Job(BaseJob):
     def download_logfile(self, save_location: str):
         # TODO: improve error handling
         if not self._download_url:
-            JOBS_URL = MSS_URL + REST_API_MAP["jobs"]
+            JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
             job_id = self.job_id()
             response = requests.get(
                 JOBS_URL + "/" + job_id + REST_API_MAP["download_url"]
