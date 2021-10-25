@@ -1,0 +1,7 @@
+[service mss]
+url = http://host:port
+
+#[service mss_ci]
+#url = http://host:port
+#note = Used for testing
+
