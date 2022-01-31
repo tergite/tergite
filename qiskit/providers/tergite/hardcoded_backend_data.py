@@ -29,7 +29,7 @@ configuration = {
     "backend_version": "0.0.1",
     "basis_gates": ["u1", "u2", "u3", "rx", "ry", "rz", "x", "y", "z", "h", "cz", "cx"],
     "conditional": False,
-    "coupling_map": [[0, 1], [1, 0], [1, 2], [2, 1]],
+    "coupling_map": [[0, 1], [1, 0], [0, 2], [2, 0]],
     "credits_required": False,
     "description": "2 qubit device",
     "gates": [
@@ -58,7 +58,7 @@ configuration = {
             "qasm_def": "gate u3(theta,phi,lambda) q { " "U(theta,phi,lambda) q; }",
         },
         {
-            "coupling_map": [[0, 1], [1, 0]],
+            "coupling_map": [[0, 1], [1, 0], [0, 2], [2, 0]],
             "name": "cz",
             "parameters": [],
             "qasm_def": "gate cz q1,q2 { CZ q1,q2; }",
@@ -262,6 +262,42 @@ properties = {
                 },
             ],
             "qubits": [1, 0],
+        },
+        {
+            "gate": "cz",
+            "parameters": [
+                {
+                    "date": datetime.datetime(2020, 5, 26, 7, 15, 13, tzinfo=tzutc()),
+                    "name": "gate_error",
+                    "unit": "",
+                    "value": 0.008932558150392844,
+                },
+                {
+                    "date": datetime.datetime(2020, 5, 26, 7, 23, 26, tzinfo=tzutc()),
+                    "name": "gate_length",
+                    "unit": "ns",
+                    "value": 277.3333333333333,
+                },
+            ],
+            "qubits": [2, 0],
+        },
+        {
+            "gate": "cz",
+            "parameters": [
+                {
+                    "date": datetime.datetime(2020, 5, 26, 7, 15, 13, tzinfo=tzutc()),
+                    "name": "gate_error",
+                    "unit": "",
+                    "value": 0.008932558150392844,
+                },
+                {
+                    "date": datetime.datetime(2020, 5, 26, 7, 23, 26, tzinfo=tzutc()),
+                    "name": "gate_length",
+                    "unit": "ns",
+                    "value": 277.3333333333333,
+                },
+            ],
+            "qubits": [0, 2],
         },
     ],
     "general": [],
