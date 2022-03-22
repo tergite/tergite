@@ -1,35 +1,25 @@
-# This code is part of Tergite
-#
-# (C) Copyright Miroslav Dobsicek 2020, 2021
-#
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
-
-from qiskit.providers import BaseJob, JobStatus
+from qiskit.providers import JobV1, JobStatus
 from qiskit.result import Result
+from qiskit.qobj import PulseQobj
 from collections import Counter
 import requests
 from .config import REST_API_MAP
 from pathlib import Path
 
-
-class Job(BaseJob):
+class Job(JobV1):
     def __init__(self, backend, job_id: str, qobj):
-        super().__init__(backend, job_id)
-        self._qobj = qobj
+        super().__init__(backend = backend, job_id = job_id)
+        self._qobj = PulseQobj.from_dict(qobj) if not isinstance(qobj, PulseQobj) else qobj            
         self._backend = backend
         self._status = JobStatus.INITIALIZING
         self._result = None
         self._download_url = None
 
+    @property
     def qobj(self):
         return self._qobj
 
+    @property
     def backend(self):
         return self._backend
 
@@ -43,7 +33,7 @@ class Job(BaseJob):
 
     def result(self):
         if not self._result:
-            JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
+            JOBS_URL = self.backend.base_url + REST_API_MAP["jobs"]
             job_id = self.job_id()
             response = requests.get(JOBS_URL + "/" + job_id + REST_API_MAP["result"])
 
@@ -55,7 +45,7 @@ class Job(BaseJob):
 
             # Note: We currently measure all qubits and ignore classical registers.
 
-            qobj = self.qobj()
+            qobj = self.qobj
             experiment_results = []
 
             if not len(memory) == len(qobj.experiments):
@@ -86,15 +76,15 @@ class Job(BaseJob):
 
                 experiment_results[index]["header"][
                     "memory_slots"
-                ] = self._backend.configuration().n_qubits
+                ] = self.backend.configuration().n_qubits
 
             # Note: Filling in details from qobj is only to make Qiskit happy
             # In future, much of this information should be provided by MSS
             self._result = Result.from_dict(
                 {
                     "results": experiment_results,
-                    "backend_name": self._backend.name(),
-                    "backend_version": self._backend.version(),
+                    "backend_name": self.backend.name,
+                    "backend_version": self.backend.version,
                     "qobj_id": qobj.qobj_id,
                     "job_id": self.job_id(),
                     "success": True,
@@ -107,7 +97,7 @@ class Job(BaseJob):
     def download_logfile(self, save_location: str):
         # TODO: improve error handling
         if not self._download_url:
-            JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
+            JOBS_URL = self.backend.base_url + REST_API_MAP["jobs"]
             job_id = self.job_id()
             response = requests.get(
                 JOBS_URL + "/" + job_id + REST_API_MAP["download_url"]
