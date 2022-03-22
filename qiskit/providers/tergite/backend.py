@@ -17,13 +17,13 @@ from typing import Optional, List, Union, Iterable, Tuple
 # job transmission and result retrieval
 from qiskit.result import Result
 from qiskit.providers.ibmq.utils import json_encoder # encodes complex values: [a + ib,c + id] -> [[a,b],[c,d]]
-from qpulse.utils.serialization import iqx_rle
 import pathlib
 import json
 import requests
 from uuid import uuid4
 from .job import Job
 from .config import REST_API_MAP
+from .serialization import iqx_rle
 
 class Backend(BackendV2):
     def __init__(
