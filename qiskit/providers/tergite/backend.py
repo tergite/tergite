@@ -2,9 +2,9 @@ from qiskit.providers import BackendV2
 from qiskit.providers.models import BackendConfiguration
 from qiskit.providers import Options
 from qiskit.pulse.channels import DriveChannel, MeasureChannel, AcquireChannel, ControlChannel
-from qiskit.compiler import assemble
-from qiskit.compiler import transpile
 from qiskit.qobj import PulseQobj
+
+import qiskit.compiler as compiler
 
 # typing
 from qiskit.transpiler import Target
@@ -25,6 +25,15 @@ from .job import Job
 from .config import REST_API_MAP
 from .serialization import iqx_rle
 
+import warnings
+
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    return '%s:%s: %s: %s\n' % (filename, lineno, category.__name__, message)
+warnings.formatwarning = warning_on_one_line
+configuration_warning = """
+backend.configuration() will be deprecated in the future.
+To access backend configuration data, please call its @property methods directly."""
+
 class Backend(BackendV2):
     def __init__(
         self, /,
@@ -44,6 +53,9 @@ class Backend(BackendV2):
         
     @abstractmethod
     def target(self) -> Target:
+        """
+            Please see: https://qiskit.org/documentation/_modules/qiskit/transpiler/target.html#Target
+        """
         ...
     
     def configuration(self) -> BackendConfiguration:
@@ -53,21 +65,25 @@ class Backend(BackendV2):
             
             This method mainly exists for backward compatibility with functions that
             use the old Backend inheritance pattern (it will be phased out).
+            
+            The configuration is where you’ll find data about the static setup of the device,
+            such as its name, version, the number of qubits, and the types of features it supports.
         """
+        warnings.warn(configuration_warning)
         return BackendConfiguration(
             backend_name           = self.name, # from super
             backend_version        = self.backend_version, # from super
             n_qubits               = self.num_qubits, # from self.target
-            basis_gates            = [],
-            gates                  = [],
-            simulator              = False,
-            conditional            = False,
-            local                  = False,
+            basis_gates            = NotImplemented,
+            gates                  = NotImplemented,
+            simulator              = False, # this is a real quantum computer
+            conditional            = False, # we cannot do conditional gate application (yet)
+            local                  = False, # jobs are sent over the internet
             open_pulse             = True,
-            meas_levels            = (0,1),
-            memory                 = False,
+            meas_levels            = (0,1,2), # 0: RAW, 1: KERNELED, 2: DISCRIMINATED
+            memory                 = False, # ?
             max_shots              = infinity, # should be the same as validator of set_options(shots = ...)
-            coupling_map           = self.coupling_map, # by inferior
+            coupling_map           = self.coupling_map, # by inheriting class
             supported_instructions = self.instructions, # from self.target
             dt                     = self.dt, # from self.target
             dtm                    = self.dtm, # from self.dtm
@@ -95,9 +111,10 @@ class Backend(BackendV2):
     @property
     def dtm(self) -> float:
         """
-            Sample rate of measurement instrumentation.
+             The sampling rate of the control rack’s analog-to-digital converters (ADCs)
+             is also relevant for measurement level 0; dtm is the time per sample returned
         """
-        return self.dt # taken from self.target
+        return self.dt # for QBLOX it's the same as dt
     
     
     @abstractmethod
@@ -146,15 +163,15 @@ class Backend(BackendV2):
         
     #
     def drive_channel(self, qubit : int, /):
-        assert qubit in set(range(self.num_qubits)), f"Qubit {qubit} does not exist in this backend"
+#         assert qubit in set(range(self.num_qubits)), f"Qubit {qubit} does not exist in this backend"
         return DriveChannel(qubit)
     
     def measure_channel(self, qubit : int, /):
-        assert qubit in set(range(self.num_qubits)), f"Qubit {qubit} does not exist in this backend"
+#         assert qubit in set(range(self.num_qubits)), f"Qubit {qubit} does not exist in this backend"
         return MeasureChannel(qubit)
     
     def acquire_channel(self, qubit : int, /):
-        self.measure_channel(qubit) # return an error if measure channel does
+#         self.measure_channel(qubit) # return an error if measure channel does
         return AcquireChannel(qubit)
     
     def control_channel(self, qubits : Iterable[int], /):
@@ -194,7 +211,13 @@ class Backend(BackendV2):
             if isinstance(circ, Schedule) or isinstance(circ, ScheduleBlock):
                 schedules.append(circ)
             else:
-                schedules.append(transpile(circ, backend = self))
+                schedules.append(compiler.schedule(
+                    compiler.transpile(
+                        circ,
+                        backend = self
+                    ),
+                    backend = self
+                ))
                 
         #--------- Try to make a nice human readable tag (for all experiments)
         qobj_header = dict() if "qobj_header" not in kwargs else kwargs.pop("qobj_header")
@@ -211,7 +234,7 @@ class Backend(BackendV2):
         qobj_header["dtm"] = self.dtm # for some reason this is not in the config
         
         #--------- Assemble the PulseQobj
-        qobj = assemble(
+        qobj = compiler.assemble(
             experiments       = schedules,
             backend           = self,
             shots             = self.options.shots,
