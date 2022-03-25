@@ -25,15 +25,6 @@ from .job import Job
 from .config import REST_API_MAP
 from .serialization import iqx_rle
 
-import warnings
-
-def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return '%s:%s: %s: %s\n' % (filename, lineno, category.__name__, message)
-warnings.formatwarning = warning_on_one_line
-configuration_warning = """
-backend.configuration() will be deprecated in the future.
-To access backend configuration data, please call its @property methods directly."""
-
 class Backend(BackendV2):
     def __init__(
         self, /,
@@ -69,7 +60,6 @@ class Backend(BackendV2):
             The configuration is where you’ll find data about the static setup of the device,
             such as its name, version, the number of qubits, and the types of features it supports.
         """
-        warnings.warn(configuration_warning)
         return BackendConfiguration(
             backend_name           = self.name, # from super
             backend_version        = self.backend_version, # from super
@@ -104,7 +94,7 @@ class Backend(BackendV2):
             This defines the default user configurable settings of this backend.
             The user can set anything set in _default_options with BackendV2.set_options.
         """
-        options = Options(shots = 100)
+        options = Options(shots = 2000)
         options.set_validator("shots", (1, infinity)) # probably want an upper limit on this one
         return options
     
@@ -160,18 +150,14 @@ class Backend(BackendV2):
             the coupling map exists before the gate definitions.
         """
         ...
-        
-    #
+
     def drive_channel(self, qubit : int, /):
-#         assert qubit in set(range(self.num_qubits)), f"Qubit {qubit} does not exist in this backend"
         return DriveChannel(qubit)
     
     def measure_channel(self, qubit : int, /):
-#         assert qubit in set(range(self.num_qubits)), f"Qubit {qubit} does not exist in this backend"
         return MeasureChannel(qubit)
     
     def acquire_channel(self, qubit : int, /):
-#         self.measure_channel(qubit) # return an error if measure channel does
         return AcquireChannel(qubit)
     
     def control_channel(self, qubits : Iterable[int], /):
@@ -198,9 +184,6 @@ class Backend(BackendV2):
         job_registration = requests.post(JOBS_URL).json()
         job_id = job_registration["job_id"]
         job_upload_url = job_registration["upload_url"]
-        
-        #job_id = str(uuid4())
-        #job_upload_url = "http://localhost:5002/jobs"
         
         #--------- Convert any circuits to pulse schedules
         if not isinstance(circuits, list):
@@ -276,7 +259,6 @@ class Backend(BackendV2):
             "type": "script",
             "name": "pulse_schedule",
             "params": {"qobj": qobj},
-            #"hdf5_log_extraction": {"voltages": True, "waveforms": True},
         }
 
         # create a temporary file for transmission
