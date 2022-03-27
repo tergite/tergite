@@ -2,6 +2,7 @@ from qiskit.providers import BackendV2
 from qiskit.providers.models import BackendConfiguration
 from qiskit.providers import Options
 from qiskit.pulse.channels import DriveChannel, MeasureChannel, AcquireChannel, ControlChannel
+from qiskit.pulse.channels import MemorySlot
 from qiskit.qobj import PulseQobj
 
 import qiskit.compiler as compiler
@@ -159,6 +160,9 @@ class Backend(BackendV2):
     
     def acquire_channel(self, qubit : int, /):
         return AcquireChannel(qubit)
+    
+    def memory_slot(self, qubit : int, /):
+        return MemorySlot(qubit)
     
     def control_channel(self, qubits : Iterable[int], /):
         """
