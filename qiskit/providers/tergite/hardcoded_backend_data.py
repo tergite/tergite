@@ -48,8 +48,8 @@ class Pingu(Backend):
         df["qubit"] = [0, 1]
         df.set_index("qubit")
         
-        df["rabi_amp_gauss"]           = [0.1    , 0.0994]
-        df["rabi_dur_gauss"]           = [58e-9  , 58e-9 ]
+        df["rabi_amp_gauss"]           = [0.1    , 0.10  ]
+        df["rabi_dur_gauss"]           = [58e-9  , 60e-9 ]
         
         df["readout_amp_square"]       = [14e-3  , 14e-3 ]
         df["readout_dur_square"]       = [3.5e-6 , 3.5e-6]
