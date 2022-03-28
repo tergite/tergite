@@ -48,8 +48,8 @@ class Pingu(Backend):
         df["qubit"] = [0, 1]
         df.set_index("qubit")
         
-        df["rabi_amp_gauss"]           = [0.1    , 0.10  ]
-        df["rabi_dur_gauss"]           = [58e-9  , 60e-9 ]
+        df["rabi_amp_gauss"]           = [0.1    , 0.0660]
+        df["rabi_dur_gauss"]           = [58e-9  , 200e-9]
         
         df["readout_amp_square"]       = [14e-3  , 14e-3 ]
         df["readout_dur_square"]       = [3.5e-6 , 3.5e-6]
@@ -70,10 +70,16 @@ class Pingu(Backend):
         if gate_name == "rx":
             θ = get_param("theta")
             for qubit in qubits:
-                sched += Play(Constant(
-                    amp = sin(θ/2) * self.calibration_table["rabi_amp_gauss"][qubit],
-                    duration = round(self.calibration_table["rabi_dur_gauss"][qubit]/self._dt)
-                ), self.drive_channel(qubit))
+                stim_pulse_width = self.calibration_table["rabi_dur_gauss"][qubit]
+                ampl_qubit = self.calibration_table["rabi_amp_gauss"][qubit]
+                sched += Play(
+                    Gaussian(
+                        duration = round(stim_pulse_width/self._dt),
+                        amp = sin(θ/2) * ampl_qubit,
+                        sigma = stim_pulse_width/5e-9
+                    ),
+                    self.drive_channel(qubit)
+                )
         
         elif gate_name == "rz":
             λ = get_param("lambda")
