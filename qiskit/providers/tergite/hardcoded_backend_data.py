@@ -67,19 +67,12 @@ class Pingu(Backend):
         get_param = lambda name: next(filter(lambda param: param.name == name, params))
         
         sched = ScheduleBlock(gate_name)
+            
         if gate_name == "rx":
             θ = get_param("theta")
             for qubit in qubits:
                 stim_pulse_width = self.calibration_table["rabi_dur_gauss"][qubit]
                 ampl_qubit = self.calibration_table["rabi_amp_gauss"][qubit]
-                sched += Delay(
-                    3000,
-                    self.drive_channel(qubit)
-                )
-                sched += Delay(
-                    3000,
-                    self.measure_channel(qubit)
-                )
                 sched += Play(
                     Gaussian(
                         duration = round(stim_pulse_width/self._dt),
