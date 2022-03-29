@@ -42,19 +42,25 @@ class Pingu(Backend):
         
     @functools.cached_property
     def calibration_table(self: object):
+        µs  = 1e-6
+        ns  = 1e-9
+        MHz = 1e6
+        GHz = 1e9
+        mV = 1e-3
+        
         # This should be returned from a database, but right now this suffices
         # all values should be in SI units
         df = pd.DataFrame()
         df["qubit"] = [0, 1]
         df.set_index("qubit")
         
-        df["rabi_amp_gauss"]           = [0.1    , 0.0660]
-        df["rabi_dur_gauss"]           = [58e-9  , 200e-9]
+        df["rabi_amp_gauss"]           = [130*mV]*2
+        df["rabi_dur_gauss"]           = [100*ns]*2
         
-        df["readout_amp_square"]       = [14e-3  , 14e-3 ]
-        df["readout_dur_square"]       = [3.5e-6 , 3.5e-6]
-        df["readout_integration_time"] = [3e-6   , 3e-6  ]
-        df["readout_tof"]              = [300e-9 , 300e-9]
+        df["readout_amp_square"]       = [14*mV ]*2
+        df["readout_dur_square"]       = [3.5*µs]*2
+        df["readout_integration_time"] = [3.0*µs]*2
+        df["readout_tof"]              = [300*ns]*2
         return df
         
     def __getitem__(
@@ -77,7 +83,7 @@ class Pingu(Backend):
                     Gaussian(
                         duration = round(stim_pulse_width/self._dt),
                         amp = sin(θ/2) * ampl_qubit,
-                        sigma = stim_pulse_width/5e-9
+                        sigma = stim_pulse_width/(5*self._dt)
                     ),
                     self.drive_channel(qubit)
                 )
