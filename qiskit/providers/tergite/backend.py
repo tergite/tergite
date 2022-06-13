@@ -21,6 +21,7 @@ from qiskit.providers.ibmq.utils import json_encoder # encodes complex values: [
 import pathlib
 import json
 import requests
+from tempfile import gettempdir
 from uuid import uuid4
 from .job import Job
 from .config import REST_API_MAP
@@ -266,7 +267,8 @@ class Backend(BackendV2):
         }
 
         # create a temporary file for transmission
-        job_file = pathlib.Path("/tmp") / str(uuid4())
+        #job_file = pathlib.Path("/tmp") / str(uuid4())
+        job_file = pathlib.Path(gettempdir()) / str(uuid4())
         with job_file.open("w") as dest:
             json.dump(job_entry, dest, cls = json_encoder.IQXJsonEncoder, indent='\t')
 
