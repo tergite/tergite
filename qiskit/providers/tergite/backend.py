@@ -30,10 +30,16 @@ from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.transpiler.coupling import CouplingMap
 from numpy import inf as infinity
 from abc import abstractmethod
-from typing import Optional, List, Union, Iterable, Tuple
+from typing import (
+    #   Optional,
+    List,
+    Union,
+    Iterable,
+    #   Tuple
+)
 
 # job transmission and result retrieval
-from qiskit.result import Result
+# from qiskit.result import Result
 from qiskit.providers.ibmq.utils import (
     json_encoder,
 )  # encodes complex values: [a + ib,c + id] -> [[a,b],[c,d]]

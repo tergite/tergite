@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 from itertools import groupby
 
-from typing import List, Tuple, Union, Any, Dict
+from typing import List, Tuple, Union, Any  # , Dict
 
 
 def iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:

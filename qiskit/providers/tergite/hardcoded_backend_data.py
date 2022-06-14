@@ -1,6 +1,6 @@
 # This code is part of Tergite
 #
-# (C) Copyright Miroslav Dobsicek 2020, 2021
+# (C) Copyright Andreas Bengtsson, Miroslav Dobsicek 2020, 2021
 # (C) Copyright Axel Andersson 2022
 #
 # This code is licensed under the Apache License, Version 2.0. You may
@@ -14,36 +14,52 @@ from .backend import Backend
 from datetime import datetime
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.transpiler.coupling import CouplingMap
-from qiskit.pulse import Schedule, ScheduleBlock, InstructionScheduleMap
+from qiskit.pulse import (
+    #   Schedule,
+    ScheduleBlock,
+    #  InstructionScheduleMap
+)
 from qiskit.pulse.instructions import (
     Play,
     Delay,
-    SetFrequency,
-    SetPhase,
-    ShiftFrequency,
+    #   SetFrequency,
+    #  SetPhase,
+    #  ShiftFrequency,
     ShiftPhase,
     Acquire,
 )
 
 # from qiskit.pulse.channels import DriveChannel, MeasureChannel, AcquireChannel, ControlChannel
-from qiskit.pulse.library import Gaussian, Constant, cos, GaussianSquare
+from qiskit.pulse.library import (
+    Gaussian,
+    Constant,
+    #   cos,
+    #  GaussianSquare
+)
 
 # from qiskit.circuit import QuantumCircuit
 from qiskit.circuit import Delay as circuitDelay
 
 from qiskit.circuit.measure import Measure
 from qiskit.circuit.library.standard_gates import (
-    CXGate,
-    UGate,
-    ECRGate,
+    # CXGate,
+    # UGate,
+    # ECRGate,
     RXGate,
-    SXGate,
-    XGate,
+    # SXGate,
+    # XGate,
     RZGate,
 )
-from qiskit.circuit import Parameter, Instruction
-from itertools import permutations
-from typing import Optional, List, Union, Iterable, Tuple
+from qiskit.circuit import Parameter  # , Instruction
+
+# from itertools import permutations
+from typing import (
+    #   Optional,
+    List,
+    #   Union,
+    #  Iterable,
+    # Tuple
+)
 from numpy import sin
 import pandas as pd
 
