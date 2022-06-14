@@ -73,7 +73,7 @@ class Tergiterc:
             # account configuration
             config = account.to_dict()
             config.update(config.pop("extras"))  # flatten on 'extras'
-            config.pop("service_name") # remove 'service_name'
+            config.pop("service_name")  # remove 'service_name'
 
             for key, value in config.items():
                 self._parser.set(section_name, str(key), str(value))

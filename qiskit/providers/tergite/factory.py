@@ -23,7 +23,9 @@ class Factory:
         # get a list of provider account objects from tergiterc
         accounts_list = self._tergiterc.load_accounts()
         if not accounts_list:
-            print("Warning: No stored provider account found in $HOME/.qiskit/tergiterc")
+            print(
+                "Warning: No stored provider account found in $HOME/.qiskit/tergiterc"
+            )
 
         # for each item in the accounts list create a Provider object
         for account in accounts_list:
@@ -45,7 +47,9 @@ class Factory:
         providers = self._providers
 
         if not providers:
-            raise Exception("No provider account is available. Provide one via Tergite.use_provider_account(..).")
+            raise Exception(
+                "No provider account is available. Provide one via Tergite.use_provider_account(..)."
+            )
 
         # get by name or default to the first entry
         return providers.get(service_name, next(iter(providers.values())))
