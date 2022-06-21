@@ -40,15 +40,13 @@ from typing import (
 
 # job transmission and result retrieval
 # from qiskit.result import Result
-from qiskit.providers.ibmq.utils import (
-    json_encoder,
-)  # encodes complex values: [a + ib,c + id] -> [[a,b],[c,d]]
 import pathlib
 import json
 import requests
 from tempfile import gettempdir
 from uuid import uuid4
 from .job import Job
+from .json_encoder import IQXJsonEncoder
 from .config import REST_API_MAP
 from .serialization import iqx_rle
 
@@ -291,7 +289,7 @@ class Backend(BackendV2):
         # job_file = pathlib.Path("/tmp") / str(uuid4())
         job_file = pathlib.Path(gettempdir()) / str(uuid4())
         with job_file.open("w") as dest:
-            json.dump(job_entry, dest, cls=json_encoder.IQXJsonEncoder, indent="\t")
+            json.dump(job_entry, dest, cls=IQXJsonEncoder, indent="\t")
 
         with job_file.open("r") as src:
             files = {"upload_file": src}
