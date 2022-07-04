@@ -17,8 +17,8 @@ REQUIREMENTS = [
     "requests>=2.25.1",
     "python_dateutil>=2.8.1",
     "python-multipart>=0.0.5",
-    "qiskit-terra>=0.17.4",
-    "pandas"
+    "qiskit-terra>=0.20.2",
+    "pandas>=1.4.2"
 ]
 
 setup(
