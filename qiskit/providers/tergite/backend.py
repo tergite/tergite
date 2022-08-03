@@ -20,7 +20,7 @@ from qiskit.pulse.channels import (
     ControlChannel,
 )
 from qiskit.pulse.channels import MemorySlot
-from qiskit.qobj import PulseQobj
+# from qiskit.qobj import PulseQobj
 
 import qiskit.compiler as compiler
 
@@ -87,7 +87,7 @@ class Backend(BackendV2):
             simulator=False,  # this is a real quantum computer
             conditional=False,  # we cannot do conditional gate application (yet)
             local=False,  # jobs are sent over the internet
-            open_pulse=True,
+            open_pulse=self.open_pulse,
             meas_levels=(0, 1, 2),  # 0: RAW, 1: KERNELED, 2: DISCRIMINATED
             memory=False,  # ?
             max_shots=infinity,  # should be the same as validator of set_options(shots = ...)
@@ -169,6 +169,13 @@ class Backend(BackendV2):
         the coupling map exists before the gate definitions.
         """
         ...
+        
+    @abstractmethod
+    def run(self, circuits: Union[object, List[object]], /, **kwargs) -> Job:
+        """
+            Method which transpiles and transmits the job to the backend.
+        """
+        ...
 
     def drive_channel(self, qubit: int, /):
         return DriveChannel(qubit)
@@ -197,109 +204,3 @@ class Backend(BackendV2):
             qubits in self.coupling_map.get_edges()
         ), f"Directed coupling {i}->{j} not in coupling map."
         return [ControlChannel(q) for q in qubits]
-
-    def run(self, circuits: Union[object, List[object]], /, **kwargs) -> Job:
-        # --------- Register job
-        JOBS_URL = self.base_url + REST_API_MAP["jobs"]
-        job_registration = requests.post(JOBS_URL).json()
-        job_id = job_registration["job_id"]
-        job_upload_url = job_registration["upload_url"]
-
-        # --------- Convert any circuits to pulse schedules
-        if not isinstance(circuits, list):
-            circuits = [circuits]
-
-        schedules = list()
-        for circ in circuits:
-            if isinstance(circ, Schedule) or isinstance(circ, ScheduleBlock):
-                schedules.append(circ)
-            else:
-                schedules.append(
-                    compiler.schedule(
-                        compiler.transpile(circ, backend=self), backend=self
-                    )
-                )
-
-        # --------- Try to make a nice human readable tag (for all experiments)
-        qobj_header = (
-            dict() if "qobj_header" not in kwargs else kwargs.pop("qobj_header")
-        )
-        if "tag" not in qobj_header:
-            qobj_header["tag"] = (
-                circuits[0].name if type(circuits) == list else circuits.name
-            )
-            if type(circuits) == list:
-                for circ in circuits:
-                    if circ.name != qobj_header["tag"]:
-                        qobj_header["tag"] = ""
-                        break
-            qobj_header["tag"] = qobj_header["tag"].replace(" ", "_")
-
-        qobj_header["dt"] = self.dt  # for some reason this is not in the config
-        qobj_header["dtm"] = self.dtm  # for some reason this is not in the config
-
-        # --------- Assemble the PulseQobj
-        qobj = compiler.assemble(
-            experiments=schedules,
-            backend=self,
-            shots=self.options.shots,
-            meas_map=self.meas_map,
-            qubit_lo_range=[[0, 10e9]] * self.num_qubits,
-            meas_lo_range=[[0, 10e9]] * self.num_qubits,
-            meas_level=1 if "meas_level" not in kwargs else kwargs.pop("meas_level"),
-            meas_return="avg"
-            if "meas_return" not in kwargs
-            else kwargs.pop("meas_return"),
-            qubit_lo_freq=self.qubit_lo_freq,  # qubit frequencies (base + if)
-            meas_lo_freq=self.meas_lo_freq,  # resonator frequencies (base + if)
-            qobj_header=qobj_header,
-            parametric_pulses=[
-                "constant",
-                "zero",
-                "square",
-                "sawtooth",
-                "triangle",
-                "cos",
-                "sin",
-                "gaussian",
-                "gaussian_deriv",
-                "sech",
-                "sech_deriv",
-                "gaussian_square",
-                "drag",
-            ],
-            **kwargs,
-        )
-
-        qobj = PulseQobj.to_dict(qobj)
-
-        # --------- RLE pulse library (for compression)
-        for pulse in qobj["config"]["pulse_library"]:
-            pulse["samples"] = iqx_rle(pulse["samples"])
-
-        # --------- Transmit job
-        job_entry = {
-            "job_id": job_id,
-            "type": "script",
-            "name": "pulse_schedule",
-            "params": {"qobj": qobj},
-        }
-
-        # create a temporary file for transmission
-        # job_file = pathlib.Path("/tmp") / str(uuid4())
-        job_file = pathlib.Path(gettempdir()) / str(uuid4())
-        with job_file.open("w") as dest:
-            json.dump(job_entry, dest, cls=IQXJsonEncoder, indent="\t")
-
-        with job_file.open("r") as src:
-            files = {"upload_file": src}
-            response = requests.post(job_upload_url, files=files)
-
-            if response:
-                print("Tergite: Job has been successfully submitted")
-
-        # delete temporary transmission file
-        job_file.unlink()
-
-        job = Job(backend=self, job_id=job_id, qobj=qobj)
-        return job

@@ -12,19 +12,24 @@
 # that they have been altered from the originals.
 from qiskit.providers import JobV1, JobStatus
 from qiskit.result import Result
-from qiskit.qobj import PulseQobj
+from qiskit.qobj import PulseQobj, QasmQobj
 from collections import Counter
 import requests
 from .config import REST_API_MAP
 from pathlib import Path
 
-
+# TODO TIP, for future programmer:
+#    This class would probably benefit from the use of the decorator: dataclasses.dataclass
+#    please see: https://docs.python.org/3.8/library/dataclasses.html
 class Job(JobV1):
     def __init__(self, backend, job_id: str, qobj):
         super().__init__(backend=backend, job_id=job_id)
-        self._qobj = (
-            PulseQobj.from_dict(qobj) if not isinstance(qobj, PulseQobj) else qobj
-        )
+        
+        if qobj["type"] == "PULSE":
+            self._qobj = PulseQobj.from_dict(qobj)
+        else:
+            self._qobj = QasmQobj.from_dict(qobj)
+
         self._backend = backend
         self._status = JobStatus.INITIALIZING
         self._result = None
