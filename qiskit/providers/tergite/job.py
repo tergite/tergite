@@ -18,13 +18,11 @@ import requests
 from .config import REST_API_MAP
 from pathlib import Path
 
-# TODO TIP, for future programmer:
-#    This class would probably benefit from the use of the decorator: dataclasses.dataclass
-#    please see: https://docs.python.org/3.8/library/dataclasses.html
+
 class Job(JobV1):
     def __init__(self, backend, job_id: str, qobj):
         super().__init__(backend=backend, job_id=job_id)
-        
+
         if qobj["type"] == "PULSE":
             self._qobj = PulseQobj.from_dict(qobj)
         else:

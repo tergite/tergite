@@ -20,16 +20,13 @@ from qiskit.pulse.channels import (
     AcquireChannel,
     ControlChannel,
     DriveChannel,
-    MeasureChannel
+    MeasureChannel,
 )
 from qiskit.pulse.channels import MemorySlot
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
-from typing import (
-    Iterable,
-    List,
-    Union
-)
+from typing import Iterable, List, Union
+
 
 class Backend(BackendV2):
     def __init__(self, /, provider: object, base_url: str, **kwargs):
@@ -149,11 +146,11 @@ class Backend(BackendV2):
         the coupling map exists before the gate definitions.
         """
         ...
-        
+
     @abstractmethod
     def run(self, circuits: Union[object, List[object]], /, **kwargs) -> Job:
         """
-            Method which transpiles and transmits the job to the backend.
+        Method which transpiles and transmits the job to the backend.
         """
         ...
 
