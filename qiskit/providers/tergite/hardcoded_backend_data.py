@@ -323,13 +323,6 @@ class PinguOpenQASM(Backend):
         self._tmp_fix_backend = PinguOpenPulse(provider=provider, base_url=base_url)
 
     @functools.cached_property
-    def calibration_table(self: object):
-        return self._tmp_fix_backend.calibration_table
-
-    def __getitem__(self: object, args: tuple):
-        return self.self._tmp_fix_backend.__getitem__(args=args)
-
-    @functools.cached_property
     def target(self: object) -> Target:
         return self._tmp_fix_backend.target
 
