@@ -10,46 +10,26 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+from .job import Job
+from abc import abstractmethod
+from numpy import inf as infinity
 from qiskit.providers import BackendV2
-from qiskit.providers.models import BackendConfiguration
 from qiskit.providers import Options
+from qiskit.providers.models import BackendConfiguration
 from qiskit.pulse.channels import (
-    DriveChannel,
-    MeasureChannel,
     AcquireChannel,
     ControlChannel,
+    DriveChannel,
+    MeasureChannel
 )
 from qiskit.pulse.channels import MemorySlot
-# from qiskit.qobj import PulseQobj
-
-import qiskit.compiler as compiler
-
-# typing
 from qiskit.transpiler import Target
-from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.transpiler.coupling import CouplingMap
-from numpy import inf as infinity
-from abc import abstractmethod
 from typing import (
-    #   Optional,
-    List,
-    Union,
     Iterable,
-    #   Tuple
+    List,
+    Union
 )
-
-# job transmission and result retrieval
-# from qiskit.result import Result
-import pathlib
-import json
-import requests
-from tempfile import gettempdir
-from uuid import uuid4
-from .job import Job
-from .json_encoder import IQXJsonEncoder
-from .config import REST_API_MAP
-from .serialization import iqx_rle
-
 
 class Backend(BackendV2):
     def __init__(self, /, provider: object, base_url: str, **kwargs):
