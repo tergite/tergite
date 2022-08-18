@@ -18,8 +18,12 @@ from .provider_account import ProviderAccount
 
 
 TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
-REST_API_MAP = {"jobs": "/jobs", "result": "/result", "download_url": "/download_url"}
-
+REST_API_MAP = {
+    "jobs": "/jobs",
+    "result": "/result",
+    "download_url": "/download_url",
+    "calibrations": "/calibrations"
+}
 
 class Tergiterc:
     def __init__(self):
