@@ -17,7 +17,7 @@ from collections import Counter
 import requests
 from .config import REST_API_MAP
 from pathlib import Path
-
+from tempfile import gettempdir
 
 class Job(JobV1):
     def __init__(self, backend, job_id: str, qobj):
@@ -29,29 +29,67 @@ class Job(JobV1):
             self._qobj = QasmQobj.from_dict(qobj)
 
         self._backend = backend
-        self._status = JobStatus.INITIALIZING
         self._result = None
-        self._download_url = None
 
     @property
-    def qobj(self):
-        return self._qobj
-
-    @property
-    def backend(self):
-        return self._backend
-
     def status(self):
-        print("Tergite: Job status() not implemented yet")
-        return self._status
+        JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
+        job_id = self.job_id()
+        response = requests.get(JOBS_URL + "/" + job_id)
+        response_data = response.json()
+        if response_data:
+            return response_data["status"]
+
+    def store_data(self, documents : list):
+        download_url = self.download_url
+        if not download_url:
+            return
+        CALIBS_URL = self._backend.base_url + REST_API_MAP["calibrations"]
+        for doc in documents:
+            doc.update({
+                "job_id" :  self.job_id(),
+                "download_url" : download_url
+            })
+        response = requests.post(CALIBS_URL, json = documents)
+        if not response:
+            print(f"Failed to store {len(documents)} document(s), server error: {response}")
+
+    def submit(self,*args, **kwargs):
+        print("Tergite: Job submit() is deprecated")
+        pass
+
+    @property
+    def download_url(self) -> str:
+        if self.status != "DONE":
+            print(f"Job {self.job_id()} has not yet completed.")
+            return
+
+        JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
+        job_id = self.job_id()
+        response = requests.get(JOBS_URL + "/" + job_id)
+        response_data = response.json()
+        if response_data:
+            return response_data["download_url"]
+
+    @property
+    def logfile(self) -> Path:
+        url = self.download_url
+        if not url:
+            return
+
+        response = requests.get(url)
+        job_file = Path(gettempdir()) / job_id
+        with open(job_file, "wb") as dest:
+            dest.write(response.content)
+        return job_file
 
     def cancel(self):
-        print("Tergite: Job cancel() not implemented yet")
-        return None
+        print(NotImplemented)
+        pass # TODO
 
     def result(self):
         if not self._result:
-            JOBS_URL = self.backend.base_url + REST_API_MAP["jobs"]
+            JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
             job_id = self.job_id()
             response = requests.get(JOBS_URL + "/" + job_id + REST_API_MAP["result"])
 
@@ -63,7 +101,7 @@ class Job(JobV1):
 
             # Note: We currently measure all qubits and ignore classical registers.
 
-            qobj = self.qobj
+            qobj = self._qobj
             experiment_results = []
 
             if not len(memory) == len(qobj.experiments):
@@ -94,15 +132,15 @@ class Job(JobV1):
 
                 experiment_results[index]["header"][
                     "memory_slots"
-                ] = self.backend.configuration().n_qubits
+                ] = self._backend.configuration().n_qubits
 
             # Note: Filling in details from qobj is only to make Qiskit happy
             # In future, much of this information should be provided by MSS
             self._result = Result.from_dict(
                 {
                     "results": experiment_results,
-                    "backend_name": self.backend.name,
-                    "backend_version": self.backend.version,
+                    "backend_name": self._backend.name,
+                    "backend_version": self._backend.version,
                     "qobj_id": qobj.qobj_id,
                     "job_id": self.job_id(),
                     "success": True,
@@ -110,32 +148,3 @@ class Job(JobV1):
             )
 
         return self._result
-
-    # NOTE: This API is WIP
-    def download_logfile(self, save_location: str):
-        # TODO: improve error handling
-        if not self._download_url:
-            JOBS_URL = self.backend.base_url + REST_API_MAP["jobs"]
-            job_id = self.job_id()
-            response = requests.get(
-                JOBS_URL + "/" + job_id + REST_API_MAP["download_url"]
-            )
-            print(response.json())
-
-            if response:
-                self._response = response  # for debugging
-                self._download_url = response.json()
-            else:
-                return None
-
-        response = requests.get(self._download_url)
-        if response:
-            file = Path(save_location) / (self.job_id() + ".hdf5")
-            with file.open("wb") as destination:
-                destination.write(response.content)
-
-        return None
-
-    def submit(self):
-        print("Tergite: Job submit() is deprecated")
-        return None
