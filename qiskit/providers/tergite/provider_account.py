@@ -13,13 +13,14 @@
 
 from dataclasses import dataclass, asdict
 
+
 @dataclass
 class ProviderAccount:
-    
-    service_name : str
-    url : str
-    token : str = None
-    extras : dict = None
-        
-    def to_dict(self:object) -> dict:
+
+    service_name: str
+    url: str
+    token: str = None
+    extras: dict = None
+
+    def to_dict(self: object) -> dict:
         return asdict(self)

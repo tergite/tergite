@@ -22,8 +22,9 @@ REST_API_MAP = {
     "jobs": "/jobs",
     "result": "/result",
     "download_url": "/download_url",
-    "calibrations": "/calibrations"
+    "calibrations": "/calibrations",
 }
+
 
 class Tergiterc:
     def __init__(self):

@@ -14,6 +14,7 @@ import json
 from qiskit.circuit.parameterexpression import ParameterExpression
 from typing import List, Tuple, Union, Any  # , Dict
 
+
 def iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:
     """
     Run-length encodes a sequence.
@@ -30,6 +31,7 @@ def iqx_rld(enc_seq: List[Union[Tuple[Any], Tuple[Any, int]]]) -> List[Any]:
     """
     dec = [[t[0] for _ in range(t[1])] if len(t) == 2 else [t[0]] for t in enc_seq]
     return [item for sublist in dec for item in sublist]
+
 
 # The below code is part of Qiskit.
 #
@@ -59,6 +61,7 @@ def iqx_rld(enc_seq: List[Union[Tuple[Any], Tuple[Any, int]]]) -> List[Any]:
 # This code has been derived from the Qiskit json encoder in the IBMQ providers github.
 # The reason is to remove IBMQ as a dependency, but still be able to use the functionality.
 # It has not been altered.
+
 
 class IQXJsonEncoder(json.JSONEncoder):
     """A json encoder for qobj"""
@@ -92,7 +95,7 @@ class IQXJsonEncoder(json.JSONEncoder):
 
     def default(self, o: Any) -> Any:
         # Convert numpy arrays:
-        if hasattr(o, 'tolist'):
+        if hasattr(o, "tolist"):
             return o.tolist()
         # Use Qobj complex json format:
         if isinstance(o, complex):

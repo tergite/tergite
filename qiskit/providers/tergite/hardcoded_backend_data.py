@@ -35,7 +35,12 @@ from .job import Job
 from .config import REST_API_MAP
 from .serialization import iqx_rle, IQXJsonEncoder
 
-from qiskit.pulse.channels import AcquireChannel, ControlChannel, DriveChannel, MeasureChannel
+from qiskit.pulse.channels import (
+    AcquireChannel,
+    ControlChannel,
+    DriveChannel,
+    MeasureChannel,
+)
 from qiskit.pulse.channels import MemorySlot
 
 
@@ -52,33 +57,33 @@ class PinguOpenPulse(Backend):
         self._dt = 1e-9
         self.open_pulse = True
         self._acq_mapping = {
-            0 : 0, # readout pingu input
-            1 : 1, # readout pingu input
-            2 : 2, # readout pingu input
-            3 : 3, # readout pingu input
-            4 : 4  # readout pingu input
+            0: 0,  # readout pingu input
+            1: 1,  # readout pingu input
+            2: 2,  # readout pingu input
+            3: 3,  # readout pingu input
+            4: 4,  # readout pingu input
         }
         self._drive_mapping = {
-            0 : 30, # XY-2
-            1 : 6, # XY-3
-            2 : 18, # XY-4
-            3 : 24, # XY-1
-            4 : 12  # XY-6
+            0: 30,  # XY-2
+            1: 6,  # XY-3
+            2: 18,  # XY-4
+            3: 24,  # XY-1
+            4: 12,  # XY-6
         }
 
     # these 4 functions override Backend methods
-    def measure_channel(self:object, qb: int):
+    def measure_channel(self: object, qb: int):
         return MeasureChannel(self._acq_mapping[qb])
-    
-    def acquire_channel(self:object, qb: int):
+
+    def acquire_channel(self: object, qb: int):
         return AcquireChannel(self._acq_mapping[qb])
-    
-    def drive_channel(self:object, qb: int):
+
+    def drive_channel(self: object, qb: int):
         return DriveChannel(self._drive_mapping[qb])
-    
-#     def memory_slot(self:object, qb: int):
-#         return MemorySlot()
-        
+
+    #     def memory_slot(self:object, qb: int):
+    #         return MemorySlot()
+
     @functools.cached_property
     def calibration_table(self: object):
         µs = 1e-6
@@ -222,7 +227,7 @@ class PinguOpenPulse(Backend):
 
     @property
     def coupling_map(self: object) -> CouplingMap:
-        cl = [[i,0] for i in range(5)]
+        cl = [[i, 0] for i in range(5)]
         return CouplingMap(couplinglist=cl)
 
     def run(self, circuits, /, **kwargs) -> Job:
@@ -277,10 +282,16 @@ class PinguOpenPulse(Backend):
             meas_return="avg"
             if "meas_return" not in kwargs
             else kwargs.pop("meas_return"),
-#             qubit_lo_freq=self.qubit_lo_freq,  # qubit frequencies (base + if)
-#             meas_lo_freq=self.meas_lo_freq,  # resonator frequencies (base + if)
-            qubit_lo_freq = [ 6.1764e9,      6.052e9,       6.2386e9,  5.9194e9,  5.033e9],
-            meas_lo_freq = [ 6.884247747e9, 6.745068637e9, 7.02947e9, 7.18522e9, 6.660018069e9 ],
+            #             qubit_lo_freq=self.qubit_lo_freq,  # qubit frequencies (base + if)
+            #             meas_lo_freq=self.meas_lo_freq,  # resonator frequencies (base + if)
+            qubit_lo_freq=[6.1764e9, 6.052e9, 6.2386e9, 5.9194e9, 5.033e9],
+            meas_lo_freq=[
+                6.884247747e9,
+                6.745068637e9,
+                7.02947e9,
+                7.18522e9,
+                6.660018069e9,
+            ],
             qobj_header=qobj_header,
             parametric_pulses=[
                 "constant",

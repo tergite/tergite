@@ -19,6 +19,7 @@ from .config import REST_API_MAP
 from pathlib import Path
 from tempfile import gettempdir
 
+
 class Job(JobV1):
     def __init__(self, backend, job_id: str, qobj):
         super().__init__(backend=backend, job_id=job_id)
@@ -40,21 +41,20 @@ class Job(JobV1):
         if response_data:
             return response_data["status"]
 
-    def store_data(self, documents : list):
+    def store_data(self, documents: list):
         download_url = self.download_url
         if not download_url:
             return
         CALIBS_URL = self._backend.base_url + REST_API_MAP["calibrations"]
         for doc in documents:
-            doc.update({
-                "job_id" :  self.job_id(),
-                "download_url" : download_url
-            })
-        response = requests.post(CALIBS_URL, json = documents)
+            doc.update({"job_id": self.job_id(), "download_url": download_url})
+        response = requests.post(CALIBS_URL, json=documents)
         if not response:
-            print(f"Failed to store {len(documents)} document(s), server error: {response}")
+            print(
+                f"Failed to store {len(documents)} document(s), server error: {response}"
+            )
 
-    def submit(self,*args, **kwargs):
+    def submit(self, *args, **kwargs):
         print("Tergite: Job submit() is deprecated")
         pass
 
@@ -85,7 +85,7 @@ class Job(JobV1):
 
     def cancel(self):
         print(NotImplemented)
-        pass # TODO
+        pass  # TODO
 
     def result(self):
         if not self._result:
