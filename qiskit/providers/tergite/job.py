@@ -41,7 +41,7 @@ class Job(JobV1):
         if response_data:
             return response_data["status"]
 
-    def store_data(self, documents: list):
+    def store_data(self, documents: list):        
         download_url = self.download_url
         if not download_url:
             return
@@ -78,7 +78,7 @@ class Job(JobV1):
             return
 
         response = requests.get(url)
-        job_file = Path(gettempdir()) / job_id
+        job_file = Path(gettempdir()) / self.job_id()
         with open(job_file, "wb") as dest:
             dest.write(response.content)
         return job_file
