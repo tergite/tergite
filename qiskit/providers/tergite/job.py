@@ -41,7 +41,10 @@ class Job(JobV1):
         if response_data:
             return response_data["status"]
 
-    def store_data(self, documents: list):        
+    def store_data(self, documents: list):
+        store = input("Store this data? (y/n)\t".expandtabs())
+        if str.lower(store) not in ("y", "yes"):
+            return
         download_url = self.download_url
         if not download_url:
             return
