@@ -10,7 +10,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from qiskit.providers import JobV1, JobStatus
+from qiskit.providers import JobV1
 from qiskit.result import Result
 from qiskit.qobj import PulseQobj, QasmQobj
 from collections import Counter
@@ -23,18 +23,10 @@ from pathlib import Path
 from tempfile import gettempdir
 from uuid import uuid4
 
+
 class Job(JobV1):
-    def __init__(
-        self: object, *,
-        backend: object,
-        job_id: str,
-        upload_url: str
-    ):
-        super().__init__(
-            backend=backend,
-            job_id=job_id,
-            upload_url=upload_url
-        )
+    def __init__(self: object, *, backend: object, job_id: str, upload_url: str):
+        super().__init__(backend=backend, job_id=job_id, upload_url=upload_url)
 
     @property
     def status(self):
@@ -69,14 +61,16 @@ class Job(JobV1):
         job_id = self.job_id()
         job_entry = {
             "job_id": job_id,
-            "type": "script", # ?
+            "type": "script",  # ?
         }
         if type(payload) is QasmQobj:
             job_entry["name"] = "qasm_dummy_job"
-            job_entry.update({
-                "name" : "qasm_dummy_job",
-                "params": {"qobj": payload.to_dict()},
-            })
+            job_entry.update(
+                {
+                    "name": "qasm_dummy_job",
+                    "params": {"qobj": payload.to_dict()},
+                }
+            )
 
         elif type(payload) is PulseQobj:
             payload = payload.to_dict()
@@ -84,10 +78,12 @@ class Job(JobV1):
             for pulse in payload["config"]["pulse_library"]:
                 pulse["samples"] = iqx_rle(pulse["samples"])
 
-            job_entry.update({
-                "name" : "pulse_schedule",
-                "params": {"qobj": payload},
-            })
+            job_entry.update(
+                {
+                    "name": "pulse_schedule",
+                    "params": {"qobj": payload},
+                }
+            )
 
         else:
             raise RuntimeError(f"Unprocessable payload type: {type(payload)}")
@@ -139,7 +135,7 @@ class Job(JobV1):
 
     def cancel(self):
         print("Job.cancel() is not implemented.")
-        pass # TODO: This can be implemented server side with stoppable threads.
+        pass  # TODO: This can be implemented server side with stoppable threads.
 
     def result(self):
         if self.status != "DONE":
@@ -166,20 +162,22 @@ class Job(JobV1):
         # Extract results
         experiment_results = list()
         for index, experiment_memory in enumerate(memory):
-            experiment_results.append(ExperimentResult(
-                shots = self.metadata["shots"],
-                success = True,
-                data = ExperimentResultData(
-                    counts = dict(Counter(experiment_memory)),
-                    memory = experiment_memory
+            experiment_results.append(
+                ExperimentResult(
+                    shots=self.metadata["shots"],
+                    success=True,
+                    data=ExperimentResultData(
+                        counts=dict(Counter(experiment_memory)),
+                        memory=experiment_memory,
+                    ),
                 )
-            ))
+            )
 
         return Result(
-            backend_name = backend.name,
-            backend_version = backend.backend_version,
-            qobj_id = self.metadata["qobj_id"],
-            job_id = job_id,
-            success = True,
-            results = experiment_results
+            backend_name=backend.name,
+            backend_version=backend.backend_version,
+            qobj_id=self.metadata["qobj_id"],
+            job_id=job_id,
+            success=True,
+            results=experiment_results,
         )

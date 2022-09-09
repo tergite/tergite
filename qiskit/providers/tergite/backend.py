@@ -33,6 +33,7 @@ from qiskit.qobj import PulseQobj, QasmQobj
 import qiskit.compiler as compiler
 import requests
 
+
 class TergiteBackend(BackendV2):
 
     max_shots = infinity
@@ -42,9 +43,7 @@ class TergiteBackend(BackendV2):
     def _default_options(cls, /) -> Options:
         """This defines the default user configurable settings of this backend. See: help(backend.set_options)"""
         options = Options(shots=2000)
-        options.set_validator(
-            "shots", (1, TergiteBackend.max_shots)
-        )
+        options.set_validator("shots", (1, TergiteBackend.max_shots))
         return options
 
     def __init__(self, /, *, data: dict, provider: object, base_url: str):
@@ -71,7 +70,9 @@ class TergiteBackend(BackendV2):
         if response.ok:
             job_registration = response.json()
         else:
-            raise RuntimeError(f"Unable to register job at the Tergite MSS, response: {response}")
+            raise RuntimeError(
+                f"Unable to register job at the Tergite MSS, response: {response}"
+            )
         job_id = job_registration["job_id"]
         job_upload_url = job_registration["upload_url"]
         return Job(backend=self, job_id=job_id, upload_url=job_upload_url)
@@ -90,7 +91,10 @@ class TergiteBackend(BackendV2):
             print("Tergite: Job has been successfully submitted")
             return job
         else:
-            raise RuntimeError(f"Unable to transmit job to the Tergite BCC, response: {response}")
+            raise RuntimeError(
+                f"Unable to transmit job to the Tergite BCC, response: {response}"
+            )
+
 
 class OpenPulseBackend(TergiteBackend):
 
@@ -114,24 +118,24 @@ class OpenPulseBackend(TergiteBackend):
 
     def configuration(self: object) -> BackendConfiguration:
         return BackendConfiguration(
-            backend_name=self.name, # From BackendV2.
-            backend_version=self.backend_version, # From BackendV2.
+            backend_name=self.name,  # From BackendV2.
+            backend_version=self.backend_version,  # From BackendV2.
             n_qubits=self.target.num_qubits,
             basis_gates=["rx", "rz", "delay", "measure"],
             gates=[],
-            simulator=False, # This is a real quantum computer.
-            conditional=False, # We cannot do conditional gate application yet.
-            local=False, # Jobs are sent over the internet.
+            simulator=False,  # This is a real quantum computer.
+            conditional=False,  # We cannot do conditional gate application yet.
+            local=False,  # Jobs are sent over the internet.
             open_pulse=True,
-            meas_levels=(0, 1), # 0: RAW, 1: INTEGRATED, 2: DISCRIMINATED
+            meas_levels=(0, 1),  # 0: RAW, 1: INTEGRATED, 2: DISCRIMINATED
             memory=False,
-            max_shots=TergiteBackend.max_shots, # From TergiteBackend.
+            max_shots=TergiteBackend.max_shots,  # From TergiteBackend.
             coupling_map=self.coupling_map,
             supported_instructions=self.target.instructions,
             dt=self.dt,
             dtm=self.dtm,
-            description=self.description, # From BackendV2.
-            parametric_pulses = OpenPulseBackend.parametric_pulses
+            description=self.description,  # From BackendV2.
+            parametric_pulses=OpenPulseBackend.parametric_pulses,
         )
 
     @property
@@ -159,23 +163,17 @@ class OpenPulseBackend(TergiteBackend):
                 τ = delay_sched.get_parameters("τ")[0]
 
                 for gate, param, sched in zip(
-                    [ RXGate,   RZGate,     circuitDelay ],
-                    [ θ,        λ,          τ ],
-                    [ rx_sched, rz_sched,   delay_sched ]
+                    [RXGate, RZGate, circuitDelay],
+                    [θ, λ, τ],
+                    [rx_sched, rz_sched, delay_sched],
                 ):
-                    props = {
-                        (q,) : InstructionProperties(
-                            error = 0.0,
-                            calibration = sched
-                        )
-                    }
+                    props = {(q,): InstructionProperties(error=0.0, calibration=sched)}
                     gmap.add_instruction(gate(param), props)
 
             # Measurement
             measure_props = {
-                qubits : InstructionProperties(
-                    error=0.0,
-                    calibration=templates.measure(self, qubits)
+                qubits: InstructionProperties(
+                    error=0.0, calibration=templates.measure(self, qubits)
                 )
             }
             gmap.add_instruction(Measure(), measure_props)
@@ -233,8 +231,9 @@ class OpenPulseBackend(TergiteBackend):
             backend=self,
             qubit_lo_freq=self.qubit_lo_freq,
             meas_lo_freq=self.meas_lo_freq,
-            **kwargs
+            **kwargs,
         )
+
 
 class OpenQASMBackend(OpenPulseBackend):
 
@@ -247,27 +246,24 @@ class OpenQASMBackend(OpenPulseBackend):
             if not isinstance(e, QuantumCircuit):
                 raise TypeError(f"Experiment {e} is not an instance of QuantumCircuit.")
         circuits = compiler.transpile(
-            circuits = experiments,
-            basis_gates = self.data["basis_gates"],
+            circuits=experiments,
+            basis_gates=self.data["basis_gates"],
         )
-        return compiler.assemble(
-            experiments = circuits,
-            **kwargs
-        )
+        return compiler.assemble(experiments=circuits, **kwargs)
 
     def configuration(self: object) -> BackendConfiguration:
         return BackendConfiguration(
-            backend_name=self.name, # From BackendV2.
-            backend_version=self.backend_version, # From BackendV2.
+            backend_name=self.name,  # From BackendV2.
+            backend_version=self.backend_version,  # From BackendV2.
             n_qubits=self.target.num_qubits,
             basis_gates=self.data["basis_gates"],
             gates=[],
-            simulator=False, # This is a real quantum computer.
-            conditional=False, # We cannot do conditional gate application yet.
-            local=False, # Jobs are sent over the internet.
+            simulator=False,  # This is a real quantum computer.
+            conditional=False,  # We cannot do conditional gate application yet.
+            local=False,  # Jobs are sent over the internet.
             open_pulse=False,
-            meas_levels=(2,), # 0: RAW, 1: INTEGRATED, 2: DISCRIMINATED
-            memory=True, # Meas level 2 results are stored in MongoDB.
-            max_shots=TergiteBackend.max_shots, # From TergiteBackend.
+            meas_levels=(2,),  # 0: RAW, 1: INTEGRATED, 2: DISCRIMINATED
+            memory=True,  # Meas level 2 results are stored in MongoDB.
+            max_shots=TergiteBackend.max_shots,  # From TergiteBackend.
             coupling_map=self.coupling_map,
         )
