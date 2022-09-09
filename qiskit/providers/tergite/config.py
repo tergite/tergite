@@ -23,6 +23,7 @@ REST_API_MAP = {
     "result": "/result",
     "download_url": "/download_url",
     "calibrations": "/calibrations",
+    "backends": "/backends",
 }
 
 
