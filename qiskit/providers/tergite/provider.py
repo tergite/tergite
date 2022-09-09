@@ -12,41 +12,50 @@
 # that they have been altered from the originals.
 from qiskit.providers import ProviderV1
 from qiskit.providers.providerutils import filter_backends
-
-# TODO: fetch available backends from DB
-from .hardcoded_backend_data import hardcoded_backends
+import requests
+import json
+from .config import REST_API_MAP
+from .backend import OpenPulseBackend, OpenQASMBackend
+import functools
 
 
 class Provider(ProviderV1):
     def __init__(self, /, account: object):
         super().__init__()
-
-        self._backends = None
-        self._provider_account = account
+        self.provider_account = account
 
     def backends(self, /, name: str = None, filters: callable = None, **kwargs) -> list:
         """
         Filter the available backends of this provider.
         Return value is a list of instantiated and available backends.
         """
-        # TODO: decide if we should always fetch from DB, or do it only once
-        self._backends = self._fetch_backends()
-        backends = self._backends.values()
-
         if name:
             kwargs["backend_name"] = name
 
-        return filter_backends(backends, filters=filters, **kwargs)
+        return filter_backends(
+            self.available_backends.values(), filters=filters, **kwargs
+        )
 
-    def _fetch_backends(self, /) -> dict:
-        """
-        Fetch all the backends of this provider.
-        Key of return dict is name of backend.
-        Value of return dict is instantiated backend object.
-        """
+    @functools.cached_property
+    def available_backends(self, /) -> dict:
         backends = dict()
-        for backend in hardcoded_backends:
-            obj = backend(provider=self, base_url=self._provider_account.url)
+
+        response = requests.get(self.provider_account.url + REST_API_MAP["backends"])
+        if not response.ok:
+            raise RuntimeError(
+                f"GET request for backends timed out. GET {self.provider_account.url}"
+                + REST_API_MAP["backends"]
+            )
+
+        for backend_dict in response.json():
+            if backend_dict["open_pulse"]:
+                obj = OpenPulseBackend(
+                    data=backend_dict, provider=self, base_url=self.provider_account.url
+                )
+            else:
+                obj = OpenQASMBackend(
+                    data=backend_dict, provider=self, base_url=self.provider_account.url
+                )
             backends[obj.name] = obj
 
         return backends
