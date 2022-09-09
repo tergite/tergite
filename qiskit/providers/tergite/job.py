@@ -15,31 +15,36 @@ from qiskit.result import Result
 from qiskit.qobj import PulseQobj, QasmQobj
 from collections import Counter
 import requests
+from .serialization import IQXJsonEncoder, iqx_rle
+import json
 from .config import REST_API_MAP
+from qiskit.result.models import ExperimentResult, ExperimentResultData
 from pathlib import Path
 from tempfile import gettempdir
-
+from uuid import uuid4
 
 class Job(JobV1):
-    def __init__(self, backend, job_id: str, qobj):
-        super().__init__(backend=backend, job_id=job_id)
-
-        if qobj["type"] == "PULSE":
-            self._qobj = PulseQobj.from_dict(qobj)
-        else:
-            self._qobj = QasmQobj.from_dict(qobj)
-
-        self._backend = backend
-        self._result = None
+    def __init__(
+        self: object, *,
+        backend: object,
+        job_id: str,
+        upload_url: str
+    ):
+        super().__init__(
+            backend=backend,
+            job_id=job_id,
+            upload_url=upload_url
+        )
 
     @property
     def status(self):
-        JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
+        jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
         job_id = self.job_id()
-        response = requests.get(JOBS_URL + "/" + job_id)
-        response_data = response.json()
-        if response_data:
-            return response_data["status"]
+        response = requests.get(jobs_url + "/" + job_id)
+        if response.ok:
+            return response.json()["status"]
+        else:
+            raise RuntimeError(f"Failed to GET status of job: {job_id}")
 
     def store_data(self, documents: list):
         store = input("Store this data? (y/n)\t".expandtabs())
@@ -48,106 +53,133 @@ class Job(JobV1):
         download_url = self.download_url
         if not download_url:
             return
-        CALIBS_URL = self._backend.base_url + REST_API_MAP["calibrations"]
+        calibs_url = self.backend().base_url + REST_API_MAP["calibrations"]
         for doc in documents:
             doc.update({"job_id": self.job_id(), "download_url": download_url})
-        response = requests.post(CALIBS_URL, json=documents)
+        response = requests.post(calibs_url, json=documents)
         if not response:
             print(
                 f"Failed to store {len(documents)} document(s), server error: {response}"
             )
 
-    def submit(self, *args, **kwargs):
-        print("Tergite: Job submit() is deprecated")
-        pass
+    def submit(self: object, payload: object, /):
+        self.metadata["shots"] = payload.config.shots
+        self.metadata["qobj_id"] = payload.qobj_id
+        self.metadata["num_experiments"] = len(payload.experiments)
+        job_id = self.job_id()
+        job_entry = {
+            "job_id": job_id,
+            "type": "script", # ?
+        }
+        if type(payload) is QasmQobj:
+            job_entry["name"] = "qasm_dummy_job"
+            job_entry.update({
+                "name" : "qasm_dummy_job",
+                "params": {"qobj": payload.to_dict()},
+            })
+
+        elif type(payload) is PulseQobj:
+            payload = payload.to_dict()
+            # In-place RLE pulse library for compression
+            for pulse in payload["config"]["pulse_library"]:
+                pulse["samples"] = iqx_rle(pulse["samples"])
+
+            job_entry.update({
+                "name" : "pulse_schedule",
+                "params": {"qobj": payload},
+            })
+
+        else:
+            raise RuntimeError(f"Unprocessable payload type: {type(payload)}")
+
+        # Serialize the job to json
+        job_file = Path(gettempdir()) / str(uuid4())
+        with job_file.open("w") as dest:
+            json.dump(job_entry, dest, cls=IQXJsonEncoder, indent="\t")
+
+        job_upload_url = self.metadata["upload_url"]
+
+        # Transmit the job POST request
+        with job_file.open("r") as src:
+            files = {"upload_file": src}
+            response = requests.post(job_upload_url, files=files)
+            if not response.ok:
+                raise RuntimeError(f"Failed to POST job: {job_id}")
+
+        # Delete temporary transmission file
+        job_file.unlink()
+        return response
 
     @property
     def download_url(self) -> str:
         if self.status != "DONE":
             print(f"Job {self.job_id()} has not yet completed.")
             return
-
-        JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
+        jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
         job_id = self.job_id()
-        response = requests.get(JOBS_URL + "/" + job_id)
-        response_data = response.json()
-        if response_data:
-            return response_data["download_url"]
+        response = requests.get(jobs_url + "/" + job_id)
+        if response.ok:
+            return response.json()["download_url"]
+        else:
+            raise RuntimeError(f"Failed to GET download URL of job: {job_id}")
 
     @property
     def logfile(self) -> Path:
         url = self.download_url
         if not url:
             return
-
         response = requests.get(url)
-        job_file = Path(gettempdir()) / self.job_id()
-        with open(job_file, "wb") as dest:
-            dest.write(response.content)
-        return job_file
+        if response.ok:
+            job_file = Path(gettempdir()) / (self.job_id() + ".hdf5")
+            with open(job_file, "wb") as dest:
+                dest.write(response.content)
+            return job_file
+        else:
+            raise RuntimeError(f"Failed to GET logfile of job: {job_id}")
 
     def cancel(self):
-        print(NotImplemented)
-        pass  # TODO
+        print("Job.cancel() is not implemented.")
+        pass # TODO: This can be implemented server side with stoppable threads.
 
     def result(self):
-        if not self._result:
-            JOBS_URL = self._backend.base_url + REST_API_MAP["jobs"]
-            job_id = self.job_id()
-            response = requests.get(JOBS_URL + "/" + job_id + REST_API_MAP["result"])
+        if self.status != "DONE":
+            print(f"Job {self.job_id()} has not yet completed.")
+            return
+        backend = self.backend()
+        job_id = self.job_id()
+        jobs_url = backend.base_url + REST_API_MAP["jobs"]
+        response = requests.get(jobs_url + "/" + job_id)
+        if response.ok:
+            memory = response.json()["result"]["memory"]
+        else:
+            raise RuntimeError(f"Failed to GET memory of job: {job_id}")
 
-            if response:
-                self._response = response  # store response for debugging
-                memory = response.json()["memory"]
-            else:
-                return self._result
-
-            # Note: We currently measure all qubits and ignore classical registers.
-
-            qobj = self._qobj
-            experiment_results = []
-
-            if not len(memory) == len(qobj.experiments):
-                print(
-                    "There is a mismatch between number of experiments in the Qobj \
-                    and number of results recieved!"
-                )
-            else:
-                print("Results OK")
-
-            for index, experiment_memory in enumerate(memory):
-                data = {
-                    "counts": dict(Counter(experiment_memory)),
-                    "memory": experiment_memory,
-                }
-
-                # Note: Filling in details from qobj is only to make Qiskit happy
-                # In future, much of this information should be provided by MSS
-                experiment_results.append(
-                    {
-                        "name": qobj.experiments[index].header.name,
-                        "success": True,
-                        "shots": qobj.config.shots,
-                        "data": data,
-                        "header": qobj.experiments[index].header.to_dict(),
-                    }
-                )
-
-                experiment_results[index]["header"][
-                    "memory_slots"
-                ] = self._backend.configuration().n_qubits
-
-            # Note: Filling in details from qobj is only to make Qiskit happy
-            # In future, much of this information should be provided by MSS
-            self._result = Result.from_dict(
-                {
-                    "results": experiment_results,
-                    "backend_name": self._backend.name,
-                    "backend_version": self._backend.version,
-                    "qobj_id": qobj.qobj_id,
-                    "job_id": self.job_id(),
-                    "success": True,
-                }
+        # Sanity check
+        if not len(memory) == self.metadata["num_experiments"]:
+            print(
+                "There is a mismatch between number of experiments in the Qobj \
+                and number of results recieved!"
             )
+        else:
+            print("Results OK")
 
-        return self._result
+        # Extract results
+        experiment_results = list()
+        for index, experiment_memory in enumerate(memory):
+            experiment_results.append(ExperimentResult(
+                shots = self.metadata["shots"],
+                success = True,
+                data = ExperimentResultData(
+                    counts = dict(Counter(experiment_memory)),
+                    memory = experiment_memory
+                )
+            ))
+
+        return Result(
+            backend_name = backend.name,
+            backend_version = backend.backend_version,
+            qobj_id = self.metadata["qobj_id"],
+            job_id = job_id,
+            success = True,
+            results = experiment_results
+        )
