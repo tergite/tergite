@@ -11,173 +11,263 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 from .job import Job
-from abc import abstractmethod
+from .config import REST_API_MAP
+from . import template_schedules as templates
 from numpy import inf as infinity
 from qiskit.providers import BackendV2
+from abc import abstractmethod
 from qiskit.providers import Options
 from qiskit.providers.models import BackendConfiguration
-from qiskit.pulse.channels import (
-    AcquireChannel,
-    ControlChannel,
-    DriveChannel,
-    MeasureChannel,
-)
+from qiskit.pulse.channels import AcquireChannel, ControlChannel
+from qiskit.pulse.channels import DriveChannel, MeasureChannel
 from qiskit.pulse.channels import MemorySlot
-from qiskit.transpiler import Target
+from qiskit.transpiler import Target, InstructionProperties
 from qiskit.transpiler.coupling import CouplingMap
-from typing import Iterable, List, Union
+from qiskit.circuit import Delay as circuitDelay
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit.measure import Measure
+from qiskit.circuit.library.standard_gates import RXGate, RZGate
+import pandas as pd
+import functools
+from qiskit.qobj import PulseQobj, QasmQobj
+import qiskit.compiler as compiler
+import requests
 
+class TergiteBackend(BackendV2):
 
-class Backend(BackendV2):
-    def __init__(self, /, provider: object, base_url: str, **kwargs):
-        super().__init__(provider=provider, **kwargs)
-        self._base_url = base_url
-
-    @property
-    def base_url(self) -> str:
-        return self._base_url
-
-    @abstractmethod
-    def target(self) -> Target:
-        """
-        Please see: https://qiskit.org/documentation/_modules/qiskit/transpiler/target.html#Target
-        """
-        ...
-
-    def configuration(self) -> BackendConfiguration:
-        """
-        Remark: Qiskit code calls this method as a function, which is why
-                this method is not decorated as a @property.
-
-        This method mainly exists for backward compatibility with functions that
-        use the old Backend inheritance pattern (it will be phased out).
-
-        The configuration is where you’ll find data about the static setup of the device,
-        such as its name, version, the number of qubits, and the types of features it supports.
-        """
-        return BackendConfiguration(
-            backend_name=self.name,  # from super
-            backend_version=self.backend_version,  # from super
-            n_qubits=self.num_qubits,  # from self.target
-            basis_gates=NotImplemented,
-            gates=NotImplemented,
-            simulator=False,  # this is a real quantum computer
-            conditional=False,  # we cannot do conditional gate application (yet)
-            local=False,  # jobs are sent over the internet
-            open_pulse=self.open_pulse,
-            meas_levels=(0, 1, 2),  # 0: RAW, 1: KERNELED, 2: DISCRIMINATED
-            memory=False,  # ?
-            max_shots=infinity,  # should be the same as validator of set_options(shots = ...)
-            coupling_map=self.coupling_map,  # by inheriting class
-            supported_instructions=self.instructions,  # from self.target
-            dt=self.dt,  # from self.target
-            dtm=self.dtm,  # from self.dtm
-            description=self.description,  # from superior
-        )
-
-    @property
-    def max_circuits(self):
-        """
-        Maximum number of circuits that can be sent in a single QOBJ.
-        Should probably have an upper bound here.
-        """
-        return infinity
+    max_shots = infinity
+    max_circuits = infinity
 
     @classmethod
     def _default_options(cls, /) -> Options:
-        """
-        This defines the default user configurable settings of this backend.
-        The user can set anything set in _default_options with BackendV2.set_options.
-        """
+        """This defines the default user configurable settings of this backend. See: help(backend.set_options)"""
         options = Options(shots=2000)
         options.set_validator(
-            "shots", (1, infinity)
-        )  # probably want an upper limit on this one
+            "shots", (1, TergiteBackend.max_shots)
+        )
         return options
 
+    def __init__(self, /, *, data: dict, provider: object, base_url: str):
+        super().__init__(
+            provider=provider,
+            name=data["name"],
+            backend_version=data["version"],
+        )
+        self.base_url = base_url
+        self.data = data
+
+    def __repr__(self: object) -> str:
+        repr_list = [f"TergiteBackend object @ {hex(id(self))}:"]
+        config = self.configuration().to_dict()
+        config["characterized"] = self.data["characterized"]
+        for attr, value in config.items():
+            repr_list.append(f"  {attr}:\t{value}".expandtabs(30))
+        return "\n".join(repr_list)
+
+    def register_job(self: object) -> Job:
+        """Registers a new job at the Tergite MSS."""
+        jobs_url = self.base_url + REST_API_MAP["jobs"]
+        response = requests.post(jobs_url)
+        if response.ok:
+            job_registration = response.json()
+        else:
+            raise RuntimeError(f"Unable to register job at the Tergite MSS, response: {response}")
+        job_id = job_registration["job_id"]
+        job_upload_url = job_registration["upload_url"]
+        return Job(backend=self, job_id=job_id, upload_url=job_upload_url)
+
+    @abstractmethod
+    def make_qobj(self: object, experiments: list, /, **kwargs) -> object:
+        """Constructs a Qobj from a list of user OpenPulse schedules or OpenQASM circuits and
+        returns a PulseQobj or a QasmQobj respectively (in dictionary format)."""
+        ...
+
+    def run(self, experiments, /, **kwargs) -> Job:
+        job = self.register_job()
+        qobj = self.make_qobj(experiments, **kwargs)
+        response = job.submit(qobj)
+        if response.ok:
+            print("Tergite: Job has been successfully submitted")
+            return job
+        else:
+            raise RuntimeError(f"Unable to transmit job to the Tergite BCC, response: {response}")
+
+class OpenPulseBackend(TergiteBackend):
+
+    open_pulse = True
+
+    parametric_pulses = [
+        "constant",
+        "zero",
+        "square",
+        "sawtooth",
+        "triangle",
+        "cos",
+        "sin",
+        "gaussian",
+        "gaussian_deriv",
+        "sech",
+        "sech_deriv",
+        "gaussian_square",
+        "drag",
+    ]
+
+    def configuration(self: object) -> BackendConfiguration:
+        return BackendConfiguration(
+            backend_name=self.name, # From BackendV2.
+            backend_version=self.backend_version, # From BackendV2.
+            n_qubits=self.target.num_qubits,
+            basis_gates=["rx", "rz", "delay", "measure"],
+            gates=[],
+            simulator=False, # This is a real quantum computer.
+            conditional=False, # We cannot do conditional gate application yet.
+            local=False, # Jobs are sent over the internet.
+            open_pulse=True,
+            meas_levels=(0, 1), # 0: RAW, 1: INTEGRATED, 2: DISCRIMINATED
+            memory=False,
+            max_shots=TergiteBackend.max_shots, # From TergiteBackend.
+            coupling_map=self.coupling_map,
+            supported_instructions=self.target.instructions,
+            dt=self.dt,
+            dtm=self.dtm,
+            description=self.description, # From BackendV2.
+            parametric_pulses = OpenPulseBackend.parametric_pulses
+        )
+
     @property
-    def dtm(self) -> float:
-        """
-        The sampling rate of the control rack’s analog-to-digital converters (ADCs)
-        is also relevant for measurement level 0; dtm is the time per sample returned
-        """
-        return self.dt  # for QBLOX it's the same as dt
+    def dt(self: object) -> float:
+        return self.data["dt"]
 
-    @abstractmethod
-    def meas_map(self) -> List[List[int]]:
-        """
-        Indicates which qubits are connected to the same readout lines.
-        All qubits in k-simplex (k > 0) in map are connected to the same readout line.
-        e.g.
-           If the map is [[0],[1,2]], we have that qubit 1 and qubit 2 are connected to the same readout line.
-           and if the map is [[i for i in range( self.num_qubits )]], we have that all qubits are connected
-           to the same readout line.
-        """
-        ...
+    @property
+    def dtm(self: object) -> bool:
+        return self.data["dtm"]
 
-    @abstractmethod
-    def qubit_lo_freq(self) -> List[float]:
-        """
-        The estimated frequencies of the qubits. Units should be Hz.
-        e.g.
-            If qubit 0 is @ 4 GHz and qubit 1 is @ 4.1 GHz, then
-            this should return [4e9, 4.1e9].
-        """
-        ...
+    @functools.cached_property
+    def target(self: object) -> Target:
+        gmap = Target(num_qubits=self.data["qubits"], dt=self.data["dt"])
+        qubits = frozenset(q for q in range(self.data["qubits"]))
 
-    @abstractmethod
-    def meas_lo_freq(self) -> List[float]:
-        """
-        The estimated frequencies of the readout resonators. Units should be Hz.
-        e.g.
-            If resonator for qubit 0 is @ 6 GHz and the resonator for qubit 1 is @ 6.1 GHz, then
-            this should return [6e9, 6.1e9].
-        """
-        ...
+        if self.data["characterized"]:
+            # Single qubit parametric gates
+            for q in qubits:
+                rx_sched = templates.rx(self, {q})
+                rz_sched = templates.rz(self, {q})
+                delay_sched = templates.delay(self, {q})
 
-    @abstractmethod
-    def coupling_map(self) -> CouplingMap:
-        """
-        This coupling map specifies 'which qubit is which'. This is a directed graph
-        where a -> b if a is coupled to b.
+                θ = rx_sched.get_parameters("θ")[0]
+                λ = rz_sched.get_parameters("λ")[0]
+                τ = delay_sched.get_parameters("τ")[0]
 
-        The coupling map can either be hardcoded or generated from the two-qubit gate
-        definitions of self.Target, although the latter makes less sense since
-        the coupling map exists before the gate definitions.
-        """
-        ...
+                for gate, param, sched in zip(
+                    [ RXGate,   RZGate,     circuitDelay ],
+                    [ θ,        λ,          τ ],
+                    [ rx_sched, rz_sched,   delay_sched ]
+                ):
+                    props = {
+                        (q,) : InstructionProperties(
+                            error = 0.0,
+                            calibration = sched
+                        )
+                    }
+                    gmap.add_instruction(gate(param), props)
 
-    @abstractmethod
-    def run(self, circuits: Union[object, List[object]], /, **kwargs) -> Job:
-        """
-        Method which transpiles and transmits the job to the backend.
-        """
-        ...
+            # Measurement
+            measure_props = {
+                qubits : InstructionProperties(
+                    error=0.0,
+                    calibration=templates.measure(self, qubits)
+                )
+            }
+            gmap.add_instruction(Measure(), measure_props)
 
-    def drive_channel(self, qubit: int, /):
-        return DriveChannel(qubit)
+        return gmap
 
-    def measure_channel(self, qubit: int, /):
-        return MeasureChannel(qubit)
+    @property
+    def meas_map(self: object) -> list:
+        return self.data["meas_map"]
 
-    def acquire_channel(self, qubit: int, /):
-        return AcquireChannel(qubit)
+    @functools.cached_property
+    def calibration_table(self: object) -> pd.DataFrame:
+        """Returns a pandas dataframe with empirical calibration values specific to this backend."""
+        df = pd.DataFrame(data=self.data["calibrations"])
+        df["qubit"] = list(range(1, self.data["qubits"] + 1))
+        df.set_index("qubit")
+        return df
 
-    def memory_slot(self, qubit: int, /):
-        return MemorySlot(qubit)
+    @functools.cached_property
+    def coupling_map(self: object) -> CouplingMap:
+        return CouplingMap(couplinglist=self.data["coupling_map"])
 
-    def control_channel(self, qubits: Iterable[int], /):
-        """
-        You can only influence the control between qubit i and qubit j if
-        (i,j) is in the coupling map, i.e. if they are physically coupled.
-        """
-        qubits = tuple(qubits)
+    @property
+    def qubit_lo_freq(self: object) -> list:
+        return self.data["qubit_lo_freq"]
 
-        if len(qubits) != 2:
-            raise NotImplementedError("Only pairwise coupling supported.")
+    @property
+    def meas_lo_freq(self: object) -> list:
+        return self.data["meas_lo_freq"]
 
-        i, j = qubits
-        assert (
-            qubits in self.coupling_map.get_edges()
-        ), f"Directed coupling {i}->{j} not in coupling map."
-        return [ControlChannel(q) for q in qubits]
+    def drive_channel(self: object, qubit_idx: int) -> DriveChannel:
+        return DriveChannel(self.data["drive_mapping"][f"d{qubit_idx}"])
+
+    def measure_channel(self: object, qubit_idx: int) -> MeasureChannel:
+        return MeasureChannel(self.data["acq_mapping"][f"m{qubit_idx}"])
+
+    def acquire_channel(self: object, qubit_idx: int) -> AcquireChannel:
+        return AcquireChannel(self.data["acq_mapping"][f"m{qubit_idx}"])
+
+    def memory_slot(self: object, qubit_idx: int) -> MemorySlot:
+        return MemorySlot(qubit_idx)
+
+    def control_channel(self: object, qubits: list) -> list:
+        if qubits not in self.coupling_map.get_edges():
+            raise ValueError(f"Coupling {qubits} not in coupling map.")
+
+        arr = [self.data["control_mapping"][qubits] for idx in qubits]
+        return list(map(ControlChannel, arr))
+
+    def make_qobj(self: object, experiments: object, /, **kwargs) -> PulseQobj:
+        if type(experiments) is not list:
+            experiments = [experiments]
+        return compiler.assemble(
+            experiments=experiments,
+            backend=self,
+            qubit_lo_freq=self.qubit_lo_freq,
+            meas_lo_freq=self.meas_lo_freq,
+            **kwargs
+        )
+
+class OpenQASMBackend(OpenPulseBackend):
+
+    open_pulse = False
+
+    def make_qobj(self: object, experiments: object, /, **kwargs) -> QasmQobj:
+        if type(experiments) is not list:
+            experiments = [experiments]
+        for e in experiments:
+            if not isinstance(e, QuantumCircuit):
+                raise TypeError(f"Experiment {e} is not an instance of QuantumCircuit.")
+        circuits = compiler.transpile(
+            circuits = experiments,
+            basis_gates = self.data["basis_gates"],
+        )
+        return compiler.assemble(
+            experiments = circuits,
+            **kwargs
+        )
+
+    def configuration(self: object) -> BackendConfiguration:
+        return BackendConfiguration(
+            backend_name=self.name, # From BackendV2.
+            backend_version=self.backend_version, # From BackendV2.
+            n_qubits=self.target.num_qubits,
+            basis_gates=self.data["basis_gates"],
+            gates=[],
+            simulator=False, # This is a real quantum computer.
+            conditional=False, # We cannot do conditional gate application yet.
+            local=False, # Jobs are sent over the internet.
+            open_pulse=False,
+            meas_levels=(2,), # 0: RAW, 1: INTEGRATED, 2: DISCRIMINATED
+            memory=True, # Meas level 2 results are stored in MongoDB.
+            max_shots=TergiteBackend.max_shots, # From TergiteBackend.
+            coupling_map=self.coupling_map,
+        )
