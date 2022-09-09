@@ -13,7 +13,6 @@
 from qiskit.providers import ProviderV1
 from qiskit.providers.providerutils import filter_backends
 import requests
-import json
 from .config import REST_API_MAP
 from .backend import OpenPulseBackend, OpenQASMBackend
 import functools
