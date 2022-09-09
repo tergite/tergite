@@ -13,7 +13,7 @@
 
 from .factory import Factory
 from .provider import Provider
-from .backend import Backend
+from .backend import OpenPulseBackend, OpenQASMBackend
 from .job import Job
 from .version import __version__
 
