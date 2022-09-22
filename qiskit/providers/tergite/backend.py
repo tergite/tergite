@@ -23,10 +23,11 @@ from qiskit.pulse.channels import DriveChannel, MeasureChannel
 from qiskit.pulse.channels import MemorySlot
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.transpiler.coupling import CouplingMap
-from qiskit.circuit import Delay as circuitDelay
+#from qiskit.circuit import Delay as circuitDelay
 from qiskit.circuit import QuantumCircuit
+import qiskit.circuit as circuit
 from qiskit.circuit.measure import Measure
-from qiskit.circuit.library.standard_gates import RXGate, RZGate
+#from qiskit.circuit.library.standard_gates import RXGate, RZGate
 import pandas as pd
 import functools
 from qiskit.qobj import PulseQobj, QasmQobj
@@ -121,7 +122,7 @@ class OpenPulseBackend(TergiteBackend):
             backend_name=self.name,  # From BackendV2.
             backend_version=self.backend_version,  # From BackendV2.
             n_qubits=self.target.num_qubits,
-            basis_gates=["rx", "rz", "delay", "measure"],
+            basis_gates=[],
             gates=[],
             simulator=False,  # This is a real quantum computer.
             conditional=False,  # We cannot do conditional gate application yet.
@@ -149,26 +150,54 @@ class OpenPulseBackend(TergiteBackend):
     @functools.cached_property
     def target(self: object) -> Target:
         gmap = Target(num_qubits=self.data["qubits"], dt=self.data["dt"])
-        qubits = frozenset(q for q in range(self.data["qubits"]))
+        qubits = tuple(q for q in range(self.data["qubits"]))
 
         if self.data["characterized"]:
-            # Single qubit parametric gates
-            for q in qubits:
-                rx_sched = templates.rx(self, {q})
-                rz_sched = templates.rz(self, {q})
-                delay_sched = templates.delay(self, {q})
 
-                θ = rx_sched.get_parameters("θ")[0]
-                λ = rz_sched.get_parameters("λ")[0]
-                τ = delay_sched.get_parameters("τ")[0]
+            rx_theta = circuit.Parameter("theta")
+            rz_lambda = circuit.Parameter("lambda")
+            delay_tau = circuit.Parameter("tau")
 
-                for gate, param, sched in zip(
-                    [RXGate, RZGate, circuitDelay],
-                    [θ, λ, τ],
-                    [rx_sched, rz_sched, delay_sched],
-                ):
-                    props = {(q,): InstructionProperties(error=0.0, calibration=sched)}
-                    gmap.add_instruction(gate(param), props)
+            # Reset qubits to ground state
+            # do this by simply waiting 200 µs
+            reset_props = {
+                (q,) : InstructionProperties(
+                    error = 0.0,
+                    calibration = templates.delay(self, (q,), 200*1000, delay_str = "Reset")
+                )
+                for q in qubits
+            }
+            gmap.add_instruction(circuit.library.Reset(), reset_props)
+
+            # Rotation around X-axis on Bloch sphere
+            rx_props = {
+                (q,) : InstructionProperties(
+                    error = 0.0, 
+                    calibration = templates.rx(self, (q,), rx_theta)
+                )
+                for q in qubits
+            }
+            gmap.add_instruction(circuit.library.standard_gates.RXGate(rx_theta), rx_props)
+
+            # Rotation around Z-axis on Bloch sphere
+            rz_props = {
+                (q,) : InstructionProperties(
+                    error = 0.0,
+                    calibration = templates.rz(self, (q,), rz_lambda)
+                )
+                for q in qubits
+            }
+            gmap.add_instruction(circuit.library.standard_gates.RZGate(rz_lambda), rz_props)
+
+            # Delay instruction
+            delay_props = {
+                (q,) : InstructionProperties(
+                    error = 0.0,
+                    calibration = templates.delay(self, (q,), delay_tau)
+                )
+                for q in qubits
+            }
+            gmap.add_instruction(circuit.Delay(delay_tau), delay_props)
 
             # Measurement
             measure_props = {
