@@ -2,19 +2,21 @@ import numpy as np
 import qiskit.pulse as pulse
 import qiskit.circuit as circuit
 
-def rx(backend: object, qubits: set, rx_theta: circuit.Parameter) -> pulse.ScheduleBlock:
+
+def rx(
+    backend: object, qubits: set, rx_theta: circuit.Parameter
+) -> pulse.ScheduleBlock:
     """Returns a backend-specific schedule which implements a rotation on a set of qubits around the x-axis on the Bloch sphere. The schedule is parameterised by θ [rad], which specifies the angle."""
     table = backend.calibration_table
     sched = pulse.ScheduleBlock(name=f"RX(θ, {qubits})")
     for q in qubits:
         sched += pulse.SetFrequency(
-            table["qubit_frequency"][q],
-            channel = backend.drive_channel(q)
+            table["qubit_frequency"][q], channel=backend.drive_channel(q)
         )
         sched += pulse.Play(
             pulse.Gaussian(
                 duration=round(table["rabi_dur_gauss"][q] / backend.dt),
-                amp=rx_theta/(2*np.pi*table["rabi_frequency"][q]),
+                amp=rx_theta / (2 * np.pi * table["rabi_frequency"][q]),
                 sigma=table["rabi_sig_gauss"][q] / backend.dt,
                 name=f"RX q{q}",
             ),
@@ -23,7 +25,9 @@ def rx(backend: object, qubits: set, rx_theta: circuit.Parameter) -> pulse.Sched
     return sched
 
 
-def rz(backend: object, qubits: set, rz_lambda: circuit.Parameter) -> pulse.ScheduleBlock:
+def rz(
+    backend: object, qubits: set, rz_lambda: circuit.Parameter
+) -> pulse.ScheduleBlock:
     """Returns a backend-specific schedule which implements a rotation on a set of qubits around the z-axis on the Block sphere. The schedule is parameterised by λ [rad], which specifies the angle."""
     sched = pulse.ScheduleBlock(name=f"RZ(λ, {qubits})")
     for q in qubits:
@@ -43,12 +47,11 @@ def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
         m = table["resonator_slope"][qubit]
         c = table["resonator_intercept"][qubit]
         x = table["ro_amp_square"][qubit]
-        return m*x + c
+        return m * x + c
 
     for q in qubits:
         sched += pulse.SetFrequency(
-            resonator_line(q),
-            channel = backend.measure_channel(q)
+            resonator_line(q), channel=backend.measure_channel(q)
         )
         sched += pulse.Play(
             pulse.Constant(
@@ -73,10 +76,7 @@ def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
 
 
 def delay(
-    backend: object,
-    qubits: set,
-    delay_tau: circuit.Parameter,
-    delay_str: str = "Delay"
+    backend: object, qubits: set, delay_tau: circuit.Parameter, delay_str: str = "Delay"
 ) -> pulse.ScheduleBlock:
     """Returns a backend-specific schedule which implements a delay operation on a set of qubits. The schedule is parameterised by τ [ns], which specifies the delay duration."""
     sched = pulse.ScheduleBlock(name=f"{delay_str}({qubits}, τ)")

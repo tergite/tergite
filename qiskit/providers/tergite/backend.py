@@ -23,11 +23,13 @@ from qiskit.pulse.channels import DriveChannel, MeasureChannel
 from qiskit.pulse.channels import MemorySlot
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.transpiler.coupling import CouplingMap
-#from qiskit.circuit import Delay as circuitDelay
+
+# from qiskit.circuit import Delay as circuitDelay
 from qiskit.circuit import QuantumCircuit
 import qiskit.circuit as circuit
 from qiskit.circuit.measure import Measure
-#from qiskit.circuit.library.standard_gates import RXGate, RZGate
+
+# from qiskit.circuit.library.standard_gates import RXGate, RZGate
 import pandas as pd
 import functools
 from qiskit.qobj import PulseQobj, QasmQobj
@@ -161,9 +163,11 @@ class OpenPulseBackend(TergiteBackend):
             # Reset qubits to ground state
             # do this by simply waiting 200 µs
             reset_props = {
-                (q,) : InstructionProperties(
-                    error = 0.0,
-                    calibration = templates.delay(self, (q,), 200*1000, delay_str = "Reset")
+                (q,): InstructionProperties(
+                    error=0.0,
+                    calibration=templates.delay(
+                        self, (q,), 200 * 1000, delay_str="Reset"
+                    ),
                 )
                 for q in qubits
             }
@@ -171,29 +175,30 @@ class OpenPulseBackend(TergiteBackend):
 
             # Rotation around X-axis on Bloch sphere
             rx_props = {
-                (q,) : InstructionProperties(
-                    error = 0.0, 
-                    calibration = templates.rx(self, (q,), rx_theta)
+                (q,): InstructionProperties(
+                    error=0.0, calibration=templates.rx(self, (q,), rx_theta)
                 )
                 for q in qubits
             }
-            gmap.add_instruction(circuit.library.standard_gates.RXGate(rx_theta), rx_props)
+            gmap.add_instruction(
+                circuit.library.standard_gates.RXGate(rx_theta), rx_props
+            )
 
             # Rotation around Z-axis on Bloch sphere
             rz_props = {
-                (q,) : InstructionProperties(
-                    error = 0.0,
-                    calibration = templates.rz(self, (q,), rz_lambda)
+                (q,): InstructionProperties(
+                    error=0.0, calibration=templates.rz(self, (q,), rz_lambda)
                 )
                 for q in qubits
             }
-            gmap.add_instruction(circuit.library.standard_gates.RZGate(rz_lambda), rz_props)
+            gmap.add_instruction(
+                circuit.library.standard_gates.RZGate(rz_lambda), rz_props
+            )
 
             # Delay instruction
             delay_props = {
-                (q,) : InstructionProperties(
-                    error = 0.0,
-                    calibration = templates.delay(self, (q,), delay_tau)
+                (q,): InstructionProperties(
+                    error=0.0, calibration=templates.delay(self, (q,), delay_tau)
                 )
                 for q in qubits
             }
@@ -218,7 +223,7 @@ class OpenPulseBackend(TergiteBackend):
         """Returns a pandas dataframe with empirical calibration values specific to this backend."""
         df = pd.DataFrame(data=self.data["calibrations"])
         df["qubit"] = list(range(0, self.data["qubits"]))
-        df.set_index("qubit", inplace = True)
+        df.set_index("qubit", inplace=True)
         return df
 
     @functools.cached_property
