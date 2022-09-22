@@ -7,6 +7,10 @@ def rx(backend: object, qubits: set, rx_theta: circuit.Parameter) -> pulse.Sched
     table = backend.calibration_table
     sched = pulse.ScheduleBlock(name=f"RX(θ, {qubits})")
     for q in qubits:
+        sched += pulse.SetFrequency(
+            table["qubit_frequency"][q],
+            channel = backend.drive_channel(q)
+        )
         sched += pulse.Play(
             pulse.Gaussian(
                 duration=round(table["rabi_dur_gauss"][q] / backend.dt),
@@ -33,7 +37,19 @@ def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
     """Returns a backend-specific schedule which implements a measurement on a set of qubits."""
     table = backend.calibration_table
     sched = pulse.ScheduleBlock(name=f"Measure({qubits})")
+
+    def resonator_line(qubit: int):
+        nonlocal table
+        m = table["resonator_slope"][qubit]
+        c = table["resonator_intercept"][qubit]
+        x = table["ro_amp_square"][qubit]
+        return m*x + c
+
     for q in qubits:
+        sched += pulse.SetFrequency(
+            resonator_line(q),
+            channel = backend.measure_channel(q)
+        )
         sched += pulse.Play(
             pulse.Constant(
                 amp=table["ro_amp_square"][q],
