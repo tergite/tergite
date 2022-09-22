@@ -218,7 +218,7 @@ class OpenPulseBackend(TergiteBackend):
         """Returns a pandas dataframe with empirical calibration values specific to this backend."""
         df = pd.DataFrame(data=self.data["calibrations"])
         df["qubit"] = list(range(1, self.data["qubits"] + 1))
-        df.set_index("qubit")
+        df.set_index("qubit", inplace = True)
         return df
 
     @functools.cached_property
