@@ -11,6 +11,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 from qiskit.providers import JobV1
+from qiskit.providers.jobstatus import JobStatus
 from qiskit.result import Result
 from qiskit.qobj import PulseQobj, QasmQobj
 from collections import Counter
@@ -23,18 +24,28 @@ from pathlib import Path
 from tempfile import gettempdir
 from uuid import uuid4
 
+STATUS_MAP = {
+    "REGISTERING" : JobStatus.QUEUED,
+    "DONE" : JobStatus.DONE,
+    
+    # TODO: unimplemented status codes
+    "INITIALIZING" : JobStatus.INITIALIZING,
+    "VALIDATING" : JobStatus.VALIDATING,
+    "RUNNING" : JobStatus.RUNNING,
+    "CANCELLED" : JobStatus.CANCELLED,
+    "ERROR" : JobStatus.ERROR
+}
 
 class Job(JobV1):
     def __init__(self: object, *, backend: object, job_id: str, upload_url: str):
         super().__init__(backend=backend, job_id=job_id, upload_url=upload_url)
-
-    @property
-    def status(self):
+        
+    def status(self) -> JobStatus:
         jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
         job_id = self.job_id()
         response = requests.get(jobs_url + "/" + job_id)
         if response.ok:
-            return response.json()["status"]
+            return STATUS_MAP[response.json()["status"]]
         else:
             raise RuntimeError(f"Failed to GET status of job: {job_id}")
 
@@ -108,7 +119,7 @@ class Job(JobV1):
 
     @property
     def download_url(self) -> str:
-        if self.status != "DONE":
+        if self.status() != JobStatus.DONE:
             print(f"Job {self.job_id()} has not yet completed.")
             return
         jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
@@ -138,7 +149,7 @@ class Job(JobV1):
         pass  # TODO: This can be implemented server side with stoppable threads.
 
     def result(self):
-        if self.status != "DONE":
+        if self.status() != JobStatus.DONE:
             print(f"Job {self.job_id()} has not yet completed.")
             return
         backend = self.backend()
