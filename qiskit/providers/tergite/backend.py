@@ -27,6 +27,7 @@ from qiskit.transpiler.coupling import CouplingMap
 # from qiskit.circuit import Delay as circuitDelay
 from qiskit.circuit import QuantumCircuit
 import qiskit.circuit as circuit
+import qiskit.pulse as pulse
 from qiskit.circuit.measure import Measure
 
 # from qiskit.circuit.library.standard_gates import RXGate, RZGate
@@ -260,6 +261,16 @@ class OpenPulseBackend(TergiteBackend):
     def make_qobj(self: object, experiments: object, /, **kwargs) -> PulseQobj:
         if type(experiments) is not list:
             experiments = [experiments]
+            
+        # convert all non-schedules to schedules
+        experiments = [
+            compiler.schedule(experiment, backend = self)
+            if (type(experiment) is not pulse.ScheduleBlock) and (type(experiment) is not pulse.Schedule)
+            else experiment # already a schedule, so don't convert
+            for experiment in experiments
+        ]
+        
+        # assemble schedules to PulseQobj
         return compiler.assemble(
             experiments=experiments,
             backend=self,
