@@ -28,7 +28,8 @@ fig, ax = plt.subplots()
 im = ax.imshow(plt.imread("ground_state.jpg"))
 ax.axis("off")
 
-thetadef = -1 * np.asarray([0, np.pi/2, np.pi])
+thetadef = -1 * np.asarray([0, np.pi / 2, np.pi])
+
 
 def tomog_circs(theta):
     q = circuit.QuantumRegister(1)
@@ -44,8 +45,7 @@ def tomog_circs(theta):
 print("Transpiling...")
 with contextlib.redirect_stderr(None):
     precomputed_tomog_circs = [
-        compiler.transpile(tomog_circs(theta), backend=backend)
-        for theta in thetadef
+        compiler.transpile(tomog_circs(theta), backend=backend) for theta in thetadef
     ]
 
 # function to update figure
@@ -57,7 +57,7 @@ def updatefig(j):
     job = backend.run(precomputed_tomog_circs[j], meas_level=2, meas_return="single")
     print("Computing frame...")
     while job.status() != JobStatus.DONE:
-        print("#", end = '')
+        print("#", end="")
         time.sleep(1)  # blocking wait
     print("  Complete")
 
@@ -78,6 +78,7 @@ def updatefig(j):
     # show next frame
     im.set_array(image_j)
     return [im]
+
 
 # start animation
 ani = animation.FuncAnimation(

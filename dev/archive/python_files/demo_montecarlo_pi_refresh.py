@@ -47,7 +47,6 @@ backend = chalmers.get_backend("Nov7")
 
 # dummy class for testing, implement this before the demo
 class _test:
-
     def job_id(self: object) -> str:
         return "7ef2ab6d-d33a-4849-82ca-2e183fc457ce"
 
@@ -59,20 +58,27 @@ class _test:
 
 
 ########################################################
-job_ids = ["5a00247d-d22b-44ac-a00a-5d21c087f65d","e904e367-b64b-4380-92eb-151f06ed5faf","d044505c-4c92-4a34-8f7a-b880a03d8069"]
+job_ids = [
+    "5a00247d-d22b-44ac-a00a-5d21c087f65d",
+    "e904e367-b64b-4380-92eb-151f06ed5faf",
+    "d044505c-4c92-4a34-8f7a-b880a03d8069",
+]
 
-def qmc_hitmiss(fn: callable, *,current_U: np.ndarray, job_id: str, M: int) -> tuple:
 
-#    job = _test()  # <- REPLACE THIS WITH SOMETHING THATS WAITABLE
-#    while job.status() != JobStatus.DONE:
-#        time.sleep(2)
-#    response = requests.get(mss_url + "/rng/" + str(job.job_id()))
+def qmc_hitmiss(fn: callable, *, current_U: np.ndarray, job_id: str, M: int) -> tuple:
+
+    #    job = _test()  # <- REPLACE THIS WITH SOMETHING THATS WAITABLE
+    #    while job.status() != JobStatus.DONE:
+    #        time.sleep(2)
+    #    response = requests.get(mss_url + "/rng/" + str(job.job_id()))
 
     response = requests.get(mss_url + "/rng/" + job_id)
     N = 0
     if response.ok:
         data = response.json()
-        N = data["N"] // 2   #  Half of array is X coordinates half is Y coordinates, N must be int
+        N = (
+            data["N"] // 2
+        )  #  Half of array is X coordinates half is Y coordinates, N must be int
         X = np.asarray(data["numbers"][:N])  # first M are X coordinate
         Y = np.asarray(data["numbers"][N : (N + N)])  # second M are Y coordinate
 
@@ -92,7 +98,6 @@ def qmc_hitmiss(fn: callable, *,current_U: np.ndarray, job_id: str, M: int) -> t
         U[:, 1] <= fn(U[:, 0])
     )  # <- This is the estimator for integral value
     return estimate, U
-
 
 
 # ---------- Plotting
@@ -154,26 +159,27 @@ def plot_samples(ax: object, samples: np.array):
     ax.scatter(samples[inside, 0], samples[inside, 1], color="C1")
     ax.scatter(samples[~inside, 0], samples[~inside, 1], color="C2")
 
+
 plt.draw()
 plot_samples(axs[1], mc_samples)
 plot_estimate(axs[1], mc_est_pi)
-x, y = [],[]
-qmc_in = axs[2].scatter(x,y, color="C1")
-qmc_out= axs[2].scatter(x,y, color="C2")
+x, y = [], []
+qmc_in = axs[2].scatter(x, y, color="C1")
+qmc_out = axs[2].scatter(x, y, color="C2")
 
 plt.draw()
 
 ########## LOOP THROUGH  THE IDS
 U = np.array([])
 for current_job_id in job_ids:
-    qmc_est, qmc_samples = qmc_hitmiss(f,current_U=U, job_id=current_job_id , M=400)
+    qmc_est, qmc_samples = qmc_hitmiss(f, current_U=U, job_id=current_job_id, M=400)
     U = qmc_samples
-    print( U.shape )
+    print(U.shape)
     # print( qmc_samples )
 
     inside = np.sqrt(qmc_samples[:, 0] ** 2 + qmc_samples[:, 1] ** 2) < 1
-    qmc_in .set_offsets( np.c_[qmc_samples[ inside, 0], qmc_samples[ inside, 1]])
-    qmc_out.set_offsets( np.c_[qmc_samples[~inside, 0], qmc_samples[~inside, 1]])
+    qmc_in.set_offsets(np.c_[qmc_samples[inside, 0], qmc_samples[inside, 1]])
+    qmc_out.set_offsets(np.c_[qmc_samples[~inside, 0], qmc_samples[~inside, 1]])
 
     qmc_est_pi = qmc_est * 4
     textstr = "$\hat\pi = {0:.5g}$".format(qmc_est_pi)
@@ -192,16 +198,12 @@ for current_job_id in job_ids:
     fig.canvas.draw_idle()
     plt.pause(2)
 
-
-
-    print(f'{ qmc_est_pi = }')
+    print(f"{ qmc_est_pi = }")
     # plot_samples(axs[2], qmc_samples)
     # plot_estimate(axs[2], qmc_est_pi)
 
 
 # print(f"Riemann approximation of Pi {np.pi} from f(x) over [0,1] :", f"4*{riemann_qtr_pi} = ", 4*riemann_qtr_pi)
-
-
 
 
 # fig.tight_layout()

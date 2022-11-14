@@ -48,8 +48,8 @@ backend = chalmers.get_backend("Nov7")
 # dummy class for testing, implement this before the demo
 class _test:
     def job_id(self: object) -> str:
-        #return "7ef2ab6d-d33a-4849-82ca-2e183fc457ce" # test data
-        #return "d044505c-4c92-4a34-8f7a-b880a03d8069"
+        # return "7ef2ab6d-d33a-4849-82ca-2e183fc457ce" # test data
+        # return "d044505c-4c92-4a34-8f7a-b880a03d8069"
         return "e904e367-b64b-4380-92eb-151f06ed5faf"
 
     def status(self: object) -> JobStatus:
@@ -87,7 +87,7 @@ def qmc_hitmiss(fn: callable, *, M: int) -> tuple:
     return estimate, U
 
 
-qmc_est, qmc_samples = qmc_hitmiss(f, M=313//2)
+qmc_est, qmc_samples = qmc_hitmiss(f, M=313 // 2)
 qmc_est_pi = qmc_est * 4
 
 # ---------- Plotting

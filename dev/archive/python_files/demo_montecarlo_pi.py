@@ -1,15 +1,14 @@
 import time
+from uuid import uuid4 as uuid
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
-
-from uuid import uuid4 as uuid
 from qiskit.providers.jobstatus import JobStatus
+from tqdm.auto import tqdm
 
 from qiskit.providers.tergite import Tergite
-from tqdm.auto import tqdm
 
 # Task: Estimate Pi numerically
 # Area of circle = pi*r**2
@@ -17,8 +16,8 @@ from tqdm.auto import tqdm
 # If we compute the area of a quarter of a circle and multiply it by 4, we should get Pi = 3.14159...
 # The size of the circle doesn't matter, so let's take the top right quadrant of the unit circle.
 
-#---------------------- settings
-vm_url = "http://qtl-axean.mc2.chalmers.se" 
+# ---------------------- settings
+vm_url = "http://qtl-axean.mc2.chalmers.se"
 mss_url = vm_url + ":8002"
 bcc_url = vm_url + ":8000"
 chalmers = Tergite.get_provider()
@@ -26,13 +25,15 @@ backend = chalmers.get_backend("Nov7")
 print(f"Connected to backend: {backend.name}")
 
 text_settings = {"fontsize": 20}
-plt.ion() # enable interactive mode
+plt.ion()  # enable interactive mode
 fig, axs = plt.subplots(1, 2, figsize=(14, 6.5), sharex=True, sharey=True)
-#---------------------- settings
+# ---------------------- settings
+
 
 def f(x):
     return np.sqrt(1 - x**2)
-    
+
+
 def mc_hitmiss(fn: callable, *, M: int) -> tuple:
     np.random.seed(0)
     U = np.random.rand(M, 2)
@@ -40,7 +41,8 @@ def mc_hitmiss(fn: callable, *, M: int) -> tuple:
         U[:, 1] <= fn(U[:, 0])
     )  # <- This is the estimator for integral value
     return estimate, U
-    
+
+
 def plot_estimate(ax: object, estimate: float):
     textstr = "$\hat\pi = {:10.5f}$".format(estimate)
     props = dict(boxstyle="round", facecolor="wheat", alpha=1)
@@ -54,30 +56,35 @@ def plot_estimate(ax: object, estimate: float):
         bbox=props,
         fontsize=25,
     )
-    
+
+
 def plot_samples(ax: object, samples: np.array, marker: str = "o"):
     inside = np.sqrt(samples[:, 0] ** 2 + samples[:, 1] ** 2) < 1
-    ax.scatter(samples[inside, 0], samples[inside, 1], color="C1", marker = marker)
-    ax.scatter(samples[~inside, 0], samples[~inside, 1], color="C2", marker = marker)
+    ax.scatter(samples[inside, 0], samples[inside, 1], color="C1", marker=marker)
+    ax.scatter(samples[~inside, 0], samples[~inside, 1], color="C2", marker=marker)
+
 
 def api_error(url, response):
     return f"Failed to communicate with {url}, response: {response}"
+
 
 def wait_for_job(job_id: str, timeout: int = 20) -> object:
     mss_response = requests.get(mss_url + "/rng/" + job_id)
     return mss_response
 
-def qmc_estimate(fn: callable, U : np.ndarray) -> float:
+
+def qmc_estimate(fn: callable, U: np.ndarray) -> float:
     estimate = np.mean(
         U[:, 1] <= fn(U[:, 0])
     )  # <- This is the estimator for integral value
     return estimate
-    
+
+
 def qmc_hitmiss_parts(fn: callable, num_jobs: int = 3) -> tuple:
     job_ids = list(str(uuid()) for _ in range(num_jobs))
 
-    estimates = list() # should be monotonic increasing
-    points = np.asarray([[],[]]).T
+    estimates = list()  # should be monotonic increasing
+    points = np.asarray([[], []]).T
     points_by_job = dict()
 
     for job_id in tqdm(job_ids):
@@ -89,43 +96,46 @@ def qmc_hitmiss_parts(fn: callable, num_jobs: int = 3) -> tuple:
         # wait for job to complete
         mss_response = wait_for_job(job_id)
         data = mss_response.json()
-        
+
         # split obtained numbers into two disjoint subsets
         N = data["N"] // 2
         X = np.asarray(data["numbers"][:N]).astype(float)  # first M are X coordinate
-        Y = np.asarray(data["numbers"][N : (N + N)]).astype(float)  # second M are Y coordinate
-        
+        Y = np.asarray(data["numbers"][N : (N + N)]).astype(
+            float
+        )  # second M are Y coordinate
+
         # these numbers are random 32-bit integers in the range [-2**31, 2**31 - 1]
         # so we want to convert them to floats in the range [0,1]
         X += 2**31
         Y += 2**31
         X *= 2**-32
         Y *= 2**-32
-        
+
         # concatenate points obtained
-        U = np.zeros((N,2))
-        U[:,0] = X
-        U[:,1] = Y
+        U = np.zeros((N, 2))
+        U[:, 0] = X
+        U[:, 1] = Y
         points = np.concatenate((points, U))
         points_by_job[job_id] = U
         est = qmc_estimate(fn, points)
-        
+
         plot_samples(axs[1], U)
-        plot_estimate(axs[1], est*4)
+        plot_estimate(axs[1], est * 4)
         fig.canvas.draw()
         fig.canvas.flush_events()
-        
+
         # compute estimator on all the points, up until now
         estimates.append(est)
-        
+
     return estimates, points_by_job, job_ids
-    
+
+
 xdef = np.linspace(0, 1)
 
 # ---------- Riemann estimate
 riemann_est = sum(f(xdef) * np.diff(xdef)[0])
 riemann_est_pi = riemann_est * 4
-    
+
 # ---------- Monte Carlo estimate, from pseudo random numbers
 mc_est, mc_samples = mc_hitmiss(f, M=400)
 mc_est_pi = mc_est * 4
@@ -159,13 +169,13 @@ for ax in axs:
     ax.tick_params(axis="both", which="major", labelsize=text_settings["fontsize"])
 fig.suptitle("$f(x) = (1-x^2)^{1/2}$", **text_settings)
 
-#plot_samples(axs[1], mc_samples)
-#plot_estimate(axs[1], mc_est_pi)
+# plot_samples(axs[1], mc_samples)
+# plot_estimate(axs[1], mc_est_pi)
 
 fig.canvas.draw()
 fig.canvas.flush_events()
 
 # ---------- Plotting quantum stuff
-qmc_hitmiss_parts(f, num_jobs = 5)
+qmc_hitmiss_parts(f, num_jobs=5)
 
 fig.tight_layout()
