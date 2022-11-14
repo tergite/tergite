@@ -11,10 +11,10 @@
 # that they have been altered from the originals.
 
 
-from .factory import Factory
-from .provider import Provider
 from .backend import OpenPulseBackend, OpenQASMBackend
+from .factory import Factory
 from .job import Job
+from .provider import Provider
 from .version import __version__
 
 Tergite = Factory()
