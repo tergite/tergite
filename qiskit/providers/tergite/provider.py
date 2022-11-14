@@ -10,12 +10,15 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from qiskit.providers import ProviderV1
-from qiskit.providers.providerutils import filter_backends
-import requests
-from .config import REST_API_MAP
-from .backend import OpenPulseBackend, OpenQASMBackend
 import functools
+
+import requests
+from qiskit.providers.providerutils import filter_backends
+
+from qiskit.providers import ProviderV1
+
+from .backend import OpenPulseBackend, OpenQASMBackend
+from .config import REST_API_MAP
 
 
 class Provider(ProviderV1):
