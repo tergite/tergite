@@ -11,15 +11,10 @@
 # that they have been altered from the originals.
 
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-REQUIREMENTS = [
-    "requests>=2.25.1",
-    "python_dateutil>=2.8.1",
-    "python-multipart>=0.0.5",
-    "qiskit-terra>=0.20.2",
-    "pandas>=1.4.2"
-]
+with open("requirements.txt", mode="r") as _f:
+    REQUIREMENTS = _f.readlines()
 
 setup(
     name="tergite-qiskit-connector",
