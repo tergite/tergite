@@ -10,9 +10,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from .provider import Provider
 from collections import OrderedDict
+
 from .config import Tergiterc
+from .provider import Provider
 
 
 class Factory:
