@@ -11,11 +11,11 @@
 # that they have been altered from the originals.
 
 
-from configparser import ConfigParser
 import pathlib
 import re
-from .provider_account import ProviderAccount
+from configparser import ConfigParser
 
+from .provider_account import ProviderAccount
 
 TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
 REST_API_MAP = {
