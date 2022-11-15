@@ -13,8 +13,24 @@
 
 from setuptools import find_packages, setup
 
-with open("requirements.txt", mode="r") as _f:
-    REQUIREMENTS = _f.readlines()
+#with open("requirements.txt", mode="r") as _f:
+#    REQUIREMENTS = _f.readlines()
+
+REQUIREMENTS = [
+    "requests>=2.25.1",
+    "python_dateutil>=2.8.1",
+    "python-multipart>=0.0.5",
+    "qiskit-terra==0.22.0",
+    "pandas>=1.4.2",
+    "tqdm>=4.64.1",
+    "qiskit-aer>=0.11.0",
+    "qiskit-experiments>=0.4.0",
+    "qiskit-ibmq-provider>=0.19.2",
+    "qiskit-ignis>=0.7.1",
+    "more-itertools>=8.14.0",
+    "matplotlib>=3.5.3",
+    "matplotlib-inline>=0.1.6"
+]
 
 setup(
     name="tergite-qiskit-connector",
