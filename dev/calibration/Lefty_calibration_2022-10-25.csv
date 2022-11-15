@@ -1,0 +1,16 @@
+,job_id,type,name,frequency,square_amp,square_dur,integration_time,tof,gauss_dur,gauss_sig
+0,b5f13886-476e-422d-86da-adf05edb4e4e,resonator_calibrations,resonator_spectroscopy,6741583902.617835,0.00125,3e-06,2.5e-06,3e-07,,
+1,e4236937-ed72-47ba-9a57-8539b1529b0d,qubit_calibrations,qubit_spectroscopy,3749584708.1745853,,,,,,
+2,7c9892af-7ce7-4ac2-be65-f26ffd4c5c35,qubit_calibrations,rabi_oscillations,3.1782008642029727,,,,,5.2e-08,1.3e-08
+3,68e5e8d9-99f4-43d0-b523-260785b45161,resonator_calibrations,resonator_spectroscopy,6478209424.33459,0.005,3e-06,2.5e-06,3e-07,,
+4,7aa039d7-caf6-43f7-90f8-8f2a48c5d50d,qubit_calibrations,qubit_spectroscopy,3305659156.82418,,,,,,
+5,ee65eca6-4435-4c24-860e-61619b52e86d,qubit_calibrations,rabi_oscillations,3.0744833364011384,,,,,5.2e-08,1.3e-08
+6,eb8cdf66-c52d-4e37-823f-70f3b724a6bc,resonator_calibrations,resonator_spectroscopy,7052143960.795639,0.005,3e-06,2.5e-06,3e-07,,
+7,959688aa-0c7d-46dd-9b4c-dd40b15c89ed,qubit_calibrations,qubit_spectroscopy,3887617514.743307,,,,,,
+8,ff37f7e6-9c24-45a6-97e1-054ea4c305d7,qubit_calibrations,rabi_oscillations,3.4553940342118947,,,,,5.2e-08,1.3e-08
+9,c0842ded-28e7-41a7-bd3d-0bdbd88697bd,resonator_calibrations,resonator_spectroscopy,6578988854.977489,0.0015,3e-06,2.5e-06,3e-07,,
+10,6adf2d9c-1f49-4dce-9c8b-47ff3f085823,qubit_calibrations,qubit_spectroscopy,3254451288.5693564,,,,,,
+11,9f77f62a-cc39-4b10-bcc9-65a673627fc6,qubit_calibrations,rabi_oscillations,3.1803308416766134,,,,,5.2e-08,1.3e-08
+12,c7f01396-5dc2-43a4-b671-4a79f717edd6,resonator_calibrations,resonator_spectroscopy,6850488290.799288,0.0015,3e-06,2.5e-06,3e-07,,
+13,6af4bd62-f367-478e-af2b-68a0baf9b4b7,qubit_calibrations,qubit_spectroscopy,3983036942.3408036,,,,,,
+14,092a0f6f-ee66-4c27-973d-289f6752d026,qubit_calibrations,rabi_oscillations,3.242957553808178,,,,,5.2e-08,1.3e-08
