@@ -1,6 +1,6 @@
 import numpy as np
-import qiskit.pulse as pulse
 import qiskit.circuit as circuit
+import qiskit.pulse as pulse
 
 
 def rx(

@@ -9,10 +9,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from itertools import groupby
 import json
+from itertools import groupby
+from typing import Any, List, Tuple, Union  # , Dict
+
 from qiskit.circuit.parameterexpression import ParameterExpression
-from typing import List, Tuple, Union, Any  # , Dict
 
 
 def iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:

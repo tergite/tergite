@@ -10,36 +10,39 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from qiskit.providers import JobV1
-from qiskit.providers.jobstatus import JobStatus
-from qiskit.result import Result
-from qiskit.qobj import PulseQobj, QasmQobj
-from collections import Counter
-import requests
-from .serialization import IQXJsonEncoder, iqx_rle
 import json
-from .config import REST_API_MAP
-from qiskit.result.models import ExperimentResult, ExperimentResultData
+from collections import Counter
 from pathlib import Path
 from tempfile import gettempdir
 from uuid import uuid4
 
+import requests
+from qiskit.providers.jobstatus import JobStatus
+from qiskit.qobj import PulseQobj, QasmQobj
+from qiskit.result import Result
+from qiskit.result.models import ExperimentResult, ExperimentResultData
+
+from qiskit.providers import JobV1
+
+from .config import REST_API_MAP
+from .serialization import IQXJsonEncoder, iqx_rle
+
 STATUS_MAP = {
-    "REGISTERING" : JobStatus.QUEUED,
-    "DONE" : JobStatus.DONE,
-    
+    "REGISTERING": JobStatus.QUEUED,
+    "DONE": JobStatus.DONE,
     # TODO: unimplemented status codes
-    "INITIALIZING" : JobStatus.INITIALIZING,
-    "VALIDATING" : JobStatus.VALIDATING,
-    "RUNNING" : JobStatus.RUNNING,
-    "CANCELLED" : JobStatus.CANCELLED,
-    "ERROR" : JobStatus.ERROR
+    "INITIALIZING": JobStatus.INITIALIZING,
+    "VALIDATING": JobStatus.VALIDATING,
+    "RUNNING": JobStatus.RUNNING,
+    "CANCELLED": JobStatus.CANCELLED,
+    "ERROR": JobStatus.ERROR,
 }
+
 
 class Job(JobV1):
     def __init__(self: object, *, backend: object, job_id: str, upload_url: str):
         super().__init__(backend=backend, job_id=job_id, upload_url=upload_url)
-        
+
     def status(self) -> JobStatus:
         jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
         job_id = self.job_id()
@@ -49,26 +52,12 @@ class Job(JobV1):
         else:
             raise RuntimeError(f"Failed to GET status of job: {job_id}")
 
-    def store_data(self, documents: list):
-        store = input("Store this data? (y/n)\t".expandtabs())
-        if str.lower(store) not in ("y", "yes"):
-            return
-        download_url = self.download_url
-        if not download_url:
-            return
-        calibs_url = self.backend().base_url + REST_API_MAP["calibrations"]
-        for doc in documents:
-            doc.update({"job_id": self.job_id(), "download_url": download_url})
-        response = requests.post(calibs_url, json=documents)
-        if not response:
-            print(
-                f"Failed to store {len(documents)} document(s), server error: {response}"
-            )
-
     def submit(self: object, payload: object, /):
         self.metadata["shots"] = payload.config.shots
         self.metadata["qobj_id"] = payload.qobj_id
         self.metadata["num_experiments"] = len(payload.experiments)
+        self.payload = payload  # save input data inside job
+
         job_id = self.job_id()
         job_entry = {
             "job_id": job_id,
@@ -80,6 +69,7 @@ class Job(JobV1):
                 {
                     "name": "qasm_dummy_job",
                     "params": {"qobj": payload.to_dict()},
+                    "post_processing": "process_qiskit_qasm_runner_qasm_dummy_job",
                 }
             )
 
@@ -175,6 +165,7 @@ class Job(JobV1):
         for index, experiment_memory in enumerate(memory):
             experiment_results.append(
                 ExperimentResult(
+                    header=self.payload.experiments[index].header,
                     shots=self.metadata["shots"],
                     success=True,
                     data=ExperimentResultData(
