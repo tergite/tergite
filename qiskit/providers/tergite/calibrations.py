@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 import qiskit.circuit as circuit
-import qiskit.pulse as pulse
 import requests
 from qiskit.transpiler import InstructionProperties
 

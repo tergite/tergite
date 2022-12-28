@@ -6,18 +6,24 @@ import qiskit.pulse as pulse
 def rx(
     backend: object, qubits: set, rx_theta: circuit.Parameter
 ) -> pulse.ScheduleBlock:
-    """Returns a backend-specific schedule which implements a rotation on a set of qubits around the x-axis on the Bloch sphere. The schedule is parameterised by θ [rad], which specifies the angle."""
-    table = backend.calibration_table
+    """Returns a backend-specific schedule which implements a
+    rotation on a set of qubits around the x-axis on the Bloch sphere.
+    The schedule is parameterised by θ [rad], which specifies the angle.
+    """
+    ctq, _, _ = backend.calibration_tables
+    two_tone = ctq["spectroscopy"]
+    rabi = ctq["rabi_oscillations"]
+
     sched = pulse.ScheduleBlock(name=f"RX(θ, {qubits})")
     for q in qubits:
         sched += pulse.SetFrequency(
-            table["qubit_frequency"][q], channel=backend.drive_channel(q)
+            two_tone[q].frequency, channel=backend.drive_channel(q)
         )
         sched += pulse.Play(
             pulse.Gaussian(
-                duration=round(table["rabi_dur_gauss"][q] / backend.dt),
-                amp=rx_theta / (2 * np.pi * table["rabi_frequency"][q]),
-                sigma=table["rabi_sig_gauss"][q] / backend.dt,
+                duration=round(rabi[q].gauss_dur / backend.dt),
+                amp=rx_theta / (2 * np.pi * rabi[q].frequency),
+                sigma=round(rabi[q].gauss_sig / backend.dt),
                 name=f"RX q{q}",
             ),
             channel=backend.drive_channel(q),
@@ -28,7 +34,10 @@ def rx(
 def rz(
     backend: object, qubits: set, rz_lambda: circuit.Parameter
 ) -> pulse.ScheduleBlock:
-    """Returns a backend-specific schedule which implements a rotation on a set of qubits around the z-axis on the Block sphere. The schedule is parameterised by λ [rad], which specifies the angle."""
+    """Returns a backend-specific schedule which implements a rotation on a set
+    of qubits around the z-axis on the Block sphere. The schedule is
+    parameterised by λ [rad], which specifies the angle.
+    """
     sched = pulse.ScheduleBlock(name=f"RZ(λ, {qubits})")
     for q in qubits:
         sched += pulse.ShiftPhase(
@@ -39,35 +48,30 @@ def rz(
 
 def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
     """Returns a backend-specific schedule which implements a measurement on a set of qubits."""
-    table = backend.calibration_table
+    _, ctr, _ = backend.calibration_tables
+
+    rspec = ctr["spectroscopy"]
+
     sched = pulse.ScheduleBlock(name=f"Measure({qubits})")
-
-    def resonator_line(qubit: int):
-        nonlocal table
-        m = table["resonator_slope"][qubit]
-        c = table["resonator_intercept"][qubit]
-        x = table["ro_amp_square"][qubit]
-        return m * x + c
-
     for q in qubits:
         sched += pulse.SetFrequency(
-            resonator_line(q), channel=backend.measure_channel(q)
+            rspec[q].frequency, channel=backend.measure_channel(q)
         )
         sched += pulse.Play(
             pulse.Constant(
-                amp=table["ro_amp_square"][q],
-                duration=round(table["ro_dur_square"][q] / backend.dt),
+                amp=rspec[q].square_amp,
+                duration=round(rspec[q].square_dur / backend.dt),
                 name=f"Readout q{q}",
             ),
             channel=backend.measure_channel(q),
         )
         sched += pulse.Delay(
-            duration=round(table["ro_tof"][q] / backend.dt),
+            duration=300,
             channel=backend.acquire_channel(q),
             name=f"Time of flight q{q}",
         )
         sched += pulse.Acquire(
-            duration=round(table["ro_integration_time"][q] / backend.dt),
+            duration=round(rspec[q].integration_time / backend.dt),
             channel=backend.acquire_channel(q),
             mem_slot=backend.memory_slot(q),
             name=f"Integration window q{q}",
