@@ -17,7 +17,9 @@ from configparser import ConfigParser
 
 from .provider_account import ProviderAccount
 
-TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
+#TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
+TERGITERC_FILE =  pathlib.Path.home() / "repos"/ "tergite-qiskit-connector" / "tergiterc"
+
 REST_API_MAP = {
     "jobs": "/jobs",
     "result": "/result",
@@ -25,7 +27,6 @@ REST_API_MAP = {
     "calibrations": "/calibrations",
     "backends": "/backends",
 }
-
 
 class Tergiterc:
     def __init__(self):

@@ -150,7 +150,7 @@ class OpenPulseBackend(TergiteBackend):
             memory=False,  # Unsure what this is for. (?)
             max_shots=TergiteBackend.max_shots,  # From TergiteBackend.
             coupling_map=self.coupling_map,  # From TergiteBackend.
-            supported_instructions=self.target.instructions,  # Supported instructions, obtained from self.target.
+            supported_instructions= self.target.instructions,  # Supported instructions, obtained from self.target.
             dt=self.dt,  # From self
             dtm=self.dtm,  # From self
             description=self.description,  # From BackendV2.
@@ -169,6 +169,7 @@ class OpenPulseBackend(TergiteBackend):
 
     @functools.cached_property
     def target(self: object) -> Target:
+        print("target is created ... ...")
         gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
         if self.data["characterized"]:
             calibrations.add_instructions(
@@ -182,6 +183,7 @@ class OpenPulseBackend(TergiteBackend):
     def calibration_tables(self: object) -> tuple:
         """Returns dataframes with empirical calibration values specific to this backend."""
         # cache and return dataframes to caller
+        print("loading calibratoin tables ... ...")
         return calibrations.load_tables(backend=self)
 
     @property

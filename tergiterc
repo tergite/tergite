@@ -1,0 +1,2 @@
+[service mss] 
+url = http://localhost:8080
