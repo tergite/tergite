@@ -169,7 +169,6 @@ class OpenPulseBackend(TergiteBackend):
 
     @functools.cached_property
     def target(self: object) -> Target:
-        print("target is created ... ...")
         gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
         if self.data["characterized"]:
             calibrations.add_instructions(
@@ -178,6 +177,10 @@ class OpenPulseBackend(TergiteBackend):
                 target=gmap,
             )
         return gmap
+    
+    @functools.cached_property
+    def device_properties(self: object) -> dict:
+        return self.data["device_properties"]
 
     @functools.cached_property
     def calibration_tables(self: object) -> tuple:

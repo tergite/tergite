@@ -48,7 +48,7 @@ class Provider(ProviderV1):
                 f"GET request for backends timed out. GET {self.provider_account.url}"
                 + REST_API_MAP["backends"]
             )
-
+        
         for backend_dict in response.json():
             if backend_dict["open_pulse"]:
                 obj = OpenPulseBackend(

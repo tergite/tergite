@@ -2,7 +2,7 @@ import numpy as np
 import qiskit.circuit as circuit
 import qiskit.pulse as pulse
 
-from .device_properties import qubit, readout_resonator
+#from .device_properties import qubit, readout_resonator
 
 def rx(
     backend: object, qubits: set, rx_theta: circuit.Parameter
@@ -11,21 +11,23 @@ def rx(
     rotation on a set of qubits around the x-axis on the Bloch sphere.
     The schedule is parameterised by θ [rad], which specifies the angle.
     """
-    print(f"creating rx instruction for the {backend.name=} .... ...")
-    print(f"{qubits=}")
-    print(f"{rx_theta=}")
+    #print(f"creating rx instruction for the {backend.name=} .... ...")
+    #print(f"{qubits=}")
+    #print(f"{rx_theta=}")
 
     #ctq, _, _ = backend.calibration_tables
     #two_tone = ctq["spectroscopy"]
     #rabi = ctq["rabi_oscillations"]
-
+    device_properties = backend.device_properties
+    qubit = device_properties.get("qubit")
+    
     sched = pulse.ScheduleBlock(name=f"RX(θ, {qubits})")
     for q in qubits:
         sched += pulse.SetFrequency(
             #two_tone[q].frequency, channel=backend.drive_channel(q)
             qubit[q]["frequency"], channel=backend.drive_channel(q)
         )
-        print(f"{q=}  {(qubit[q]['frequency'])=}")
+        #print(f"{q=}  {(qubit[q]['frequency'])=}")
         sched += pulse.Play(
             pulse.Gaussian(
                 #duration=round(rabi[q].gauss_dur / backend.dt),
@@ -42,9 +44,9 @@ def rx(
         print(f"{q=}  {(rx_theta / (2 * np.pi * qubit[q].get('frequency')))=}")
         print(f"{q=}  {(round(qubit[q].get('gauss_sig') / backend.dt))=}") """
 
-        print(f"{q=}  {(qubit[q].get('pi_pulse_duration'))=}")
-        print(f"{q=}  {(rx_theta / (qubit[q].get('pi_pulse_amplitude')))=}")
-        print(f"{q=}  {(qubit[q].get('pulse_sigma'))=}")
+        #print(f"{q=}  {(qubit[q].get('pi_pulse_duration'))=}")
+        #print(f"{q=}  {(rx_theta / (qubit[q].get('pi_pulse_amplitude')))=}")
+        #print(f"{q=}  {(qubit[q].get('pulse_sigma'))=}")
     return sched
 
 
@@ -66,9 +68,11 @@ def rz(
 def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
     """Returns a backend-specific schedule which implements a measurement on a set of qubits."""
     #_, ctr, _ = backend.calibration_tables
-
     #rspec = ctr["spectroscopy"]
-
+    
+    device_properties = backend.device_properties
+    readout_resonator = device_properties.get("readout_resonator")
+ 
     sched = pulse.ScheduleBlock(name=f"Measure({qubits})")
     for q in qubits:
         sched += pulse.SetFrequency(

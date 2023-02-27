@@ -3,8 +3,9 @@ import pathlib
 from qiskit.providers.tergite import Tergite
 
 chalmers = Tergite.get_provider()
-backend = chalmers.get_backend("OpenQASM")
-#print(backend)
+backend = chalmers.get_backend("Nov_rain")
+pprint.pprint(backend)
+#pprint.pprint(backend.device_properties.get("readout_resonator")[3])
 
 
 
