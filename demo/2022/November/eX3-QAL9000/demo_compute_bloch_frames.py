@@ -45,7 +45,7 @@ save_old_frames()
 #----------------------------------------------------------------------------
 
 chalmers = Tergite.get_provider()
-backend = chalmers.get_backend("Nov7")
+backend = chalmers.get_backend("Nov_rain")
 backend.set_options(shots=2000)
 
 print(f"Loaded backend {backend.name} (QAL 9000)")
