@@ -14,6 +14,7 @@
 # this file is meant to be run interactively for objects inspection
 # python -i tests/job_on_tergite.py
 
+
 from qiskit.visualization import plot_histogram
 
 from qiskit import *
@@ -33,4 +34,5 @@ myqobj = assemble(mytr, backend)
 
 job = execute(mytr, backend)
 
+print(job.result())
 # plot_histogram(job.result().get_counts()).show()
