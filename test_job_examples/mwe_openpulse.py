@@ -13,7 +13,7 @@ from qiskit.providers.tergite import Tergite
 
 
 chalmers = Tergite.get_provider()
-backend = chalmers.get_backend("Nov7")
+backend = chalmers.get_backend("Nov_rain")
 backend.set_options(shots=1024)
 backend
 
@@ -21,7 +21,7 @@ backend
 # In[3]:
 
 
-backend.calibration_tables
+#backend.calibration_tables
 
 
 # In[4]:

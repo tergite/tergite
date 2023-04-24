@@ -4,8 +4,9 @@
 # In[1]:
 
 
+from time import sleep
+
 import qiskit.circuit as circuit
-import qiskit.compiler as compiler
 
 from qiskit.providers.tergite import Tergite
 
@@ -13,18 +14,12 @@ from qiskit.providers.tergite import Tergite
 
 
 chalmers = Tergite.get_provider()
-backend = chalmers.get_backend("Nov7")
+backend = chalmers.get_backend("OpenQASM")
 backend.set_options(shots=1024)
 backend
 
 
 # In[3]:
-
-
-backend.calibration_tables
-
-
-# In[4]:
 
 
 qc = circuit.QuantumCircuit(2, 2)
@@ -33,14 +28,14 @@ qc.measure(1, 1)
 qc.draw()
 
 
+# In[4]:
+
+
+job = backend.run(qc)
+
+
 # In[5]:
 
 
-tc = compiler.transpile(qc, backend=backend)
-tc.draw()
-
-
-# In[6]:
-
-
-job = backend.run(tc, meas_level=2)
+sleep(10)
+job.result()
