@@ -16,8 +16,8 @@ from qutip import basis
 from visuals import animate_bloch
 
 RUN_ID = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-N_QUBITS = 9
-TRAIN_EPOCHS = 5
+N_QUBITS = 2
+TRAIN_EPOCHS = 10
 
 N_TRAIN_SAMPLES = 100
 N_EVAL_SAMPLES = 25
@@ -83,10 +83,10 @@ with torch.no_grad():
         correct / len(eval_loader) * 100)
     )
 
-states = []
-thetas = Utils.load_thetas(RUN_ID)
-print(len(thetas))
-for theta in thetas:
-    states.append((cos(theta / 2) * basis(2, 0) + sin(theta / 2) * basis(2, 1)).unit())
-
-animate_bloch(states, duration=0.1, save_all=False, filename=f'{RUN_ID}_blochsphere')
+# states = []
+# thetas = Utils.load_thetas(RUN_ID)
+# print(len(thetas))
+# for theta in thetas:
+#     states.append((cos(theta / 2) * basis(2, 0) + sin(theta / 2) * basis(2, 1)).unit())
+#
+# animate_bloch(states, duration=0.1, save_all=False, filename=f'{RUN_ID}_blochsphere')

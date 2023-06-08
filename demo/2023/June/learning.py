@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from torch.autograd import Function
 
 from circuits import HybridLayerCircuit
-from utils import append_thetas
 
 
 class HybridFunction(Function):

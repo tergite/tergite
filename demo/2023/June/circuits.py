@@ -11,7 +11,8 @@ from qiskit import transpile
 from qiskit.result import marginal_counts
 from qiskit_aer import AerSimulator
 
-from utils import append_thetas
+from utils import Utils
+
 
 # Import Tergite
 # from qiskit.providers.tergite import Tergite
@@ -47,7 +48,7 @@ class HybridLayerCircuit:
         """
         n_qubits = len(thetas)
 
-        append_thetas(self.run_id, thetas)
+        Utils.append_thetas(self.run_id, thetas)
 
         circuit = qiskit.QuantumCircuit(n_qubits)
         circuit.h([i for i in range(n_qubits)])
