@@ -36,11 +36,11 @@ def animate_bloch(states, duration=0.1, save_all=False, filename:str='default'):
 
         if save_all:
             b.save(dirc='tmp')  # saving images to tmp directory
-            filename = "tmp/bloch_%01d.png" % i
+            temp_filename = "tmp/bloch_%01d.png" % i
         else:
-            filename = 'temp_file.png'
-            b.save(filename)
+            filename_ = 'file_outputs/temp_file.png'
+            b.save(temp_filename)
 
-        images.append(imageio.imread(filename))
+        images.append(imageio.imread(temp_filename))
 
-    imageio.mimsave(f'{filename}.gif', images, duration=duration)
+    imageio.mimsave(f'{temp_filename}.gif', images, duration=duration)
