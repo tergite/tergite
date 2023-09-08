@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import qiskit.circuit as circuit
 import qiskit.pulse as pulse
@@ -33,7 +35,8 @@ def rx(
                 #duration=round(rabi[q].gauss_dur / backend.dt),
                 duration=round(qubit[q].get("pi_pulse_duration") / backend.dt),
                 #amp=rx_theta / (2 * np.pi * rabi[q].frequency),
-                amp=rx_theta / (qubit[q].get("pi_pulse_amplitude")),
+                #amp=rx_theta / (qubit[q].get("pi_pulse_amplitude")),
+                amp=rx_theta / np.pi * qubit[q].get("pi_pulse_amplitude"),
                 #sigma=round(rabi[q].gauss_sig / backend.dt),
                 sigma=round(qubit[q].get("pulse_sigma") / backend.dt),
                 name=f"RX q{q}",
@@ -79,16 +82,30 @@ def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
             #rspec[q].frequency, channel=backend.measure_channel(q)
             readout_resonator[q].get("frequency"), channel=backend.measure_channel(q)        
         )
-        sched += pulse.Play(
-            pulse.Constant(
-                #amp=rspec[q].square_amp,
-                amp=readout_resonator[q].get("pulse_amplitued"),
-                #duration=round(rspec[q].square_dur / backend.dt),
-                duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
-                name=f"Readout q{q}",
-            ),
-            channel=backend.measure_channel(q),
-        )
+        # FIXME: There is a typo in the keys in mongoDB, has to be replaced everywhere
+        try:
+            sched += pulse.Play(
+                pulse.Constant(
+                    #amp=rspec[q].square_amp,
+                    amp=readout_resonator[q].get("pulse_amplitude"),
+                    #duration=round(rspec[q].square_dur / backend.dt),
+                    duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
+                    name=f"Readout q{q}",
+                ),
+                channel=backend.measure_channel(q),
+            )
+        except:
+            logging.warning(f'{backend.name} contains misspelled keys of pulse_amplitued')
+            sched += pulse.Play(
+                pulse.Constant(
+                    #amp=rspec[q].square_amp,
+                    amp=readout_resonator[q].get("pulse_amplitued"),
+                    #duration=round(rspec[q].square_dur / backend.dt),
+                    duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
+                    name=f"Readout q{q}",
+                ),
+                channel=backend.measure_channel(q),
+            )
         sched += pulse.Delay(
             duration=300,
             channel=backend.acquire_channel(q),
