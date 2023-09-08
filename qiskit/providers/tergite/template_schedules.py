@@ -82,30 +82,16 @@ def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
             #rspec[q].frequency, channel=backend.measure_channel(q)
             readout_resonator[q].get("frequency"), channel=backend.measure_channel(q)        
         )
-        # FIXME: There is a typo in the keys in mongoDB, has to be replaced everywhere
-        try:
-            sched += pulse.Play(
-                pulse.Constant(
-                    #amp=rspec[q].square_amp,
-                    amp=readout_resonator[q].get("pulse_amplitude"),
-                    #duration=round(rspec[q].square_dur / backend.dt),
-                    duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
-                    name=f"Readout q{q}",
-                ),
-                channel=backend.measure_channel(q),
-            )
-        except:
-            logging.warning(f'{backend.name} contains misspelled keys of pulse_amplitued')
-            sched += pulse.Play(
-                pulse.Constant(
-                    #amp=rspec[q].square_amp,
-                    amp=readout_resonator[q].get("pulse_amplitued"),
-                    #duration=round(rspec[q].square_dur / backend.dt),
-                    duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
-                    name=f"Readout q{q}",
-                ),
-                channel=backend.measure_channel(q),
-            )
+        sched += pulse.Play(
+            pulse.Constant(
+                #amp=rspec[q].square_amp,
+                amp=readout_resonator[q].get("pulse_amplitude"),
+                #duration=round(rspec[q].square_dur / backend.dt),
+                duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
+                name=f"Readout q{q}",
+            ),
+            channel=backend.measure_channel(q),
+        )
         sched += pulse.Delay(
             duration=300,
             channel=backend.acquire_channel(q),
