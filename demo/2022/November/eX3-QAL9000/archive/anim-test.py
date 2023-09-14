@@ -28,7 +28,7 @@ from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging, IQXSimple
 from qiskit_experiments.library.tomography import StateTomography
 
 from qiskit import Aer
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 backend = Aer.get_backend("aer_simulator")
 

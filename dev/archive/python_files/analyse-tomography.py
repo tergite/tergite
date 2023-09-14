@@ -20,7 +20,7 @@ from qiskit_experiments.library.tomography import (
     StateTomographyAnalysis,
 )
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

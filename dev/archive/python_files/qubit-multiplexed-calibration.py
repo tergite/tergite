@@ -15,8 +15,8 @@ import qiskit.pulse as pulse
 import tqcsf.file
 from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging
 
-import qiskit.providers.tergite.template_schedules as templates
-from qiskit.providers.tergite import Tergite
+import tergite_qiskit_connector.providers.tergite.template_schedules as templates
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

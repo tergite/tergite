@@ -6,7 +6,7 @@ import requests
 import matplotlib.pyplot as plt
 from uuid import uuid4 as uuid
 from qiskit.providers.jobstatus import JobStatus
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 from tqdm.auto import tqdm
 from pathlib import Path
 from os import makedirs

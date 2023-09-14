@@ -143,3 +143,6 @@ config.ini
 # ssh keys
 *.pem
 
+# idea
+.idea/
+

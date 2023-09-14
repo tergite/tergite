@@ -36,7 +36,7 @@ from qiskit_experiments.library.tomography import StateTomography
 from tqdm.auto import tqdm
 
 from qiskit import Aer
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

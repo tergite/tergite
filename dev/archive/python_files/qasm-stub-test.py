@@ -11,7 +11,7 @@ from time import sleep
 import qiskit.circuit as circuit
 import requests
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

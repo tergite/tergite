@@ -18,7 +18,7 @@ import tqcsf.file
 from more_itertools import powerset
 from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

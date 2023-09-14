@@ -24,7 +24,7 @@ import tqcsf.file
 from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging
 from scipy.spatial import distance_matrix
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

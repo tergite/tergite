@@ -17,7 +17,7 @@
 from qiskit.visualization import plot_histogram
 
 from qiskit import *
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 provider = Tergite.get_provider()
 backend = provider.get_backend("pingu")

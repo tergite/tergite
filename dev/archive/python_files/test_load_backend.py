@@ -8,7 +8,7 @@ import retworkx.visualization as rxv
 from qiskit.providers.fake_provider import FakeHanoi
 from qiskit.transpiler import CouplingMap
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

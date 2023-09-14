@@ -15,7 +15,7 @@ import tqcsf.file
 from qiskit.providers.jobstatus import JobStatus
 from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging, IQXSimple
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

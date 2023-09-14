@@ -16,7 +16,7 @@ from qiskit.providers.jobstatus import JobStatus
 from qiskit.visualization import plot_bloch_multivector
 from tqdm.auto import tqdm
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 from pathlib import Path
 from os import makedirs, listdir

@@ -15,7 +15,7 @@ from qiskit.visualization import (
 )
 
 from qiskit import *
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 #
 # Note: This code has been used on "Quantum software" PoC hearing

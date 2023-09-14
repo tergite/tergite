@@ -14,7 +14,7 @@ from qiskit.providers.jobstatus import JobStatus
 from qiskit.visualization import plot_bloch_multivector
 from tqdm.auto import tqdm
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 chalmers = Tergite.get_provider()
 backend = chalmers.get_backend("Nov7")

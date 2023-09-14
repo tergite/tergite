@@ -7,7 +7,7 @@
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[2]:
 

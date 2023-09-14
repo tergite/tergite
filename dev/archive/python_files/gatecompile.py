@@ -10,7 +10,7 @@ import qiskit.compiler as compiler
 import qiskit.pulse as pulse
 from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging, IQXSimple
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # In[ ]:
 

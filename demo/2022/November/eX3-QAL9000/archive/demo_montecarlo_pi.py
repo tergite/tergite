@@ -8,7 +8,7 @@ import requests
 from qiskit.providers.jobstatus import JobStatus
 from tqdm.auto import tqdm
 
-from qiskit.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite
 
 # Task: Estimate Pi numerically
 # Area of circle = pi*r**2
