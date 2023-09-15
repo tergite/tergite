@@ -146,3 +146,6 @@ config.ini
 # idea
 .idea/
 
+# vscode
+.vscode/
+
