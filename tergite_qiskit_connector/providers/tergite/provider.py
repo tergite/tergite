@@ -72,7 +72,13 @@ class Provider(ProviderV1):
         # reset malformed backends map
         self._malformed_backends.clear()
 
-        response = requests.get(url=url)
+        auth = self._get_account_basic_auth()
+        # set up headers
+        headers = {}
+        if self.provider_account.token:
+            headers["Authorization"] = f"Bearer {self.provider_account.token}"
+
+        response = requests.get(url=url, auth=auth, headers=headers)
         if not response.ok:
             raise RuntimeError(f"GET request for backends timed out. GET {url}")
 
@@ -81,7 +87,7 @@ class Provider(ProviderV1):
             try:
                 parsed_data.append(TergiteBackendConfig(**record))
             except TypeError as exp:
-                self._malformed_backends[record["name"]] = f"{exp}"
+                self._malformed_backends[record["name"]] = f"{exp}\n{exp.__traceback__}"
 
         return parsed_data
         
