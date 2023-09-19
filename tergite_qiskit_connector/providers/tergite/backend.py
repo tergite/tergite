@@ -2,6 +2,7 @@
 #
 # (C) Copyright Miroslav Dobsicek 2020, 2021
 # (C) Copyright Axel Andersson 2022
+# (C) Copyright Martin Ahindura 2023
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -10,8 +11,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+import dataclasses
 import functools
+import json
 from abc import abstractmethod
+from typing import Dict, Any, Tuple, List, Optional
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -50,24 +54,48 @@ class TergiteBackend(BackendV2):
         options.set_validator("shots", (1, TergiteBackend.max_shots))
         return options
 
-    def __init__(self, /, *, data: dict, provider: object, base_url: str):
+    def __init__(self, /, *, data: "TergiteBackendConfig", provider: object, base_url: str):
         super().__init__(
             provider=provider,
-            name=data["name"],
-            backend_version=data["version"],
+            name=data.name,
+            backend_version=data.version,
         )
         self.base_url = base_url
-        self.data = data
+        self.data = dataclasses.asdict(data)
 
-    def __repr__(self: object) -> str:
+    def __repr__(self) -> str:
         repr_list = [f"TergiteBackend object @ {hex(id(self))}:"]
-        config = self.configuration().to_dict()
-        config["characterized"] = self.data["characterized"]
+        config = self._as_dict()
         for attr, value in config.items():
             repr_list.append(f"  {attr}:\t{value}".expandtabs(30))
         return "\n".join(repr_list)
 
-    def register_job(self: object) -> Job:
+    def __eq__(self, other):
+        if not isinstance(other, TergiteBackend):
+            return False
+
+        self_dict = self._as_dict().copy()
+        other_dict = other._as_dict().copy()
+
+        # serialize a few items that are hard to serialize
+        self_dict["coupling_map"] = f"{self_dict['coupling_map']}"
+        other_dict["coupling_map"] = f"{other_dict['coupling_map']}"
+
+        self_dict["supported_instructions"] = f"{self_dict['supported_instructions']}"
+        other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
+
+        return self_dict == other_dict
+
+    def _as_dict(self):
+        obj = self.configuration().to_dict()
+        obj["characterized"] = self.data["characterized"]
+        return obj
+
+    @abstractmethod
+    def configuration(self):
+        ...
+
+    def register_job(self) -> Job:
         """Registers a new job at the Tergite MSS."""
         jobs_url = self.base_url + REST_API_MAP["jobs"]
         response = requests.post(jobs_url)
@@ -163,7 +191,7 @@ class OpenPulseBackend(TergiteBackend):
         return self.data["dt"]
 
     @property
-    def dtm(self: object) -> bool:
+    def dtm(self: object) -> float:
         # hardware sample resolution for readout
         return self.data["dtm"]
 
@@ -289,3 +317,76 @@ class OpenQASMBackend(TergiteBackend):
             max_shots=TergiteBackend.max_shots,  # From TergiteBackend.
             coupling_map=self.coupling_map,  # From TergiteBackend.
         )
+
+
+@dataclasses.dataclass
+class TergiteBackendConfig:
+    """Basic structure of the config of a backend"""
+    name: str
+    characterized: bool
+    open_pulse: bool
+    timelog: Dict[str, Any]
+    version: str
+    meas_map: List[List[int]]
+    coupling_map: List[Tuple[int, int]]
+    num_qubits: int = 0
+    num_couplers: int = 0
+    num_resonators: int = 0
+    dt: Optional[float] = None
+    dtm: Optional[float] = None
+    device_properties: Optional["_DeviceProperties"] = None
+    meas_lo_freq: Optional[List[int]] = None
+    qubit_lo_freq: Optional[List[int]] = None
+    qubit_calibrations: Optional[Dict[str, Any]] = None
+    coupler_calibrations: Optional[Dict[str, Any]] = None
+    resonator_calibrations: Optional[Dict[str, Any]] = None
+
+    def __post_init__(self):
+        """Run after initialization of the dataclass"""
+        # convert nested dataclasses to dataclasses
+        if isinstance(self.device_properties, dict):
+            self.device_properties = _DeviceProperties(**self.device_properties)
+
+
+@dataclasses.dataclass
+class _DeviceProperties:
+    """All Device Properties"""
+    qubit: Optional[List["_QubitProps"]] = None
+    readout_resonator: Optional[List["_ReadoutResonatorProps"]] = None
+    coupler: Optional[List[Dict[str, Any]]] = None
+
+    def __post_init__(self):
+        """Run after initialization of the dataclass"""
+        # convert nested dataclasses to dataclasses
+        if isinstance(self.qubit, list):
+            self.qubit = [_QubitProps(**item) for item in self.qubit if isinstance(item, dict)]
+
+        if isinstance(self.readout_resonator, list):
+            self.readout_resonator = [
+                _ReadoutResonatorProps(**item) for item in self.readout_resonator if isinstance(item, dict)]
+
+
+@dataclasses.dataclass
+class _ReadoutResonatorProps:
+    """ReadoutResonator Device configuration"""
+    index: int
+    acq_delay: float
+    acq_integration_time: float
+    frequency: int
+    pulse_amplitued: float
+    pulse_delay: float
+    pulse_duration: float
+    pulse_type: str
+
+
+@dataclasses.dataclass
+class _QubitProps:
+    """Qubit Device configuration"""
+    index: int
+    frequency: int
+    pi_pulse_amplitude: float
+    pi_pulse_duration: float
+    pulse_type: str
+    pulse_sigma: float
+    t1_decoherence: float
+    t2_decoherence: float
