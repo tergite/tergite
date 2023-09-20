@@ -38,12 +38,12 @@ INVALID_API_BASIC_AUTHS = [
         API_PASSWORD,
     ),
     (
-        None,
+        "",
         API_PASSWORD,
     ),
     (
         API_USERNAME,
-        None,
+        "",
     ),
     (
         API_PASSWORD,
