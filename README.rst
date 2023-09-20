@@ -104,7 +104,6 @@ ToDo
 - [ ] Add Github badges
 - [ ] Add bitbucket pipeline to update production branch
   and push to github (downstream)
-- [ ] Add github URL to pyproject as repo link (downstream)
 - [ ] Cleanup the code generally (downstream)
 - [ ] Add docs and doc generation (downstream)
 
