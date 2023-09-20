@@ -33,7 +33,7 @@ def rx(
                 #duration=round(rabi[q].gauss_dur / backend.dt),
                 duration=round(qubit[q].get("pi_pulse_duration") / backend.dt),
                 #amp=rx_theta / (2 * np.pi * rabi[q].frequency),
-                amp=rx_theta / (qubit[q].get("pi_pulse_amplitude")),
+                amp=rx_theta / np.pi * qubit[q].get("pi_pulse_amplitude"),
                 #sigma=round(rabi[q].gauss_sig / backend.dt),
                 sigma=round(qubit[q].get("pulse_sigma") / backend.dt),
                 name=f"RX q{q}",
