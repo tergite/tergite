@@ -102,19 +102,10 @@ ToDo
 
 - [ ] Add Github actions, to push to pypi, and test code
 - [ ] Add Github badges
-- [ ] Remove redundant dependencies
 - [ ] Add bitbucket pipeline to update production branch
   and push to github (downstream)
-- [x] Add example on readme
-- [ ] Add License file and link (downstream)
-- [ ] Add contributions guideline
-- [ ] Limit branches on github to production branch
-- [ ] Make production branch the main branch on github
-- [ ] Add List of contributors to README/code (downstream)
 - [ ] Add github URL to pyproject as repo link (downstream)
-- [ ] Add list of contributors to pyproject.toml (downstream)
 - [ ] Cleanup the code generally (downstream)
-- [ ] Add github branch rules limiting contribution
 - [ ] Add docs and doc generation (downstream)
 
 Contribution Guidelines
@@ -133,7 +124,7 @@ ChangeLog
 ---------
 
 To view the changelog for each version, have a look at
-the `CHANGELOG.rst <./CHANGELOG.rst>`_ file.
+the `CHANGELOG.md <./CHANGELOG.md>`_ file.
 
 
 License
