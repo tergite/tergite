@@ -36,7 +36,7 @@ definitions:
     - step: &Downstream-check
         name: Downstream Flag Check
         script:
-          - if [ "${SHOULD_PUSH_DOWNSTREAM}" != "true" ]; printf "downstream push not enabled"; exit; fi
+          - if [ "${SHOULD_PUSH_DOWNSTREAM}" != "true" ]; then printf "downstream push not enabled"; exit; fi
 
 pipelines:
   pull-requests:
