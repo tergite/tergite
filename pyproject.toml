@@ -11,7 +11,7 @@ maintainers = [
     "Abdullah-al Amin <>"
 ]
 license = "Apache-2.0"
-readme = "README.md"
+readme = "README.rst"
 packages = [{include = "tergite_qiskit_connector"}]
 keywords = ["quatum-computer", "qiskit", "quatum", "tergite"]
 repository = "https://github.com/tergite/tergite-qiskit-connector"
