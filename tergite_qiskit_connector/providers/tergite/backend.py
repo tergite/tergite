@@ -15,7 +15,7 @@ import dataclasses
 import functools
 import json
 from abc import abstractmethod
-from typing import Dict, Any, Tuple, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -23,6 +23,7 @@ import qiskit.pulse as pulse
 import requests
 from numpy import inf as infinity
 from qiskit.circuit import QuantumCircuit
+from qiskit.providers import BackendV2, Options
 from qiskit.providers.models import BackendConfiguration
 from qiskit.pulse.channels import (
     AcquireChannel,
@@ -34,8 +35,6 @@ from qiskit.pulse.channels import (
 from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
-
-from qiskit.providers import BackendV2, Options
 
 from . import calibrations
 from .config import REST_API_MAP
@@ -54,7 +53,9 @@ class TergiteBackend(BackendV2):
         options.set_validator("shots", (1, TergiteBackend.max_shots))
         return options
 
-    def __init__(self, /, *, data: "TergiteBackendConfig", provider: object, base_url: str):
+    def __init__(
+        self, /, *, data: "TergiteBackendConfig", provider: object, base_url: str
+    ):
         super().__init__(
             provider=provider,
             name=data.name,
@@ -178,7 +179,7 @@ class OpenPulseBackend(TergiteBackend):
             memory=False,  # Unsure what this is for. (?)
             max_shots=TergiteBackend.max_shots,  # From TergiteBackend.
             coupling_map=self.coupling_map,  # From TergiteBackend.
-            supported_instructions= self.target.instructions,  # Supported instructions, obtained from self.target.
+            supported_instructions=self.target.instructions,  # Supported instructions, obtained from self.target.
             dt=self.dt,  # From self
             dtm=self.dtm,  # From self
             description=self.description,  # From BackendV2.
@@ -205,7 +206,7 @@ class OpenPulseBackend(TergiteBackend):
                 target=gmap,
             )
         return gmap
-    
+
     @functools.cached_property
     def device_properties(self: object) -> dict:
         return self.data["device_properties"]
@@ -322,6 +323,7 @@ class OpenQASMBackend(TergiteBackend):
 @dataclasses.dataclass
 class TergiteBackendConfig:
     """Basic structure of the config of a backend"""
+
     name: str
     characterized: bool
     open_pulse: bool
@@ -351,6 +353,7 @@ class TergiteBackendConfig:
 @dataclasses.dataclass
 class _DeviceProperties:
     """All Device Properties"""
+
     qubit: Optional[List["_QubitProps"]] = None
     readout_resonator: Optional[List["_ReadoutResonatorProps"]] = None
     coupler: Optional[List[Dict[str, Any]]] = None
@@ -359,16 +362,22 @@ class _DeviceProperties:
         """Run after initialization of the dataclass"""
         # convert nested dataclasses to dataclasses
         if isinstance(self.qubit, list):
-            self.qubit = [_QubitProps(**item) for item in self.qubit if isinstance(item, dict)]
+            self.qubit = [
+                _QubitProps(**item) for item in self.qubit if isinstance(item, dict)
+            ]
 
         if isinstance(self.readout_resonator, list):
             self.readout_resonator = [
-                _ReadoutResonatorProps(**item) for item in self.readout_resonator if isinstance(item, dict)]
+                _ReadoutResonatorProps(**item)
+                for item in self.readout_resonator
+                if isinstance(item, dict)
+            ]
 
 
 @dataclasses.dataclass
 class _ReadoutResonatorProps:
     """ReadoutResonator Device configuration"""
+
     index: int
     acq_delay: float
     acq_integration_time: float
@@ -382,6 +391,7 @@ class _ReadoutResonatorProps:
 @dataclasses.dataclass
 class _QubitProps:
     """Qubit Device configuration"""
+
     index: int
     frequency: int
     pi_pulse_amplitude: float

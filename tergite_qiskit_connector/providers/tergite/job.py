@@ -17,12 +17,11 @@ from tempfile import gettempdir
 from uuid import uuid4
 
 import requests
+from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JobStatus
 from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
-
-from qiskit.providers import JobV1
 
 from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle

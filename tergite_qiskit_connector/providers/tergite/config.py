@@ -27,6 +27,7 @@ REST_API_MAP = {
     "backends": "/backends",
 }
 
+
 class Tergiterc:
     def __init__(self):
         self._parser = self._get_parser()

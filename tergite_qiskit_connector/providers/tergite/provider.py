@@ -12,13 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 import functools
-
 from typing import List, Optional, Tuple
 
 import requests
-from qiskit.providers.providerutils import filter_backends
-
 from qiskit.providers import ProviderV1
+from qiskit.providers.providerutils import filter_backends
 
 from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackendConfig
 from .config import REST_API_MAP
@@ -50,7 +48,7 @@ class Provider(ProviderV1):
     def available_backends(self, /) -> dict:
         backends = dict()
         backend_configs = self._get_backend_configs()
-        
+
         for backend_conf in backend_configs:
             if backend_conf.open_pulse:
                 obj = OpenPulseBackend(
@@ -63,7 +61,7 @@ class Provider(ProviderV1):
             backends[obj.name] = obj
 
         return backends
-    
+
     def _get_backend_configs(self) -> List[TergiteBackendConfig]:
         """Retrieves the backend configs from which to construct Backend objects"""
         parsed_data = []
@@ -90,10 +88,10 @@ class Provider(ProviderV1):
                 self._malformed_backends[record["name"]] = f"{exp}\n{exp.__traceback__}"
 
         return parsed_data
-        
+
     def _get_account_basic_auth(self) -> Optional[Tuple[str, str]]:
         """Retrieves the account's basic auth if any.
-        
+
         Returns:
             tuple of (username, password) if account has auth else None
         """
