@@ -1,7 +1,21 @@
 Tergite Qiskit Connector
 ========================
 
-`Qiskit <https://github.com/Qiskit/qiskit>`_ provider for the Tergite quantum computers.
+|PyPI version| |license| |CI| |PyPI pyversions|
+
+.. |PyPI version| image:: https://badge.fury.io/py/tergite-qiskit-connector.svg
+   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+
+.. |license| image:: https://img.shields.io/pypi/l/tergite-qiskit-connector.svg
+   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+
+.. |CI| image:: https://github.com/tergite/tergite-qiskit-connector/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/tergite/tergite-qiskit-connector/actions
+
+.. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/tergite-qiskit-connector.svg
+   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+
+The `Qiskit <https://github.com/Qiskit/qiskit>`_ provider for connecting to the Tergite quantum computers.
 
 Installation
 ------------
@@ -100,12 +114,10 @@ Getting Started
 ToDo
 ----
 
-- [ ] Add Github actions, to push to pypi, and test code
-- [ ] Add Github badges
 - [ ] Add bitbucket pipeline to update production branch
-  and push to github (downstream)
-- [ ] Cleanup the code generally (downstream)
-- [ ] Add docs and doc generation (downstream)
+  and push to github
+- [ ] Cleanup the code generally
+- [ ] Add docs and doc generation
 
 Contribution Guidelines
 -----------------------
