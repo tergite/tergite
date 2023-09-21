@@ -96,7 +96,7 @@ jobs:
   upstream:
     name: Update upstream
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == "push" }} && ${{ vars.SHOULD_PUSH_UPSTREAM == 'true' }}
+    if: ${{ github.event_name == 'push' }} && ${{ vars.SHOULD_PUSH_UPSTREAM == 'true' }}
     needs: tests
     steps:
       - name: Checkout the commit
@@ -105,4 +105,4 @@ jobs:
       - name: Push upstream
         run: |
           git config user.email ${{ secrets.UPSTREAM_USER }}
-          git push ${{ secrets.UPSTREAM_REPO }} ${{ GITHUB_REF_NAME }}
+          git push ${{ secrets.UPSTREAM_REPO }} ${{ github.ref_name }}
