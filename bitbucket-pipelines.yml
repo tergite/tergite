@@ -1,0 +1,75 @@
+image: python:3.8
+
+definitions:
+  steps:
+    - step: &Test-step
+        name: test
+        caches:
+          - pip
+        script:
+          - pip install -U pip
+          - pip install --user pipx
+          - export PATH="$HOME/.local/bin:$PATH"
+          - pipx ensurepath
+          - pipx install poetry
+          - poetry --version
+          - poetry install
+          - source $(poetry env info --path)/bin/activate
+          - pytest
+          - deactivate
+    - step: &Lint-step
+        name: lint
+        caches:
+          - pip
+        script:
+          - if [ "${SHOULD_LINT}" != "true" ]; then printf "linting not enabled"; exit; fi
+          - pip install -U pip
+          - pip install --user pipx
+          - export PATH="$HOME/.local/bin:$PATH"
+          - pipx ensurepath
+          - pipx install poetry
+          - poetry --version
+          - poetry install
+          - source $(poetry env info --path)/bin/activate
+          - pytest
+          - deactivate
+    - step: &Downstream-check
+        name: Downstream Flag Check
+        script:
+          - if [ "${SHOULD_PUSH_DOWNSTREAM}" != "true" ]; printf "downstream push not enabled"; exit; fi
+
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          name: check target branch
+          script:
+            - if [ "${BITBUCKET_PR_DESTINATION_BRANCH}" != "main" ]; then printf "not a target branch we want to check"; exit; fi
+            - printf 'running pipeline'
+      - parallel:
+        - step: *Lint-step
+        - step: *Test-step
+
+  tags:
+    "v*":
+      - step: *Downstream-check
+      - parallel:
+        - step: *Lint-step
+        - step: *Test-step
+      - step:
+          name: Push downstream
+          script:
+            - git pull -r $DOWNSTREAM_REPO $BITBUCKET_TAG
+            - git push $DOWNSTREAM_REPO $BITBUCKET_TAG
+
+  branches:
+    main:
+      - step: *Downstream-check
+      - parallel:
+          - step: *Lint-step
+          - step: *Test-step
+      - step:
+          name: Push downstream
+          script:
+            - git pull -r $DOWNSTREAM_REPO main
+            - git push $DOWNSTREAM_REPO main

@@ -114,8 +114,6 @@ Getting Started
 ToDo
 ----
 
-- [ ] Add bitbucket pipeline to update production branch
-  and push to github
 - [ ] Cleanup the code generally
 - [ ] Add docs and doc generation
 
