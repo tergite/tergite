@@ -1,18 +1,24 @@
 image: python:3.8
 
 definitions:
+  caches:
+    poetry:
+      key:
+        files:
+          - "poetry.lock"
+      path: "$HOME/.cache/pypoetry/virtualenvs"
   steps:
     - step: &Test-step
         name: test
         caches:
-          - pip
+            - pip
+            - poetry
         script:
           - pip install -U pip
           - pip install --user pipx
           - export PATH="$HOME/.local/bin:$PATH"
           - pipx ensurepath
           - pipx install poetry
-          - poetry --version
           - poetry install
           - source $(poetry env info --path)/bin/activate
           - pytest
@@ -20,7 +26,8 @@ definitions:
     - step: &Lint-step
         name: lint
         caches:
-          - pip
+            - pip
+            - poetry
         script:
           - if [ "${SHOULD_LINT}" != "true" ]; then printf "linting not enabled"; exit; fi
           - pip install -U pip
