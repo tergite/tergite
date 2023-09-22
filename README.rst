@@ -126,8 +126,8 @@ If you would like to contribute to tergite-qiskit-connector, please have a look 
 Authors
 -------
 
-The `contributors <./CONTRIBUTORS.rst>`_, to tergite-qiskit-connector are happy to
-share this our work with you. For the License information, look at `License <#license>`_
+`Credit <./CREDITS.rst>`_, is due to those who have contributed to tergite-qiskit-connector.
+For the License information, look at `License <#license>`_
 
 ChangeLog
 ---------
