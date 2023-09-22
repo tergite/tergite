@@ -9,14 +9,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
+#
+# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+"""Defines the Factory class that contains multiple Tergite Providers."""
 from collections import OrderedDict
+from typing import TYPE_CHECKING, List, Optional
 
 from .config import Tergiterc
 from .provider import Provider
 
+if TYPE_CHECKING:
+    from .provider_account import ProviderAccount
+
 
 class Factory:
+    """Container of multiple Tergite Provider's, retrievable by service name"""
+
     def __init__(self):
         self._providers = OrderedDict()
         self._tergiterc = Tergiterc()
@@ -32,7 +40,22 @@ class Factory:
         for account in accounts_list:
             self._providers[account.service_name] = Provider(account)
 
-    def use_provider_account(self, account, save=False):
+    def use_provider_account(
+        self, account: "ProviderAccount", save: bool = False
+    ) -> Provider:
+        """Intializes a new Provider basing on the account passed and returns it.
+
+        Args:
+            account: the instance of the
+                :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                for which the provider is to be initialized
+            save: whether the account should be persisted to the tergiterc file
+
+        Returns:
+            A new instance of the
+                :class:`~tergite_qiskit_connector.providers.tergite.provider.Provider`
+                for the given account
+        """
         if save:
             self._tergiterc.save_accounts([account])
 
@@ -41,10 +64,24 @@ class Factory:
 
         return new_provider
 
-    def providers(self):
+    def providers(self) -> List[str]:
+        """Retrieves the service names of providers in this collection
+
+        Returns:
+            list of service names of providers in this collection
+        """
         return list(self._providers.keys())
 
-    def get_provider(self, service_name=None):
+    def get_provider(self, service_name=None) -> Optional[Provider]:
+        """Retrieves a given provider by service name
+
+        Args:
+            service_name: the name by which the given provider is saved
+
+        Returns:
+            the provider of the given service name
+                if it exists or None if it doesn't
+        """
         providers = self._providers
 
         if not providers:
