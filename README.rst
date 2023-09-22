@@ -97,6 +97,14 @@ Contribution Guidelines
 If you would like to contribute to tergite-qiskit-connector, please have a look at our
 `contribution guidelines <./CONTRIBUTING.rst>`_
 
+Authors
+-------
+
+This project is a work of
+`many contributors <https://github.com/tergite/tergite-qiskit-connector/graphs/contributors>`_.
+
+Special credit goes to the authors of this project as seen in the `CREDITS <./CREDITS.rst>`_ file.
+
 ChangeLog
 ---------
 
