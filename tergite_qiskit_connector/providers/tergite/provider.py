@@ -11,8 +11,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+#
+# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+"""Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import requests
 from qiskit.providers import ProviderV1
@@ -24,15 +27,33 @@ from .provider_account import ProviderAccount
 
 
 class Provider(ProviderV1):
+    """The Qiskit Provider with which to access the Tergite quantum computers"""
+
     def __init__(self, /, account: ProviderAccount):
+        """Initializes the Provider
+
+        Args:
+            account: the instance of the
+                :class:tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                with which to connect to the Tergite API
+        """
         super().__init__()
         self.provider_account = account
         self._malformed_backends = {}
 
-    def backends(self, /, name: str = None, filters: callable = None, **kwargs) -> list:
-        """
-        Filter the available backends of this provider.
-        Return value is a list of instantiated and available backends.
+    def backends(
+        self, /, name: str = None, filters: callable = None, **kwargs
+    ) -> List[Union[OpenPulseBackend, OpenQASMBackend]]:
+        """Filters the available backends of this provider.
+
+        Args:
+            name: the name of the backend
+            filters: a callable to filter the backends with
+            kwargs: kwargs to match the available backends with
+
+        Returns:
+            A list of instantiated and available OpenPulseBackend, or OpenPulseBackend backends,
+                that match the given filter
         """
         available_backends = self.available_backends
         if name in self._malformed_backends:
@@ -45,7 +66,10 @@ class Provider(ProviderV1):
         return filter_backends(available_backends.values(), filters=filters, **kwargs)
 
     @functools.cached_property
-    def available_backends(self, /) -> dict:
+    def available_backends(
+        self, /
+    ) -> Dict[str, Union[OpenPulseBackend, OpenQASMBackend]]:
+        """Dictionary of all available backends got from the API"""
         backends = dict()
         backend_configs = self._get_backend_configs()
 
