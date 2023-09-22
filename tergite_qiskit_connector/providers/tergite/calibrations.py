@@ -1,32 +1,60 @@
+# This code is part of Tergite
+#
+# (C) Copyright Axel Andersson 2022
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+#
+# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+"""Handles the calibration of the devices of type OpenPulseBackend"""
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import qiskit.circuit as circuit
 import requests
-from qiskit.transpiler import InstructionProperties
+from qiskit.transpiler import InstructionProperties, Target
 
 from . import template_schedules as templates
 from .config import REST_API_MAP
+
+if TYPE_CHECKING:
+    from .backend import OpenPulseBackend
 
 
 # TODO: Replace with BCC graph node
 @dataclass(frozen=True)
 class Node:
-    # parsing node for MongoDB documents. Document keys should be valid Python string identifiers.
-    data: dict  # data to instantiate the node with
+    """Parsing node for job objects from the API
 
-    def __post_init__(self: object):
+    Note: the keys in the job objects should be
+    valid Python string identifiers
+
+    This node transforms the keys in the job object
+    into attributes
+
+    Attributes:
+        data: the data to instantiate the node with
+    """
+    data: dict
+
+    def __post_init__(self):
         # subvert frozen restriction, create new frozen fields for key value pairs in data
         for k, v in self.data.items():
             object.__setattr__(self, k, v)
 
-    def __repr__(self: object) -> str:
+    def __repr__(self) -> str:
         return self.job_id
 
 
-def load_tables(*, backend: object) -> tuple:
-    """
-    Parses the job_id calibration tables stored in MongoDB in the MSS.
+def load_tables(*, backend: "OpenPulseBackend") -> tuple:
+    """Parses the job_id calibration tables got from the API.
+
     Each job_id in the cells is parsed into a "calibration node".
 
     A calibration node corresponds to a document in the calibrations/
@@ -53,10 +81,16 @@ def load_tables(*, backend: object) -> tuple:
           ...
           etc.
 
-    Returns a 3-tuple of pandas DataFrames Q, R, and C where
-        Q contains the calibration nodes for all the qubit devices.
-        R contains the calibration nodes for all the resonator devices.
-        C contains the calibration nodes for all the coupler devices.
+    Args:
+        backend: the instance of
+            :class:`~tergite_qiskit_connector.providers.tergite.backend:TergiteBackend`
+            from which the calibration tables are to be loaded.
+
+    Returns:
+        A (Q, R, C) tuple of pandas DataFrames Q, R, and C where
+            Q contains the calibration nodes for all the qubit devices.
+            R contains the calibration nodes for all the resonator devices.
+            C contains the calibration nodes for all the coupler devices.
     """
 
     def _load_and_index(data_index_key: str, data_table_key: str):
@@ -72,10 +106,10 @@ def load_tables(*, backend: object) -> tuple:
     df_rcal = _load_and_index("num_resonators", "resonator_calibrations")
     df_ccal = _load_and_index("num_couplers", "coupler_calibrations")
 
-    # FIXME: Send a single GET request to MSS instead of sending multiple.
-    #        Need a new MSS endpoint for retrieving multiple documents.
-    def _convert_to_Node(job_id: str):
-        # Sends a get request to MSS and resolves the reported job_id to calibration parameters
+    # FIXME: Send a single GET request to the API instead of sending multiple.
+    #        Need a new API endpoint for retrieving multiple documents.
+    def _convert_to_node(job_id: str):
+        # Sends a get request to the API and resolves the reported job_id to calibration parameters
         calibs_url = backend.base_url + REST_API_MAP["calibrations"]
         if job_id:
             response = requests.get(calibs_url + "/" + str(job_id))
@@ -98,15 +132,23 @@ def load_tables(*, backend: object) -> tuple:
     # parse all job_ids to calibration document nodes
     for df in (df_qcal, df_rcal, df_ccal):
         for column in df:
-            df[column] = df[column].apply(_convert_to_Node)
+            df[column] = df[column].apply(_convert_to_node)
 
     return df_qcal, df_rcal, df_ccal
 
 
-def add_instructions(*, backend: object, qubits: tuple, target: object):
-    """
-    Adds Rx, Rz gates and Delay and Measure instructions for each qubit to the transpiler target provided.
+def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Target):
+    """Adds Rx, Rz gates and Delay and Measure instructions for each qubit
+    to the transpiler target provided.
+
     Implementations are backend dependent and are based on a specific calibration.
+
+    Args:
+        backend: the instance of
+            :class:`~tergite_qiskit_connector.providers.tergite.backend:TergiteBackend`
+            for which to add the instructions
+        qubits: a tuple of qubits on which the instruction is to be run
+        target: the target on which the instruction is to be added
     """
     # TODO: Fetch error statistics of gates from database
 
