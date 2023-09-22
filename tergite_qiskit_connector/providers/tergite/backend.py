@@ -11,11 +11,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+#
+# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+"""Defines the backend types provided by Tergite."""
 import dataclasses
 import functools
-import json
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -23,7 +25,7 @@ import qiskit.pulse as pulse
 import requests
 from numpy import inf as infinity
 from qiskit.circuit import QuantumCircuit
-from qiskit.providers import BackendV2, Options
+from qiskit.providers import BackendV2, Options, Provider
 from qiskit.providers.models import BackendConfiguration
 from qiskit.pulse.channels import (
     AcquireChannel,
@@ -42,19 +44,30 @@ from .job import Job
 
 
 class TergiteBackend(BackendV2):
+    """Abstract class for Tergite Backends"""
+
     max_shots = infinity
     max_circuits = infinity
 
-    @classmethod
-    def _default_options(cls, /) -> Options:
-        """This defines the default user configurable settings of this backend. See: help(backend.set_options)"""
-        options = Options(shots=2000)
-        options.set_validator("shots", (1, TergiteBackend.max_shots))
-        return options
-
     def __init__(
-        self, /, *, data: "TergiteBackendConfig", provider: object, base_url: str
+        self, /, *, data: "TergiteBackendConfig", provider: Provider, base_url: str
     ):
+        """Initialize a TergiteBackend based backend
+
+        Args:
+            provider: An optional backwards reference to the
+                :class:`~qiskit.providers.Provider` object that the backend
+                is from
+            data: An optional config of type :class:`TergiteBackendConfig`
+                from which to construct this backend
+            base_url: An optional URL to Tergite API through which
+                jobs are to be run
+
+        Raises:
+            AttributeError: If a field is specified that's outside the backend's
+                options
+            TypeError: If ``data`` is not a :class:`TergiteBackendConfig` object
+        """
         super().__init__(
             provider=provider,
             name=data.name,
@@ -63,6 +76,126 @@ class TergiteBackend(BackendV2):
         self.base_url = base_url
         self.data = dataclasses.asdict(data)
 
+    def register_job(self) -> Job:
+        """Registers a new asynchronous job with the Tergite API.
+
+        Returns:
+             tergite_qiskit_connector.providers.tergite.job.Job: An asynchronous
+                 job registered in the Tergite API to be executed
+        """
+        jobs_url = self.base_url + REST_API_MAP["jobs"]
+        response = requests.post(jobs_url)
+        if response.ok:
+            job_registration = response.json()
+        else:
+            raise RuntimeError(
+                f"Unable to register job at the Tergite MSS, response: {response}"
+            )
+        job_id = job_registration["job_id"]
+        job_upload_url = job_registration["upload_url"]
+        return Job(backend=self, job_id=job_id, upload_url=job_upload_url)
+
+    def run(self, experiments, /, **kwargs) -> Job:
+        """Run on the Tergite backend.
+
+        This method returns a :class:`~qiskit.providers.Job` object
+        that runs circuits. Depending on the backend this may be either an async
+        or sync call. It is at the discretion of the provider to decide whether
+        running should block until the execution is finished or not: the Job
+        class can handle either situation.
+
+        Args:
+            experiments (QuantumCircuit or Schedule or ScheduleBlock or list): An
+                individual or a list of
+                :class:`~qiskit.circuits.QuantumCircuit,
+                :class:`~qiskit.pulse.ScheduleBlock`, or
+                :class:`~qiskit.pulse.Schedule` objects to run on the backend.
+            kwargs: Any kwarg options to pass to the backend for running the
+                config. If a key is also present in the options
+                attribute/object then the expectation is that the value
+                specified will be used instead of what's set in the options
+                object.
+
+        Returns:
+            tergite_qiskit_connector.providers.tergite.job.Job: The job object for the run
+        """
+        job = self.register_job()
+        qobj = self.make_qobj(experiments, **kwargs)
+        response = job.submit(qobj)
+        if response.ok:
+            print("Tergite: Job has been successfully submitted")
+            return job
+        else:
+            raise RuntimeError(
+                f"Unable to transmit job to the Tergite BCC, response: {response}"
+            )
+
+    @abstractmethod
+    def configuration(self) -> BackendConfiguration:
+        """Retrieves this backend's configuration
+
+        Returns:
+            qiskit.providers.models.backendconfiguration.BackendConfiguration:
+                this backend's configuration
+        """
+        ...
+
+    @abstractmethod
+    def make_qobj(self, experiments: list, /, **kwargs) -> object:
+        """Constructs a Qobj from a list of user OpenPulse schedules or OpenQASM circuits
+
+        Args:
+            experiments (QuantumCircuit or Schedule or ScheduleBlock or list): An
+                individual or a list of
+                :class:`~qiskit.circuits.QuantumCircuit,
+                :class:`~qiskit.pulse.ScheduleBlock`, or
+                :class:`~qiskit.pulse.Schedule` objects to run on the backend.
+
+        Returns:
+             qiskit.qobj.pulse_qobj.PulseQobj or qiskit.qobj.pulse_qobj.QasmQobj
+                transpiled from the experiments.
+        """
+        ...
+
+    @property
+    def meas_map(self) -> list:
+        return self.data["meas_map"]
+
+    @functools.cached_property
+    def coupling_map(self) -> CouplingMap:
+        # It is required that nodes are contiguously indexed starting at 0.
+        # Missed nodes will be added as isolated nodes in the coupling map.
+        #
+        # Also for some reason the graph has to be connected in Qiskit? Not sure why that is..
+        edges = sorted(
+            sorted(self.data["coupling_map"], key=lambda i: i[1]), key=lambda i: i[0]
+        )
+        return CouplingMap(couplinglist=list(edges))
+
+    @classmethod
+    def _default_options(cls, /) -> Options:
+        """This defines the default user configurable settings of this backend.
+
+        See: help(backend.set_options)
+
+         Returns:
+            qiskit.providers.Options: A options object with
+                default values set
+        """
+        options = Options(shots=2000)
+        options.set_validator("shots", (1, TergiteBackend.max_shots))
+        return options
+
+    def _as_dict(self):
+        """Converts this backend into a dictionary representation
+
+        Returns:
+            dict: a dictionary representation of this backend
+        """
+        obj = self.configuration().to_dict()
+        obj["characterized"] = self.data["characterized"]
+        return obj
+
     def __repr__(self) -> str:
         repr_list = [f"TergiteBackend object @ {hex(id(self))}:"]
         config = self._as_dict()
@@ -70,7 +203,7 @@ class TergiteBackend(BackendV2):
             repr_list.append(f"  {attr}:\t{value}".expandtabs(30))
         return "\n".join(repr_list)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any):
         if not isinstance(other, TergiteBackend):
             return False
 
@@ -85,62 +218,6 @@ class TergiteBackend(BackendV2):
         other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
 
         return self_dict == other_dict
-
-    def _as_dict(self):
-        obj = self.configuration().to_dict()
-        obj["characterized"] = self.data["characterized"]
-        return obj
-
-    @abstractmethod
-    def configuration(self):
-        ...
-
-    def register_job(self) -> Job:
-        """Registers a new job at the Tergite MSS."""
-        jobs_url = self.base_url + REST_API_MAP["jobs"]
-        response = requests.post(jobs_url)
-        if response.ok:
-            job_registration = response.json()
-        else:
-            raise RuntimeError(
-                f"Unable to register job at the Tergite MSS, response: {response}"
-            )
-        job_id = job_registration["job_id"]
-        job_upload_url = job_registration["upload_url"]
-        return Job(backend=self, job_id=job_id, upload_url=job_upload_url)
-
-    @abstractmethod
-    def make_qobj(self: object, experiments: list, /, **kwargs) -> object:
-        """Constructs a Qobj from a list of user OpenPulse schedules or OpenQASM circuits and
-        returns a PulseQobj or a QasmQobj respectively (in dictionary format)."""
-        ...
-
-    def run(self, experiments, /, **kwargs) -> Job:
-        job = self.register_job()
-        qobj = self.make_qobj(experiments, **kwargs)
-        response = job.submit(qobj)
-        if response.ok:
-            print("Tergite: Job has been successfully submitted")
-            return job
-        else:
-            raise RuntimeError(
-                f"Unable to transmit job to the Tergite BCC, response: {response}"
-            )
-
-    @property
-    def meas_map(self: object) -> list:
-        return self.data["meas_map"]
-
-    @functools.cached_property
-    def coupling_map(self: object) -> CouplingMap:
-        # It is required that nodes are contiguously indexed starting at 0.
-        # Missed nodes will be added as isolated nodes in the coupling map.
-        #
-        # Also for some reason the graph has to be connected in Qiskit? Not sure why that is..
-        edges = sorted(
-            sorted(self.data["coupling_map"], key=lambda i: i[1]), key=lambda i: i[0]
-        )
-        return CouplingMap(couplinglist=list(edges))
 
 
 class OpenPulseBackend(TergiteBackend):
@@ -162,7 +239,7 @@ class OpenPulseBackend(TergiteBackend):
         "drag",
     ]
 
-    def configuration(self: object) -> BackendConfiguration:
+    def configuration(self) -> BackendConfiguration:
         return BackendConfiguration(
             backend_name=self.name,  # From BackendV2.
             backend_version=self.backend_version,  # From BackendV2.
@@ -185,17 +262,15 @@ class OpenPulseBackend(TergiteBackend):
         )
 
     @property
-    def dt(self: object) -> float:
-        # hardware sample resolution for drive
+    def dt(self) -> float:
         return self.data["dt"]
 
     @property
-    def dtm(self: object) -> float:
-        # hardware sample resolution for readout
+    def dtm(self) -> float:
         return self.data["dtm"]
 
     @functools.cached_property
-    def target(self: object) -> Target:
+    def target(self) -> Target:
         gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
         if self.data["characterized"]:
             calibrations.add_instructions(
@@ -206,45 +281,44 @@ class OpenPulseBackend(TergiteBackend):
         return gmap
 
     @functools.cached_property
-    def device_properties(self: object) -> dict:
+    def device_properties(self) -> dict:
+        """the collection of properties specific to this backend"""
         return self.data["device_properties"]
 
     @functools.cached_property
-    def calibration_tables(self: object) -> tuple:
-        """Returns dataframes with empirical calibration values specific to this backend."""
+    def calibration_tables(self) -> tuple:
+        """dataframes with empirical calibration values specific to this backend."""
         # cache and return dataframes to caller
-        print("loading calibratoin tables ... ...")
+        print("loading calibration tables ... ...")
         return calibrations.load_tables(backend=self)
 
     @property
-    def qubit_lo_freq(self: object) -> list:
-        # return list(map(float, self.data["qubit_lo_freq"]))
+    def qubit_lo_freq(self) -> list:
         return [0.0] * self.data["num_qubits"]
 
     @property
-    def meas_lo_freq(self: object) -> list:
-        # return list(map(float, self.data["meas_lo_freq"]))
+    def meas_lo_freq(self) -> list:
         return [0.0] * self.data["num_resonators"]
 
-    def drive_channel(self: object, qubit_idx: int) -> DriveChannel:
+    def drive_channel(self, qubit_idx: int) -> DriveChannel:
         return DriveChannel(qubit_idx)
 
-    def measure_channel(self: object, qubit_idx: int) -> MeasureChannel:
+    def measure_channel(self, qubit_idx: int) -> MeasureChannel:
         return MeasureChannel(qubit_idx)
 
-    def acquire_channel(self: object, qubit_idx: int) -> AcquireChannel:
+    def acquire_channel(self, qubit_idx: int) -> AcquireChannel:
         return AcquireChannel(qubit_idx)
 
-    def memory_slot(self: object, qubit_idx: int) -> MemorySlot:
+    def memory_slot(self, qubit_idx: int) -> MemorySlot:
         return MemorySlot(qubit_idx)
 
-    def control_channel(self: object, qubits: list) -> list:
+    def control_channel(self, qubits: list) -> list:
         if qubits not in self.coupling_map.get_edges():
             raise ValueError(f"Coupling {qubits} not in coupling map.")
 
         return list(map(ControlChannel, qubits))
 
-    def make_qobj(self: object, experiments: object, /, **kwargs) -> PulseQobj:
+    def make_qobj(self, experiments: object, /, **kwargs) -> PulseQobj:
         if type(experiments) is not list:
             experiments = [experiments]
 
@@ -272,7 +346,7 @@ class OpenQASMBackend(TergiteBackend):
     open_pulse = False
 
     @functools.cached_property
-    def target(self: object) -> Target:
+    def target(self) -> Target:
         gmap = Target(num_qubits=self.data["num_qubits"])
 
         # add rx, rz, delay, measure gate set
@@ -288,18 +362,30 @@ class OpenQASMBackend(TergiteBackend):
 
         return gmap
 
-    def make_qobj(self: object, experiments: object, /, **kwargs) -> QasmQobj:
+    def make_qobj(
+        self, experiments: Union[List[QuantumCircuit], QuantumCircuit], /, **kwargs
+    ) -> QasmQobj:
+        """Constructs a QasmQobj from an OpenQASM circuit, or a list of them
+
+        Raises:
+            TypeError: If any of the experiments passed in not an instance
+                of :class:`~qiskit.qobj.qasm_qobj.QasmQobj`
+
+        Returns:
+            qiskit.qobj.qasm_qobj.QasmQobj: A QasmQobj object transpiled from the circuits
+        """
         if type(experiments) is not list:
             experiments = [experiments]
         for e in experiments:
             if not isinstance(e, QuantumCircuit):
                 raise TypeError(f"Experiment {e} is not an instance of QuantumCircuit.")
+
         circuits = compiler.transpile(circuits=experiments, backend=self)
         return compiler.assemble(
             experiments=circuits, shots=self.options.shots, **kwargs
         )
 
-    def configuration(self: object) -> BackendConfiguration:
+    def configuration(self) -> BackendConfiguration:
         return BackendConfiguration(
             backend_name=self.name,  # From BackendV2.
             backend_version=self.backend_version,  # From BackendV2.
