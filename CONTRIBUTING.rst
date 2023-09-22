@@ -1,6 +1,10 @@
 Contributing to tergite-qiskit-connector
 ========================================
 
+**This project is currently not accepting pull requests from the general public yet.**
+
+**It is currently being developed by the core developers only.**
+
 We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - Reporting a bug
@@ -21,7 +25,7 @@ Pull requests are the best way to propose changes to the codebase (we
 use `Github Flow <https://docs.github.com/en/get-started/quickstart/github-flow>`_). We actively welcome your pull
 requests:
 
-1. Clone the repo and create your branch from `main`.
+1. Clone the repo and create your branch from ``main``.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
@@ -75,26 +79,26 @@ How to Test
 - Make sure you have `poetry <https://python-poetry.org/>`_ installed.
 - Clone the repo and enter its root folder
 
-.. code:: shell
+  .. code:: shell
 
     git clone git@github.com:tergite/tergite-qiskit-connector.git
     cd tergite-qiskit-connector
 
 - Install the dependencies
 
-.. code:: shell
+  .. code:: shell
 
     poetry install
 
 - Activate the environment
 
-.. code:: shell
+  .. code:: shell
 
     source $(poetry env info --path)/bin/activate
 
 - Run the tests command
 
-.. code:: shell
+  .. code:: shell
 
     pytest
 

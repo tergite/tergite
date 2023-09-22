@@ -3,18 +3,6 @@ Tergite Qiskit Connector
 
 |PyPI version| |license| |CI| |PyPI pyversions|
 
-.. |PyPI version| image:: https://badge.fury.io/py/tergite-qiskit-connector.svg
-   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
-
-.. |license| image:: https://img.shields.io/pypi/l/tergite-qiskit-connector.svg
-   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
-
-.. |CI| image:: https://github.com/tergite/tergite-qiskit-connector/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/tergite/tergite-qiskit-connector/actions
-
-.. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/tergite-qiskit-connector.svg
-   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
-
 The `Qiskit <https://github.com/Qiskit/qiskit>`_ provider for connecting to the Tergite quantum computers.
 
 Installation
@@ -32,84 +20,70 @@ Dependencies
 - `Python +3.8 <https://www.python.org/>`_
 - `Qiskit <https://github.com/Qiskit/qiskit>`_
 
-Getting Started
+Provider Setup
 ---------------
 
 - Ensure you have `Python +3.8 <https://www.python.org/>`_ installed.
 - Create an account with `Tergite <https://www.qal9000.se/>`_ if you haven't already.
-- You should receive a set of credentials to access Tergite with.
-- Create a ``main.py`` file and add the following code
+- With the credentials received from Tergite, create and save a provider account by calling
+  ``Tergite.use_provider_account(account, save=True)``.
 
-.. code:: python
+  When using "API_TOKEN", use:
 
-    import qiskit.circuit as circuit
-    import qiskit.compiler as compiler
-    from tergite_qiskit_connector.providers.tergite import Tergite
+  .. code:: python
+
     from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 
-    if __name__ == "__main__":
-        # the Tergite API URL e.g. "https://api.tergite.example"
-        API_URL = "https://api.qal9000.se"
-        # API token for connecting to tergite. Required if no username/password
-        API_TOKEN = <your Tergite API key>
-        # API username, required if API_TOKEN is not set
-        API_USERNAME = "<your API username>"
-        # API password, required if API_USERNAME is set
-        API_PASSWORD = "<your API password>"
-        # The name of the Quantum Computer to use from the available quantum computers
-        BACKEND_NAME = "QC1"
-        # the name of this service. For your own bookkeeping.
-        SERVICE_NAME = "local"
+    account = ProviderAccount(
+        service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN", extras={}
+    )
+    provider = Tergite.use_provider_account(account, save=True)
 
-        # create the Qiskit circuit
-        qc = circuit.QuantumCircuit(2, 2)
-        qc.h(1)
-        qc.measure(1, 1)
-        qc.draw()
+  When using "USERNAME" and "PASSWORD", use:
 
-        # create a provider
-        account_extras = {}
-        if API_USERNAME:
-            account_extras = {
-                "username": API_USERNAME,
-                "password": API_PASSWORD
+  .. code:: python
+
+    from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
+
+    account = ProviderAccount(
+            service_name="MY_SERVICE_NAME",
+            url="TERGITE_API_URL",
+            extras={
+                "username": "MY_TERGITE_API_USERNAME",
+                "password": "MY_TERGITE_API__PASSWORD"
             }
+    )
+    provider = Tergite.use_provider_account(account, save=True)
 
-        # provider account creation can be skipped in case you already saved
-        # your provider account to the `~/.qiskit/tergiterc` file.
-        # See below how that is done.
-        account = ProviderAccount(
-            service_name=SERVICE_NAME,
-            url=API_URL,
-            token=API_TOKEN,
-            extras=account_extras
-        )
-        provider = Tergite.use_provider_account(account)
-        # to save this account to the `~/.qiskit/tergiterc` file, add the `save=True`
-        # provider = Tergite.use_provider_account(account, save=True)
+  The code above stores your credentials in a configuration file called ``tergiterc``, located in ``$HOME/.qiskit``
+  folder, ``$HOME`` being your home directory.
 
-        # Get the tergite backend in case you skipped provider account creation
-        # provider = Tergite.get_provider(service_name=SERVICE_NAME)
-        backend = chalmers.get_backend(BACKEND_NAME)
-        backend.set_options(shots=1024)
+  Once saved, you can retrieve this particular account using the ``SERVICE_NAME`` from anywhere in your code.
+  From the provider, you can retrieve any backend you wish by name.
 
-        # compile the circuit
-        tc = compiler.transpile(qc, backend=backend)
-        tc.draw()
+  .. code:: python
 
-        # run the circuit
-        job = backend.run(tc, meas_level = 2)
+    provider = Tergite.get_provider(service_name="MY_SERVICE_NAME")
 
-        # view the results
-        job.results()
+    # display list of backends
+    print(provider.backends())
 
-- Run the script
+    # access the 'Loke' backend
+    backend = provider.get_backend("Loke")
 
-.. code:: shell
 
-    python main.py
+Create a Throw-away Provider Account
+************************************
 
-- Congratulations! You have run your first quantum circuit on a Tergite quantum computer.
+- Alternatively, you can create a provider account that won't be saved. This is useful in things like automated tests.
+  Just call the ``Tergite.use_provider_account(account)`` without the ``save`` option.
+
+  .. code:: python
+
+    # the account from before
+    provider = Tergite.use_provider_account(account)
+
+- You can look at the `examples folder <./examples>`_ for more samples.
 
 ToDo
 ----
@@ -126,8 +100,10 @@ If you would like to contribute to tergite-qiskit-connector, please have a look 
 Authors
 -------
 
-The `contributors <./CONTRIBUTORS.rst>`_, to tergite-qiskit-connector are happy to
-share this our work with you. For the License information, look at `License <#license>`_
+This project is a work of
+`many contributors <https://github.com/tergite/tergite-qiskit-connector/graphs/contributors>`_.
+
+Special credit goes to the authors of this project as seen in the `CREDITS <./CREDITS.rst>`_ file.
 
 ChangeLog
 ---------
@@ -140,3 +116,16 @@ License
 -------
 
 `Apache 2.0 License <./LICENSE.txt>`_
+
+
+.. |PyPI version| image:: https://badge.fury.io/py/tergite-qiskit-connector.svg
+   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+
+.. |license| image:: https://img.shields.io/pypi/l/tergite-qiskit-connector.svg
+   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+
+.. |CI| image:: https://github.com/tergite/tergite-qiskit-connector/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/tergite/tergite-qiskit-connector/actions
+
+.. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/tergite-qiskit-connector.svg
+   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
