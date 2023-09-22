@@ -42,7 +42,6 @@ from .job import Job
 
 
 class TergiteBackend(BackendV2):
-
     max_shots = infinity
     max_circuits = infinity
 
@@ -145,7 +144,6 @@ class TergiteBackend(BackendV2):
 
 
 class OpenPulseBackend(TergiteBackend):
-
     open_pulse = True
 
     parametric_pulses = [
@@ -271,7 +269,6 @@ class OpenPulseBackend(TergiteBackend):
 
 
 class OpenQASMBackend(TergiteBackend):
-
     open_pulse = False
 
     @functools.cached_property
