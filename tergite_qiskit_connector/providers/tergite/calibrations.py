@@ -41,6 +41,7 @@ class Node:
     Attributes:
         data: the data to instantiate the node with
     """
+
     data: dict
 
     def __post_init__(self):
