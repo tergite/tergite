@@ -19,8 +19,26 @@ API_URL = "https://api.tergite.example"
 API_USERNAME = "admin"
 API_PASSWORD = "password123"
 API_TOKEN = "some-token"
-_BACKENDS_URL = f"{API_URL}/backends"
 BACKENDS_LIST = load_json_fixture("many_backends.json")
+TEST_JOB_ID = "test_job_id"
+NUMBER_OF_SHOTS = 100
+
+_BACKENDS_URL = f"{API_URL}/backends"
+_JOBS_URL = f"{API_URL}/jobs"
+_TEST_JOB_RESULTS_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
+_QUANTUM_COMPUTER_URL = "http://loke.tergite.example"
+_TEST_RESULTS_FILE_PATH = f"{_QUANTUM_COMPUTER_URL}/test_file.hdf5"
+_TEST_JOB = {
+    "job_id": TEST_JOB_ID,
+    "upload_url": _QUANTUM_COMPUTER_URL
+}
+_TEST_JOB_RESULTS = {
+    "status": "DONE",
+    "download_url": _TEST_RESULTS_FILE_PATH,
+    "result": {
+        "memory": ["0x1"] * NUMBER_OF_SHOTS
+    }
+}
 
 GOOD_BACKEND = "Well-formed"
 MALFORMED_BACKEND = "Malformed"
@@ -57,6 +75,13 @@ INVALID_API_TOKENS = ["foo", "bar", API_PASSWORD, API_USERNAME]
 def api(requests_mock):
     """The mock api without auth"""
     requests_mock.get(_BACKENDS_URL, headers={}, json=BACKENDS_LIST)
+
+    # job registration
+    requests_mock.post(_JOBS_URL, headers={}, json=_TEST_JOB)
+    # job upload
+    requests_mock.post(_QUANTUM_COMPUTER_URL, headers={}, status_code=200)
+    # job results
+    requests_mock.get(_TEST_JOB_RESULTS_URL, headers={}, json=_TEST_JOB_RESULTS)
     yield requests_mock
 
 
@@ -75,6 +100,24 @@ def basic_auth_api(requests_mock):
     requests_mock.get(
         _BACKENDS_URL, status_code=401, additional_matcher=no_auth_matcher
     )
+
+    # job registration
+    requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
+    requests_mock.get(
+        _JOBS_URL, status_code=401, additional_matcher=no_auth_matcher
+    )
+
+    # job upload
+    requests_mock.post(_QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200)
+    requests_mock.get(
+        _QUANTUM_COMPUTER_URL, status_code=401, additional_matcher=no_auth_matcher
+    )
+
+    # job results
+    requests_mock.get(_TEST_JOB_RESULTS_URL, request_headers=request_headers, json=_TEST_JOB_RESULTS)
+    requests_mock.get(
+        _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
+    )
     yield requests_mock
 
 
@@ -89,6 +132,24 @@ def bearer_auth_api(requests_mock):
     )
     requests_mock.get(
         _BACKENDS_URL, status_code=401, additional_matcher=no_auth_matcher
+    )
+
+    # job registration
+    requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
+    requests_mock.get(
+        _JOBS_URL, status_code=401, additional_matcher=no_auth_matcher
+    )
+
+    # job upload
+    requests_mock.post(_QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200)
+    requests_mock.get(
+        _QUANTUM_COMPUTER_URL, status_code=401, additional_matcher=no_auth_matcher
+    )
+
+    # job results
+    requests_mock.get(_TEST_JOB_RESULTS_URL, request_headers=request_headers, json=_TEST_JOB_RESULTS)
+    requests_mock.get(
+        _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
     )
     yield requests_mock
 

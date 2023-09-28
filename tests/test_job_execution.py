@@ -29,6 +29,25 @@ def test_transpile(api):
     assert got == expected
 
 
+def test_run(api):
+    """backend.run(tc, meas_level=2) returns a registered job"""
+    backend = _get_backend()
+    tc = _get_expected_transpiled_circuit()
+    expected = None
+    got = backend.run(tc, meas_level=2)
+    assert got == expected
+
+
+def test_job_result(api):
+    """job.result() returns a successful job's results"""
+    backend = _get_backend()
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+    expected = None
+    got = job.result()
+    assert got == expected
+
+
 def _get_test_qiskit_circuit():
     """Returns a qiskit quantum circuit for testing"""
     qc = circuit.QuantumCircuit(2, 2)

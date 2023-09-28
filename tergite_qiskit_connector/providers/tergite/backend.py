@@ -84,6 +84,7 @@ class TergiteBackend(BackendV2):
                  job registered in the Tergite API to be executed
         """
         jobs_url = self.base_url + REST_API_MAP["jobs"]
+        # FIXME: enable passing auth credentials here
         response = requests.post(jobs_url)
         if response.ok:
             job_registration = response.json()
