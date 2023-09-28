@@ -13,12 +13,17 @@
     "coupling_map": [
       [
         0,
+        1
+      ],
+      [
+        1,
         0
       ]
     ],
     "meas_map": [
       [
-        0
+        0,
+        1
       ]
     ],
     "device_properties": {
@@ -27,6 +32,16 @@
           "index": 0,
           "frequency": 3194746060,
           "pi_pulse_amplitude": 0.06506,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": 0,
+          "t2_decoherence": 0
+        },
+         {
+          "index": 1,
+          "frequency": 3304746060,
+          "pi_pulse_amplitude": 0.06616,
           "pi_pulse_duration": 5.2e-8,
           "pulse_type": "Gaussian",
           "pulse_sigma": 6.5e-9,
@@ -44,11 +59,22 @@
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
+        },
+                {
+          "index": 1,
+          "acq_delay": 5e-8,
+          "acq_integration_time": 0.000001,
+          "frequency": 7090416256,
+          "pulse_amplitued": 0.0132,
+          "pulse_delay": 3e-7,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square"
         }
       ]
     },
     "qubit_lo_freq": [
-      3283000000
+      3283000000,
+      3483000000
     ]
   },
   {
