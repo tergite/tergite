@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""tests for the backend module"""
+"""tests for the get_backend method on tergite backend"""
 import pytest
 
 from tergite_qiskit_connector.providers.tergite import (
