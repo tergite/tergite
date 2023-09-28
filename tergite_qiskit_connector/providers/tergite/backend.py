@@ -425,6 +425,7 @@ class TergiteBackendConfig:
     qubit_calibrations: Optional[Dict[str, Any]] = None
     coupler_calibrations: Optional[Dict[str, Any]] = None
     resonator_calibrations: Optional[Dict[str, Any]] = None
+    is_active: Optional[bool] = None
 
     def __post_init__(self):
         """Run after initialization of the dataclass"""
