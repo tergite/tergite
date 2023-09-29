@@ -17,6 +17,7 @@ from typing import Optional
 import numpy as np
 import pytest
 from qiskit import QuantumCircuit, circuit, compiler, pulse
+from qiskit.providers import JobStatus
 from qiskit.pulse.transforms import AlignLeft
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
@@ -126,7 +127,7 @@ def test_job_result(api):
 
 
 def test_job_result_basic_auth(basic_auth_api):
-    """job_result() returns a successful job's results for API behind basic auth"""
+    """job.result() returns a successful job's results for API behind basic auth"""
     backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
@@ -154,7 +155,7 @@ def test_job_result_invalid_basic_auth(username, password, basic_auth_api):
 
 
 def test_job_result_bearer_auth(bearer_auth_api):
-    """job_result() returns a successful job's results for API behind bearer auth"""
+    """job.result() returns a successful job's results for API behind bearer auth"""
     backend = _get_backend(token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
@@ -178,6 +179,69 @@ def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
         RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
     ):
         _ = job.result()
+
+
+def test_job_status(api):
+    """job.status() returns a successful job's status"""
+    backend = _get_backend()
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    got = job.status()
+    assert got == JobStatus.DONE
+
+
+def test_job_status_basic_auth(basic_auth_api):
+    """job.status() returns a successful job's status for API behind basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    got = job.status()
+    assert got == JobStatus.DONE
+
+
+@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
+def test_job_status_invalid_basic_auth(username, password, basic_auth_api):
+    """job.status() with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the username, password to the invalid ones
+    backend.provider.provider_account.extras["username"] = username
+    backend.provider.provider_account.extras["password"] = password
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.status()
+
+
+def test_job_status_bearer_auth(bearer_auth_api):
+    """job.status() returns a successful job's status for API behind bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    got = job.status()
+    assert got == JobStatus.DONE
+
+
+@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
+    """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the token to the invalid one
+    backend.provider.provider_account.token = token
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.status()
 
 
 def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
