@@ -102,7 +102,7 @@ def test_run_bearer_auth(bearer_auth_api):
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
-def test_run_invalid_basic_auth(token, basic_auth_api):
+def test_run_invalid_bearer_auth(token, bearer_auth_api):
     """backend.run with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(token=token)
     backend.set_options(shots=NUMBER_OF_SHOTS)
@@ -143,9 +143,36 @@ def test_job_result_invalid_basic_auth(username, password, basic_auth_api):
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
-    # change the username to the invalid ones
+    # change the username, password to the invalid ones
     backend.provider.provider_account.extras["username"] = username
     backend.provider.provider_account.extras["password"] = password
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.result()
+
+
+def test_job_result_bearer_auth(bearer_auth_api):
+    """job_result() returns a successful job's results for API behind bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    expected = _get_expected_job_result(backend=backend, job=job)
+    got = job.result()
+    assert got.to_dict() == expected.to_dict()
+
+
+@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
+    """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the token to the invalid one
+    backend.provider.provider_account.token = token
 
     with pytest.raises(
         RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
