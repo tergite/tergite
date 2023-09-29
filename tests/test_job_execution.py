@@ -114,7 +114,6 @@ def test_run_invalid_bearer_auth(token, bearer_auth_api):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
 
-# TODO: test download_url, status, logfile
 def test_job_result(api):
     """job.result() returns a successful job's results"""
     backend = _get_backend()
@@ -242,6 +241,70 @@ def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
         RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
     ):
         _ = job.status()
+
+
+# TODO: test logfile
+def test_job_download_url(api):
+    """job.download_url returns a successful job's download_url"""
+    backend = _get_backend()
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    got = job.download_url
+    assert got == TEST_JOB_RESULTS["download_url"]
+
+
+def test_job_download_url_basic_auth(basic_auth_api):
+    """job.download_url returns a successful job's download_url for API behind basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    got = job.download_url
+    assert got == TEST_JOB_RESULTS["download_url"]
+
+
+@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
+def test_job_download_url_invalid_basic_auth(username, password, basic_auth_api):
+    """job.download_url with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the username, password to the invalid ones
+    backend.provider.provider_account.extras["username"] = username
+    backend.provider.provider_account.extras["password"] = password
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.download_url
+
+
+def test_job_download_url_bearer_auth(bearer_auth_api):
+    """job.download_url returns a successful job's download_url for API behind bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    got = job.download_url
+    assert got == TEST_JOB_RESULTS["download_url"]
+
+
+@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
+    """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the token to the invalid one
+    backend.provider.provider_account.token = token
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.download_url
 
 
 def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
