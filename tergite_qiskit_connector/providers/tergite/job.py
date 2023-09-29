@@ -221,3 +221,18 @@ class Job(JobV1):
             success=True,
             results=experiment_results,
         )
+
+    def __repr__(self):
+        kwargs = [f"{k}={repr(v)}" for k, v in self.__dict__.items()]
+        kwargs_str = ",\n".join(kwargs)
+        return f"{self.__class__.__name__}({kwargs_str})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Job):
+            return False
+
+        for k, v in self.__dict__.items():
+            if getattr(other, k, None) != v:
+                return False
+
+        return True
