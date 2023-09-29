@@ -11,10 +11,13 @@
 # that they have been altered from the originals.
 """tests for the running of qiskit circuits on the tergite backend"""
 import uuid
+from collections import Counter
 
 import numpy as np
 from qiskit import QuantumCircuit, circuit, compiler, pulse
 from qiskit.pulse.transforms import AlignLeft
+from qiskit.result import Result
+from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from tergite_qiskit_connector.providers.tergite import Job, OpenPulseBackend, Tergite
 from tergite_qiskit_connector.providers.tergite.backend import TergiteBackendConfig
@@ -26,6 +29,7 @@ from tests.conftest import (
     NUMBER_OF_SHOTS,
     QUANTUM_COMPUTER_URL,
     TEST_JOB_ID,
+    TEST_JOB_RESULTS,
 )
 from tests.utils.records import get_record
 
@@ -50,6 +54,42 @@ def test_run(api):
     )
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     assert got == expected
+
+
+def test_job_result(api):
+    """job.result() returns a successful job's results"""
+    backend = _get_backend()
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    expected = _get_expected_job_result(backend=backend, job=job)
+    got = job.result()
+    assert got.to_dict() == expected.to_dict()
+
+
+def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
+    """Returns the expected job result"""
+    results = [
+        ExperimentResult(
+            header=job.payload.experiments[index].header,
+            shots=job.metadata["shots"],
+            success=True,
+            data=ExperimentResultData(
+                counts=dict(Counter(result)),
+                memory=result,
+            ),
+        )
+        for index, result in enumerate(TEST_JOB_RESULTS["result"]["memory"])
+    ]
+
+    return Result(
+        backend_name=backend.name,
+        backend_version=backend.backend_version,
+        qobj_id=job.metadata["qobj_id"],
+        job_id=job.job_id(),
+        success=True,
+        results=results,
+    )
 
 
 def _get_expected_job(

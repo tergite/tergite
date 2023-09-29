@@ -29,12 +29,17 @@ _JOBS_URL = f"{API_URL}/jobs"
 _TEST_JOB_RESULTS_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
 _TEST_RESULTS_FILE_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
 _TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
-_TEST_JOB_RESULTS = {
+_HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
+
+TEST_JOB_RESULTS = {
     "status": "DONE",
     "download_url": _TEST_RESULTS_FILE_PATH,
-    "result": {"memory": ["0x1"] * NUMBER_OF_SHOTS},
+    "result": {
+        "memory": [
+            (["0x1"] * _HALF_NUMBER_OF_SHOTS) + (["0x0"] * _HALF_NUMBER_OF_SHOTS)
+        ],
+    },
 }
-
 GOOD_BACKEND = "Well-formed"
 MALFORMED_BACKEND = "Malformed"
 INVALID_API_BASIC_AUTHS = [
@@ -76,7 +81,7 @@ def api(requests_mock):
     # job upload
     requests_mock.post(QUANTUM_COMPUTER_URL, headers={}, status_code=200)
     # job results
-    requests_mock.get(_TEST_JOB_RESULTS_URL, headers={}, json=_TEST_JOB_RESULTS)
+    requests_mock.get(_TEST_JOB_RESULTS_URL, headers={}, json=TEST_JOB_RESULTS)
     yield requests_mock
 
 
@@ -110,7 +115,7 @@ def basic_auth_api(requests_mock):
 
     # job results
     requests_mock.get(
-        _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=_TEST_JOB_RESULTS
+        _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=TEST_JOB_RESULTS
     )
     requests_mock.get(
         _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
@@ -145,7 +150,7 @@ def bearer_auth_api(requests_mock):
 
     # job results
     requests_mock.get(
-        _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=_TEST_JOB_RESULTS
+        _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=TEST_JOB_RESULTS
     )
     requests_mock.get(
         _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
