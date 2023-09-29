@@ -155,8 +155,11 @@ class Job(JobV1):
         if not url:
             return
 
-        # FIXME: add auth
-        response = requests.get(url)
+        backend: "TergiteBackend" = self.backend()
+        provider: "Provider" = backend.provider
+        auth_headers = provider.get_auth_headers()
+
+        response = requests.get(url, headers=auth_headers)
         job_id = self.job_id()
         if response.ok:
             job_file = Path(gettempdir()) / (job_id + ".hdf5")

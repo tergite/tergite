@@ -9,7 +9,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+import json
 from base64 import b64encode
+from pathlib import Path
+from tempfile import gettempdir
 
 import pytest
 
@@ -27,19 +30,21 @@ NUMBER_OF_SHOTS = 100
 _BACKENDS_URL = f"{API_URL}/backends"
 _JOBS_URL = f"{API_URL}/jobs"
 _TEST_JOB_RESULTS_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
-_TEST_RESULTS_FILE_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
+_TEST_RESULTS_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
 _TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
+_TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
 
 TEST_JOB_RESULTS = {
     "status": "DONE",
-    "download_url": _TEST_RESULTS_FILE_PATH,
+    "download_url": _TEST_RESULTS_DOWNLOAD_PATH,
     "result": {
         "memory": [
             (["0x1"] * _HALF_NUMBER_OF_SHOTS) + (["0x0"] * _HALF_NUMBER_OF_SHOTS)
         ],
     },
 }
+RAW_TEST_JOB_RESULTS = json.dumps(TEST_JOB_RESULTS).encode("utf-8")
 GOOD_BACKEND = "Well-formed"
 MALFORMED_BACKEND = "Malformed"
 INVALID_API_BASIC_AUTHS = [
@@ -82,6 +87,10 @@ def api(requests_mock):
     requests_mock.post(QUANTUM_COMPUTER_URL, headers={}, status_code=200)
     # job results
     requests_mock.get(_TEST_JOB_RESULTS_URL, headers={}, json=TEST_JOB_RESULTS)
+    # download file
+    requests_mock.get(
+        _TEST_RESULTS_DOWNLOAD_PATH, headers={}, content=RAW_TEST_JOB_RESULTS
+    )
     yield requests_mock
 
 
@@ -120,6 +129,17 @@ def basic_auth_api(requests_mock):
     requests_mock.get(
         _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
     )
+
+    # download file
+    requests_mock.get(
+        _TEST_RESULTS_DOWNLOAD_PATH,
+        request_headers=request_headers,
+        content=RAW_TEST_JOB_RESULTS,
+    )
+    requests_mock.get(
+        _TEST_RESULTS_DOWNLOAD_PATH, status_code=401, additional_matcher=no_auth_matcher
+    )
+
     yield requests_mock
 
 
@@ -155,7 +175,25 @@ def bearer_auth_api(requests_mock):
     requests_mock.get(
         _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
     )
+
+    # download file
+    requests_mock.get(
+        _TEST_RESULTS_DOWNLOAD_PATH,
+        request_headers=request_headers,
+        content=RAW_TEST_JOB_RESULTS,
+    )
+    requests_mock.get(
+        _TEST_RESULTS_DOWNLOAD_PATH, status_code=401, additional_matcher=no_auth_matcher
+    )
+
     yield requests_mock
+
+
+@pytest.fixture
+def tmp_results_file():
+    """The path to the tmp file where results are downloaded"""
+    yield _TMP_RESULTS_PATH
+    _TMP_RESULTS_PATH.unlink()
 
 
 def _without_headers(headers):

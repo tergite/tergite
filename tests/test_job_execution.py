@@ -10,8 +10,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """tests for the running of qiskit circuits on the tergite backend"""
+import json
 import uuid
 from collections import Counter
+from pathlib import Path
+from tempfile import gettempdir
 from typing import Optional
 
 import numpy as np
@@ -243,7 +246,6 @@ def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.status()
 
 
-# TODO: test logfile
 def test_job_download_url(api):
     """job.download_url returns a successful job's download_url"""
     backend = _get_backend()
@@ -305,6 +307,81 @@ def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
         RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
     ):
         _ = job.download_url
+
+
+def test_job_logfile(api, tmp_results_file):
+    """job.logfile downloads a job's data to tmp"""
+    backend = _get_backend()
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    assert job.logfile == tmp_results_file
+
+    with open(tmp_results_file, "rb") as file:
+        got = json.load(file)
+
+    assert got == TEST_JOB_RESULTS
+
+
+def test_job_logfile_basic_auth(basic_auth_api, tmp_results_file):
+    """job.logfile downloads a successful job's results for API behind basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    assert job.logfile == tmp_results_file
+
+    with open(tmp_results_file, "rb") as file:
+        got = json.load(file)
+
+    assert got == TEST_JOB_RESULTS
+
+
+@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
+def test_job_logfile_invalid_basic_auth(username, password, basic_auth_api):
+    """job.logfile with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the username, password to the invalid ones
+    backend.provider.provider_account.extras["username"] = username
+    backend.provider.provider_account.extras["password"] = password
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.logfile
+
+
+def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
+    """job.logfile downloads a successful job's results for API behind bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    assert job.logfile == tmp_results_file
+
+    with open(tmp_results_file, "rb") as file:
+        got = json.load(file)
+
+    assert got == TEST_JOB_RESULTS
+
+
+@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
+    """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    tc = _get_expected_transpiled_circuit()
+    job = backend.run(tc, meas_level=2)
+
+    # change the token to the invalid one
+    backend.provider.provider_account.token = token
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
+    ):
+        _ = job.logfile
 
 
 def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
