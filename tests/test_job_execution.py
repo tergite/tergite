@@ -12,8 +12,10 @@
 """tests for the running of qiskit circuits on the tergite backend"""
 import uuid
 from collections import Counter
+from typing import Optional
 
 import numpy as np
+import pytest
 from qiskit import QuantumCircuit, circuit, compiler, pulse
 from qiskit.pulse.transforms import AlignLeft
 from qiskit.result import Result
@@ -23,9 +25,12 @@ from tergite_qiskit_connector.providers.tergite import Job, OpenPulseBackend, Te
 from tergite_qiskit_connector.providers.tergite.backend import TergiteBackendConfig
 from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 from tests.conftest import (
+    API_PASSWORD,
     API_URL,
+    API_USERNAME,
     BACKENDS_LIST,
     GOOD_BACKEND,
+    INVALID_API_BASIC_AUTHS,
     NUMBER_OF_SHOTS,
     QUANTUM_COMPUTER_URL,
     TEST_JOB_ID,
@@ -44,7 +49,7 @@ def test_transpile(api):
 
 
 def test_run(api):
-    """backend.run(tc, meas_level=2) returns a registered job"""
+    """backend.run returns a registered job"""
     backend = _get_backend()
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_transpiled_circuit()
@@ -54,6 +59,31 @@ def test_run(api):
     )
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     assert got == expected
+
+
+def test_run_basic_auth(basic_auth_api):
+    """backend.run returns a registered job for API behind basic auth"""
+    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
+    backend.set_options(shots=NUMBER_OF_SHOTS)
+    tc = _get_expected_transpiled_circuit()
+    qobj_id = str(uuid.uuid4())
+    expected = _get_expected_job(
+        backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
+    )
+    got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+    assert got == expected
+
+
+@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
+def test_run_invalid_basic_auth(username, password, basic_auth_api):
+    """backend.run with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
+    backend = _get_backend(username=username, password=password)
+    backend.set_options(shots=NUMBER_OF_SHOTS)
+    tc = _get_expected_transpiled_circuit()
+    qobj_id = str(uuid.uuid4())
+
+    with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
+        _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
 
 def test_job_result(api):
@@ -165,9 +195,15 @@ def _get_expected_transpiled_circuit():
     return qc
 
 
-def _get_backend():
+def _get_backend(token: str = None, username: str = None, password: str = None):
     """Retrieves the right backend"""
-    account = ProviderAccount(service_name="test", url=API_URL)
+    extras = {}
+    if username:
+        extras = {"username": username, "password": password}
+
+    account = ProviderAccount(
+        service_name="test", url=API_URL, token=token, extras=extras
+    )
     provider = Tergite.use_provider_account(account)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": GOOD_BACKEND})
     return OpenPulseBackend(

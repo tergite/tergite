@@ -17,11 +17,11 @@ import json
 from collections import Counter
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 from uuid import uuid4
 
 import requests
-from qiskit.providers import JobV1
+from qiskit.providers import BackendV1, JobV1
 from qiskit.providers.jobstatus import JobStatus
 from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.result import Result
@@ -31,6 +31,7 @@ from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
 
 if TYPE_CHECKING:
+    from . import Provider
     from .backend import TergiteBackend
 
 STATUS_MAP = {
@@ -120,10 +121,14 @@ class Job(JobV1):
 
         job_upload_url = self.metadata["upload_url"]
 
+        backend: "TergiteBackend" = self.backend()
+        provider: "Provider" = backend.provider
+        auth_headers = provider.get_auth_headers()
+
         # Transmit the job POST request
         with job_file.open("r") as src:
             files = {"upload_file": src}
-            response = requests.post(job_upload_url, files=files)
+            response = requests.post(job_upload_url, files=files, headers=auth_headers)
             if not response.ok:
                 raise RuntimeError(f"Failed to POST job: {job_id}")
 

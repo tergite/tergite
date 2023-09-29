@@ -15,6 +15,7 @@
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
+from base64 import b64encode
 from typing import Dict, List, Optional, Tuple, Union
 
 import requests
@@ -94,13 +95,8 @@ class Provider(ProviderV1):
         # reset malformed backends map
         self._malformed_backends.clear()
 
-        auth = self._get_account_basic_auth()
-        # set up headers
-        headers = {}
-        if self.provider_account.token:
-            headers["Authorization"] = f"Bearer {self.provider_account.token}"
-
-        response = requests.get(url=url, auth=auth, headers=headers)
+        headers = self.get_auth_headers()
+        response = requests.get(url=url, headers=headers)
         if not response.ok:
             raise RuntimeError(f"GET request for backends timed out. GET {url}")
 
@@ -113,18 +109,23 @@ class Provider(ProviderV1):
 
         return parsed_data
 
-    def _get_account_basic_auth(self) -> Optional[Tuple[str, str]]:
-        """Retrieves the account's basic auth if any.
+    def get_auth_headers(self) -> Optional[Dict[str, str]]:
+        """Retrieves the auth header for this provider.
 
         Returns:
-            tuple of (username, password) if account has auth else None
+            dict of authorization of the authorization headers if account has auth else None
         """
         try:
             username = self.provider_account.extras["username"]
             password = self.provider_account.extras.get("password", "")
-            return username, password
+            auth = bytearray(f"{username}:{password}", "utf-8")
+            encoded_auth = b64encode(auth).decode("ascii")
+            return {"Authorization": f"Basic {encoded_auth}"}
         except (TypeError, KeyError):
-            return None
+            if self.provider_account.token:
+                return {"Authorization": f"Bearer {self.provider_account.token}"}
+
+        return None
 
     def __str__(self, /):
         return "Tergite: Provider"

@@ -103,13 +103,13 @@ def basic_auth_api(requests_mock):
 
     # job registration
     requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
-    requests_mock.get(_JOBS_URL, status_code=401, additional_matcher=no_auth_matcher)
+    requests_mock.post(_JOBS_URL, status_code=401, additional_matcher=no_auth_matcher)
 
     # job upload
     requests_mock.post(
         QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200
     )
-    requests_mock.get(
+    requests_mock.post(
         QUANTUM_COMPUTER_URL, status_code=401, additional_matcher=no_auth_matcher
     )
 
@@ -138,13 +138,13 @@ def bearer_auth_api(requests_mock):
 
     # job registration
     requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
-    requests_mock.get(_JOBS_URL, status_code=401, additional_matcher=no_auth_matcher)
+    requests_mock.post(_JOBS_URL, status_code=401, additional_matcher=no_auth_matcher)
 
     # job upload
     requests_mock.post(
         QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200
     )
-    requests_mock.get(
+    requests_mock.post(
         QUANTUM_COMPUTER_URL, status_code=401, additional_matcher=no_auth_matcher
     )
 

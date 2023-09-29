@@ -17,7 +17,7 @@
 import dataclasses
 import functools
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -41,6 +41,9 @@ from qiskit.transpiler.coupling import CouplingMap
 from . import calibrations
 from .config import REST_API_MAP
 from .job import Job
+
+if TYPE_CHECKING:
+    from .provider import Provider as TergiteProvider
 
 
 class TergiteBackend(BackendV2):
@@ -84,8 +87,9 @@ class TergiteBackend(BackendV2):
                  job registered in the Tergite API to be executed
         """
         jobs_url = self.base_url + REST_API_MAP["jobs"]
-        # FIXME: enable passing auth credentials here
-        response = requests.post(jobs_url)
+        provider: "TergiteProvider" = self.provider
+        auth_headers = provider.get_auth_headers()
+        response = requests.post(jobs_url, headers=auth_headers)
         if response.ok:
             job_registration = response.json()
         else:
