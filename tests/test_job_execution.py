@@ -26,11 +26,13 @@ from tergite_qiskit_connector.providers.tergite.backend import TergiteBackendCon
 from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 from tests.conftest import (
     API_PASSWORD,
+    API_TOKEN,
     API_URL,
     API_USERNAME,
     BACKENDS_LIST,
     GOOD_BACKEND,
     INVALID_API_BASIC_AUTHS,
+    INVALID_API_TOKENS,
     NUMBER_OF_SHOTS,
     QUANTUM_COMPUTER_URL,
     TEST_JOB_ID,
@@ -78,6 +80,31 @@ def test_run_basic_auth(basic_auth_api):
 def test_run_invalid_basic_auth(username, password, basic_auth_api):
     """backend.run with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
     backend = _get_backend(username=username, password=password)
+    backend.set_options(shots=NUMBER_OF_SHOTS)
+    tc = _get_expected_transpiled_circuit()
+    qobj_id = str(uuid.uuid4())
+
+    with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
+        _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+
+
+def test_run_bearer_auth(bearer_auth_api):
+    """backend.run returns a registered job for API behind bearer auth"""
+    backend = _get_backend(token=API_TOKEN)
+    backend.set_options(shots=NUMBER_OF_SHOTS)
+    tc = _get_expected_transpiled_circuit()
+    qobj_id = str(uuid.uuid4())
+    expected = _get_expected_job(
+        backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
+    )
+    got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+    assert got == expected
+
+
+@pytest.mark.parametrize("token", INVALID_API_TOKENS)
+def test_run_invalid_basic_auth(token, basic_auth_api):
+    """backend.run with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(token=token)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_transpiled_circuit()
     qobj_id = str(uuid.uuid4())
