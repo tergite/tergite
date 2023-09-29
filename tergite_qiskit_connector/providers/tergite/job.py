@@ -26,6 +26,7 @@ from qiskit.providers.jobstatus import JobStatus
 from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
+from requests import Response
 
 from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
@@ -61,13 +62,11 @@ class Job(JobV1):
         self.payload: Optional[Union[QasmQobj, PulseQobj]] = None
 
     def status(self) -> JobStatus:
-        jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
-        job_id = self.job_id()
-        response = requests.get(jobs_url + "/" + job_id)
+        response = self._get_job_results()
         if response.ok:
             return STATUS_MAP[response.json()["status"]]
         else:
-            raise RuntimeError(f"Failed to GET status of job: {job_id}")
+            raise RuntimeError(f"Failed to GET status of job: {self.job_id()}")
 
     def submit(self, payload: Union[QasmQobj, PulseQobj], /) -> requests.Response:
         """Submit the job to the backend for execution.
@@ -143,13 +142,11 @@ class Job(JobV1):
             print(f"Job {self.job_id()} has not yet completed.")
             return
 
-        jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
-        job_id = self.job_id()
-        response = requests.get(jobs_url + "/" + job_id)
+        response = self._get_job_results()
         if response.ok:
             return response.json()["download_url"]
         else:
-            raise RuntimeError(f"Failed to GET download URL of job: {job_id}")
+            raise RuntimeError(f"Failed to GET download URL of job: {self.job_id()}")
 
     @property
     def logfile(self) -> Optional[Path]:
@@ -158,6 +155,7 @@ class Job(JobV1):
         if not url:
             return
 
+        # FIXME: add auth
         response = requests.get(url)
         job_id = self.job_id()
         if response.ok:
@@ -185,14 +183,11 @@ class Job(JobV1):
             print(f"Job {self.job_id()} has not yet completed.")
             return
 
-        backend = self.backend()
-        job_id = self.job_id()
-        jobs_url = backend.base_url + REST_API_MAP["jobs"]
-        response = requests.get(jobs_url + "/" + job_id)
+        response = self._get_job_results()
         if response.ok:
             memory = response.json()["result"]["memory"]
         else:
-            raise RuntimeError(f"Failed to GET memory of job: {job_id}")
+            raise RuntimeError(f"Failed to GET memory of job: {self.job_id()}")
 
         # Sanity check
         if not len(memory) == self.metadata["num_experiments"]:
@@ -218,14 +213,23 @@ class Job(JobV1):
                 )
             )
 
+        backend = self.backend()
         return Result(
             backend_name=backend.name,
             backend_version=backend.backend_version,
             qobj_id=self.metadata["qobj_id"],
-            job_id=job_id,
+            job_id=self.job_id(),
             success=True,
             results=experiment_results,
         )
+
+    def _get_job_results(self) -> Response:
+        """Retrieves the results of this job from the backend"""
+        backend: "TergiteBackend" = self.backend()
+        provider: "Provider" = backend.provider
+        url = f"{backend.base_url}{REST_API_MAP['jobs']}/{self.job_id()}"
+        auth_headers = provider.get_auth_headers()
+        return requests.get(url, headers=auth_headers)
 
     def __repr__(self):
         kwargs = [f"{k}={repr(v)}" for k, v in self.__dict__.items()]
