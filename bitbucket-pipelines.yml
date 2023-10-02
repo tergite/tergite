@@ -66,7 +66,7 @@ pipelines:
           name: Push downstream
           script:
             - git pull -r $DOWNSTREAM_REPO $BITBUCKET_TAG || echo "tag $BITBUCKET_TAG does not exist"
-            - git push $DOWNSTREAM_REPO $BITBUCKET_TAG
+            - git push $DOWNSTREAM_REPO $BITBUCKET_TAG || echo "tag $BITBUCKET_TAG already exists"
 
   branches:
     main:

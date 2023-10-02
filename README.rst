@@ -88,7 +88,6 @@ Create a Throw-away Provider Account
 ToDo
 ----
 
-- [ ] Cleanup the code generally
 - [ ] Add docs and doc generation
 
 Contribution Guidelines
