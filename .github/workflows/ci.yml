@@ -105,5 +105,5 @@ jobs:
       - name: Push upstream
         run: |
           git config user.email ${{ secrets.UPSTREAM_USER }}
-          git pull -r ${{ secrets.UPSTREAM_REPO }} ${{ github.ref_name }}
+          git pull -r ${{ secrets.UPSTREAM_REPO }} ${{ github.ref_name }} || echo "${{ github.ref_name }} does not exist"
           git push ${{ secrets.UPSTREAM_REPO }} ${{ github.ref_name }}
