@@ -11,6 +11,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 import functools
+import logging
 
 import requests
 from qiskit.providers.providerutils import filter_backends
@@ -48,18 +49,22 @@ class Provider(ProviderV1):
                 f"GET request for backends timed out. GET {self.provider_account.url}"
                 + REST_API_MAP["backends"]
             )
-        
-        for backend_dict in response.json():
-            if backend_dict["open_pulse"]:
-                obj = OpenPulseBackend(
-                    data=backend_dict, provider=self, base_url=self.provider_account.url
-                )
-            else:
-                obj = OpenQASMBackend(
-                    data=backend_dict, provider=self, base_url=self.provider_account.url
-                )
-            backends[obj.name] = obj
 
+        for backend_dict in response.json():
+            try:
+                if backend_dict["open_pulse"]:
+                    obj = OpenPulseBackend(
+                        data=backend_dict, provider=self, base_url=self.provider_account.url
+                    )
+                else:
+                    obj = OpenQASMBackend(
+                        data=backend_dict, provider=self, base_url=self.provider_account.url
+                    )
+                backends[obj.name] = obj
+            except:
+                logging.warning(f'Backend with name {backend_dict["name"]} cannot be initialised as OpenPulseBackend'
+                                f'or OpenQASMBackend. This can be due to various reasons, but most likely, you have'
+                                f'to check the backend definition in the database for erroneous keys.')
         return backends
 
     def __str__(self, /):

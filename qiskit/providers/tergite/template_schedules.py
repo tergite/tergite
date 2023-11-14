@@ -83,32 +83,16 @@ def measure(backend: object, qubits: set) -> pulse.ScheduleBlock:
             # rspec[q].frequency, channel=backend.measure_channel(q)
             readout_resonator[q].get("frequency"), channel=backend.measure_channel(q)
         )
-        # FIXME: This check can be removed as soon as pulse_amplitude is propagated throughout the whole database
-        if 'pulse_amplitude' in readout_resonator[q]:
-            sched += pulse.Play(
-                pulse.Constant(
-                    # amp=rspec[q].square_amp,
-                    amp=readout_resonator[q].get("pulse_amplitude"),
-                    # duration=round(rspec[q].square_dur / backend.dt),
-                    duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
-                    name=f"Readout q{q}",
-                ),
-                channel=backend.measure_channel(q),
-            )
-        else:
-            sched += pulse.Play(
-                pulse.Constant(
-                    # amp=rspec[q].square_amp,
-                    amp=readout_resonator[q].get("pulse_amplitued"),
-                    # duration=round(rspec[q].square_dur / backend.dt),
-                    duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
-                    name=f"Readout q{q}",
-                ),
-                channel=backend.measure_channel(q),
-            )
-            logging.warning(
-                f'Found device_property pulse_amplitued for qubit q{q} in backend {backend.name}.'
-                f' Consider changing to pulse_amplitude.')
+        sched += pulse.Play(
+            pulse.Constant(
+                # amp=rspec[q].square_amp,
+                amp=readout_resonator[q].get("pulse_amplitude"),
+                # duration=round(rspec[q].square_dur / backend.dt),
+                duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
+                name=f"Readout q{q}",
+            ),
+            channel=backend.measure_channel(q),
+        )
         sched += pulse.Delay(
             duration=300,
             channel=backend.acquire_channel(q),
