@@ -55,7 +55,7 @@
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6490416256,
-          "pulse_amplitued": 0.0032,
+          "pulse_amplitude": 0.0032,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
@@ -65,7 +65,7 @@
           "acq_delay": 5e-8,
           "acq_integration_time": 0.000001,
           "frequency": 7090416256,
-          "pulse_amplitued": 0.0132,
+          "pulse_amplitude": 0.0132,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000002,
           "pulse_type": "Square"
@@ -267,7 +267,7 @@
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
-          "pulse_amplitued": 0.00125,
+          "pulse_amplitude": 0.00125,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
@@ -277,7 +277,7 @@
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6478209424.33459,
-          "pulse_amplitude": 0.005,
+          "pulse_amplitued": 0.005,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
@@ -357,7 +357,7 @@
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
-          "pulse_amplitued": 0.00125,
+          "pulse_amplitude": 0.00125,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
@@ -367,7 +367,7 @@
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
-          "pulse_amplitued": 0.00125,
+          "pulse_amplitude": 0.00125,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
@@ -377,7 +377,7 @@
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
-          "pulse_amplitued": 0.00125,
+          "pulse_amplitude": 0.00125,
           "pulse_delay": 3e-7,
           "pulse_duration": 0.000003,
           "pulse_type": "Square"
