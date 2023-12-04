@@ -53,7 +53,7 @@ class TergiteBackend(BackendV2):
     max_circuits = infinity
 
     def __init__(
-        self, /, *, data: "TergiteBackendConfig", provider: Provider, base_url: str
+            self, /, *, data: "TergiteBackendConfig", provider: Provider, base_url: str
     ):
         """Initialize a TergiteBackend based backend
 
@@ -331,7 +331,7 @@ class OpenPulseBackend(TergiteBackend):
         experiments = [
             compiler.schedule(experiment, backend=self)
             if (type(experiment) is not pulse.ScheduleBlock)
-            and (type(experiment) is not pulse.Schedule)
+               and (type(experiment) is not pulse.Schedule)
             else experiment  # already a schedule, so don't convert
             for experiment in experiments
         ]
@@ -368,7 +368,7 @@ class OpenQASMBackend(TergiteBackend):
         return gmap
 
     def make_qobj(
-        self, experiments: Union[List[QuantumCircuit], QuantumCircuit], /, **kwargs
+            self, experiments: Union[List[QuantumCircuit], QuantumCircuit], /, **kwargs
     ) -> QasmQobj:
         """Constructs a QasmQobj from an OpenQASM circuit, or a list of them
 
@@ -419,9 +419,13 @@ class TergiteBackendConfig:
     version: str
     meas_map: List[List[int]]
     coupling_map: List[Tuple[int, int]]
+    qubit_ids: Dict[int, str]
+    description: str = None
+    simulator: bool = False
     num_qubits: int = 0
     num_couplers: int = 0
     num_resonators: int = 0
+    online_date: Optional[str] = None
     dt: Optional[float] = None
     dtm: Optional[float] = None
     device_properties: Optional["_DeviceProperties"] = None
@@ -430,6 +434,7 @@ class TergiteBackendConfig:
     qubit_calibrations: Optional[Dict[str, Any]] = None
     coupler_calibrations: Optional[Dict[str, Any]] = None
     resonator_calibrations: Optional[Dict[str, Any]] = None
+    gates: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
 
     def __post_init__(self):
@@ -467,7 +472,10 @@ class _DeviceProperties:
 class _ReadoutResonatorProps:
     """ReadoutResonator Device configuration"""
 
-    index: int
+    idx: int
+    x_position: int
+    y_position: int
+    readout_line: int
     acq_delay: float
     acq_integration_time: float
     frequency: int
@@ -481,7 +489,11 @@ class _ReadoutResonatorProps:
 class _QubitProps:
     """Qubit Device configuration"""
 
-    index: int
+    idx: int
+    x_position: int
+    y_position: int
+    xy_drive_line: int
+    z_drive_line: int
     frequency: int
     pi_pulse_amplitude: float
     pi_pulse_duration: float

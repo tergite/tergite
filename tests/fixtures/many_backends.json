@@ -26,10 +26,11 @@
         1
       ]
     ],
+    "qubit_ids": ["q0", "q1"],
     "device_properties": {
       "qubit": [
         {
-          "index": 0,
+          "id": "q0",
           "frequency": 3194746060,
           "pi_pulse_amplitude": 0.06506,
           "pi_pulse_duration": 5.2e-8,
@@ -39,7 +40,7 @@
           "t2_decoherence": 0
         },
          {
-          "index": 1,
+          "id": "q1",
           "frequency": 3304746060,
           "pi_pulse_amplitude": 0.06616,
           "pi_pulse_duration": 5.2e-8,
@@ -51,7 +52,7 @@
       ],
       "readout_resonator": [
         {
-          "index": 0,
+          "id": "q0",
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6490416256,
@@ -61,7 +62,7 @@
           "pulse_type": "Square"
         },
                 {
-          "index": 1,
+          "id": "q1",
           "acq_delay": 5e-8,
           "acq_integration_time": 0.000001,
           "frequency": 7090416256,
@@ -138,10 +139,11 @@
         11
       ]
     ],
+    "qubit_ids": ["q0", "q1"],
     "device_properties": {
       "qubit": [
         {
-          "index": 0,
+          "id": 0,
           "frequency": 3747793170,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -151,7 +153,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 1,
+          "id": 1,
           "frequency": 3304105194,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -161,7 +163,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 2,
+          "id": 2,
           "frequency": 3886156251,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -171,7 +173,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 3,
+          "id": 3,
           "frequency": 3252921704,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -181,7 +183,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 4,
+          "id": 4,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -191,7 +193,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 5,
+          "id": 5,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -201,7 +203,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 6,
+          "id": 6,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -211,7 +213,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 7,
+          "id": 7,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -221,7 +223,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 8,
+          "id": 8,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -231,7 +233,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 9,
+          "id": 9,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -241,7 +243,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 10,
+          "id": 10,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -251,7 +253,7 @@
           "t2_decoherence": 0
         },
         {
-          "index": 11,
+          "id": 11,
           "frequency": 3981583792,
           "pi_pulse_amplitude": 69.8,
           "pi_pulse_duration": 1e-7,
@@ -263,7 +265,7 @@
       ],
       "readout_resonator": [
         {
-          "index": 0,
+          "id": 0,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -273,7 +275,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 1,
+          "id": 1,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6478209424.33459,
@@ -283,7 +285,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 2,
+          "id": 2,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 7052143960.795639,
@@ -293,7 +295,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 3,
+          "id": 3,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6578988854.977489,
@@ -303,7 +305,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 4,
+          "id": 4,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6850488290.799288,
@@ -313,7 +315,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 5,
+          "id": 5,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -323,7 +325,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 6,
+          "id": 6,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -333,7 +335,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 7,
+          "id": 7,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -343,7 +345,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 8,
+          "id": 8,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -353,7 +355,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 9,
+          "id": 9,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -363,7 +365,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 10,
+          "id": 10,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
@@ -373,7 +375,7 @@
           "pulse_type": "Square"
         },
         {
-          "index": 11,
+          "id": 11,
           "acq_delay": 0,
           "acq_integration_time": 0.0000025,
           "frequency": 6741583902.617835,
