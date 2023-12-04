@@ -9,11 +9,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
-
+#
+# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+"""Handles the loading and saving of configuration to tergiterc file"""
 import pathlib
 import re
 from configparser import ConfigParser
+from typing import List, Optional
 
 from .provider_account import ProviderAccount
 
@@ -27,21 +29,26 @@ REST_API_MAP = {
     "backends": "/backends",
 }
 
+
 class Tergiterc:
+    """the Configuration parser for tergiterc files"""
+
     def __init__(self):
-        self._parser = self._get_parser()
+        """Initializes a Tergiterc instance
 
-    def _get_parser(self):
-        if not TERGITERC_FILE.exists():
-            return None
+        The instance initialized, saves to and retrieves its
+        data from ``$HOME/.qiskit/tergiterc``
+        """
+        self._parser = Tergiterc._get_parser()
 
-        parser = ConfigParser()
-        parser.SECTCRE = re.compile(r"\[ *(?P<header>[^]]+?) *\]")
-        parser.read(TERGITERC_FILE)
+    def load_accounts(self) -> List["ProviderAccount"]:
+        """Retrieves the accounts from the tergiterc file
 
-        return parser
-
-    def load_accounts(self):
+        Returns:
+            list of instances of
+                :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                as read from the tergiterc file
+        """
         accounts = []
 
         parser = self._parser
@@ -64,7 +71,17 @@ class Tergiterc:
 
         return accounts
 
-    def save_accounts(self, accounts):
+    def save_accounts(self, accounts: List["ProviderAccount"]):
+        """Saves the accounts into the tergiterc file
+
+        Args:
+            accounts: the list of instances of
+                :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                to save
+
+        Raises:
+            Exception: If no accounts are passed
+        """
         if not accounts:
             raise Exception("Cannot save account(s). None given.")
 
@@ -86,3 +103,24 @@ class Tergiterc:
 
         with TERGITERC_FILE.open("w") as dest:
             self._parser.write(dest)
+
+    @staticmethod
+    def _get_parser() -> Optional[ConfigParser]:
+        """Initializes a :class:`configparser.ConfigParser` instance that
+        has read from ``$HOME/.qiskit/tergiterc``
+
+        It returns None if ``$HOME/.qiskit/tergiterc`` does not exist.
+
+        Returns:
+            Optional[configparser.ConfigParser]: the ConfigParser with the
+                ``$HOME/.qiskit/tergiterc`` loaded in it if the
+                file does not exist
+        """
+        if not TERGITERC_FILE.exists():
+            return None
+
+        parser = ConfigParser()
+        parser.SECTCRE = re.compile(r"\[ *(?P<header>[^]]+?) *\]")
+        parser.read(TERGITERC_FILE)
+
+        return parser

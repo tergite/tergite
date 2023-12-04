@@ -10,22 +10,30 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+#
+# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+"""Defines the asynchronous job that executes the experiments."""
 import json
 from collections import Counter
 from pathlib import Path
 from tempfile import gettempdir
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 from uuid import uuid4
 
 import requests
+from qiskit.providers import BackendV1, JobV1
 from qiskit.providers.jobstatus import JobStatus
 from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
-
-from qiskit.providers import JobV1
+from requests import Response
 
 from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
+
+if TYPE_CHECKING:
+    from . import Provider
+    from .backend import TergiteBackend
 
 STATUS_MAP = {
     "REGISTERING": JobStatus.QUEUED,
@@ -40,19 +48,35 @@ STATUS_MAP = {
 
 
 class Job(JobV1):
-    def __init__(self: object, *, backend: object, job_id: str, upload_url: str):
+    """A representation of the asynchronous job that handles experiments on a backend"""
+
+    def __init__(self, *, backend: "TergiteBackend", job_id: str, upload_url: str):
+        """Initializes the job instance for the given backend
+
+        Args:
+            backend: the backed where the job is to run
+            job_id: the unique id of the job
+            upload_url: URL where the jobs will be uploaded
+        """
         super().__init__(backend=backend, job_id=job_id, upload_url=upload_url)
+        self.payload: Optional[Union[QasmQobj, PulseQobj]] = None
 
     def status(self) -> JobStatus:
-        jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
-        job_id = self.job_id()
-        response = requests.get(jobs_url + "/" + job_id)
+        response = self._get_job_results()
         if response.ok:
             return STATUS_MAP[response.json()["status"]]
         else:
-            raise RuntimeError(f"Failed to GET status of job: {job_id}")
+            raise RuntimeError(f"Failed to GET status of job: {self.job_id()}")
 
-    def submit(self: object, payload: object, /):
+    def submit(self, payload: Union[QasmQobj, PulseQobj], /) -> requests.Response:
+        """Submit the job to the backend for execution.
+
+        Args:
+            payload: the QasmQobj or PulseQobj object to execute
+
+        Returns:
+            requests.Response: the response of the API after submitting the job
+        """
         self.metadata["shots"] = payload.config.shots
         self.metadata["qobj_id"] = payload.qobj_id
         self.metadata["num_experiments"] = len(payload.experiments)
@@ -96,10 +120,14 @@ class Job(JobV1):
 
         job_upload_url = self.metadata["upload_url"]
 
+        backend: "TergiteBackend" = self.backend()
+        provider: "Provider" = backend.provider
+        auth_headers = provider.get_auth_headers()
+
         # Transmit the job POST request
         with job_file.open("r") as src:
             files = {"upload_file": src}
-            response = requests.post(job_upload_url, files=files)
+            response = requests.post(job_upload_url, files=files, headers=auth_headers)
             if not response.ok:
                 raise RuntimeError(f"Failed to POST job: {job_id}")
 
@@ -108,26 +136,33 @@ class Job(JobV1):
         return response
 
     @property
-    def download_url(self) -> str:
+    def download_url(self) -> Optional[str]:
+        """The download_url of this job when it is completed"""
         if self.status() != JobStatus.DONE:
             print(f"Job {self.job_id()} has not yet completed.")
             return
-        jobs_url = self.backend().base_url + REST_API_MAP["jobs"]
-        job_id = self.job_id()
-        response = requests.get(jobs_url + "/" + job_id)
+
+        response = self._get_job_results()
         if response.ok:
             return response.json()["download_url"]
         else:
-            raise RuntimeError(f"Failed to GET download URL of job: {job_id}")
+            raise RuntimeError(f"Failed to GET download URL of job: {self.job_id()}")
 
     @property
-    def logfile(self) -> Path:
+    def logfile(self) -> Optional[Path]:
+        """The path to the logfile of this job when it is completed"""
         url = self.download_url
         if not url:
             return
-        response = requests.get(url)
+
+        backend: "TergiteBackend" = self.backend()
+        provider: "Provider" = backend.provider
+        auth_headers = provider.get_auth_headers()
+
+        response = requests.get(url, headers=auth_headers)
+        job_id = self.job_id()
         if response.ok:
-            job_file = Path(gettempdir()) / (self.job_id() + ".hdf5")
+            job_file = Path(gettempdir()) / (job_id + ".hdf5")
             with open(job_file, "wb") as dest:
                 dest.write(response.content)
             return job_file
@@ -138,18 +173,24 @@ class Job(JobV1):
         print("Job.cancel() is not implemented.")
         pass  # TODO: This can be implemented server side with stoppable threads.
 
-    def result(self):
+    def result(self) -> Optional[Result]:
+        """Retrieves the outcome of this job when it is completed.
+
+        It returns None if the job has not yet completed
+
+        Returns:
+            Optional[qiskit.result.result.Result]: the outcome of this job
+                if it has completed
+        """
         if self.status() != JobStatus.DONE:
             print(f"Job {self.job_id()} has not yet completed.")
             return
-        backend = self.backend()
-        job_id = self.job_id()
-        jobs_url = backend.base_url + REST_API_MAP["jobs"]
-        response = requests.get(jobs_url + "/" + job_id)
+
+        response = self._get_job_results()
         if response.ok:
             memory = response.json()["result"]["memory"]
         else:
-            raise RuntimeError(f"Failed to GET memory of job: {job_id}")
+            raise RuntimeError(f"Failed to GET memory of job: {self.job_id()}")
 
         # Sanity check
         if not len(memory) == self.metadata["num_experiments"]:
@@ -175,11 +216,35 @@ class Job(JobV1):
                 )
             )
 
+        backend = self.backend()
         return Result(
             backend_name=backend.name,
             backend_version=backend.backend_version,
             qobj_id=self.metadata["qobj_id"],
-            job_id=job_id,
+            job_id=self.job_id(),
             success=True,
             results=experiment_results,
         )
+
+    def _get_job_results(self) -> Response:
+        """Retrieves the results of this job from the backend"""
+        backend: "TergiteBackend" = self.backend()
+        provider: "Provider" = backend.provider
+        url = f"{backend.base_url}{REST_API_MAP['jobs']}/{self.job_id()}"
+        auth_headers = provider.get_auth_headers()
+        return requests.get(url, headers=auth_headers)
+
+    def __repr__(self):
+        kwargs = [f"{k}={repr(v)}" for k, v in self.__dict__.items()]
+        kwargs_str = ",\n".join(kwargs)
+        return f"{self.__class__.__name__}({kwargs_str})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Job):
+            return False
+
+        for k, v in self.__dict__.items():
+            if getattr(other, k, None) != v:
+                return False
+
+        return True

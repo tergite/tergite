@@ -143,3 +143,18 @@ config.ini
 # ssh keys
 *.pem
 
+# idea
+.idea/
+
+# vscode
+.vscode/
+
+# dev
+dev/
+test_job_examples/
+setup.py
+requirements.txt
+demo/
+README.md
+dot-tergiterc-template.txt
+
