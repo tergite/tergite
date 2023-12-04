@@ -1,15 +1,304 @@
 [
   {
     "name": "Well-formed",
+    "is_active": true,
     "characterized": true,
     "open_pulse": true,
-    "version": "2023.05.23",
-    "num_qubits": 2,
+    "simulator": false,
+    "version": "2023.11.10",
+    "num_qubits": 10,
     "num_couplers": 2,
-    "num_resonators": 2,
-    "timelog": {"REGISTERED": "2023-05-23T11:06:05.686Z"},
+    "num_resonators": 10,
     "dt": 1e-9,
     "dtm": 1e-9,
+    "qubit_ids": [
+      "q16",
+      "q17",
+      "q18",
+      "q19",
+      "q20",
+      "q21",
+      "q22",
+      "q23",
+      "q24",
+      "q25"
+    ],
+    "device_properties": {
+      "qubit": [
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3189068645.913515,
+          "pi_pulse_amplitude": 0.05407289764722197,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q16"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3932312578.2853203,
+          "pi_pulse_amplitude": 0.05803469335192433,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q17"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3254042678.1065574,
+          "pi_pulse_amplitude": 0.07523924460714938,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q18"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3921631493.6786733,
+          "pi_pulse_amplitude": 0.0640192703799127,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q19"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3333241357.1715603,
+          "pi_pulse_amplitude": 0.07339277049576626,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q20"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3774223853.1782556,
+          "pi_pulse_amplitude": 0.03876480235231761,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q21"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3326766494.116621,
+          "pi_pulse_amplitude": 0.04027936299383348,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q22"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3910349920.4348984,
+          "pi_pulse_amplitude": 0.04484079177678062,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q23"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 3271042085.0199437,
+          "pi_pulse_amplitude": 0.054914165830233785,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q24"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "xy_drive_line": null,
+          "z_drive_line": null,
+          "frequency": 4008734912.922711,
+          "pi_pulse_amplitude": 0.07997414774550553,
+          "pi_pulse_duration": 5.2e-8,
+          "pulse_type": "Gaussian",
+          "pulse_sigma": 6.5e-9,
+          "t1_decoherence": null,
+          "t2_decoherence": null,
+          "id": "q25"
+        }
+      ],
+      "readout_resonator": [
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6489211012.339556,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.035,
+          "id": "q16"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 7059395540.978689,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.05,
+          "id": "q17"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6712742350.242856,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.016,
+          "id": "q18"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6818369638.713008,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.009,
+          "id": "q19"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6494749229.804931,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.026,
+          "id": "q20"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6752738193.869309,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.008,
+          "id": "q21"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6476766717.950768,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.035,
+          "id": "q22"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 7051850816.349328,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.036,
+          "id": "q23"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6583541646.287048,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.007,
+          "id": "q24"
+        },
+        {
+          "x_position": null,
+          "y_position": null,
+          "readout_line": null,
+          "acq_delay": 2e-7,
+          "acq_integration_time": 0.0000015,
+          "frequency": 6852971589.38792,
+          "pulse_delay": 4e-9,
+          "pulse_duration": 0.000002,
+          "pulse_type": "Square",
+          "pulse_amplitude": 0.008,
+          "id": "q25"
+        }
+      ]
+    },
     "coupling_map": [
       [
         0,
@@ -23,60 +312,44 @@
     "meas_map": [
       [
         0,
-        1
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
       ]
     ],
-    "qubit_ids": ["q0", "q1"],
-    "device_properties": {
-      "qubit": [
-        {
-          "id": "q0",
-          "frequency": 3194746060,
-          "pi_pulse_amplitude": 0.06506,
-          "pi_pulse_duration": 5.2e-8,
-          "pulse_type": "Gaussian",
-          "pulse_sigma": 6.5e-9,
-          "t1_decoherence": 0,
-          "t2_decoherence": 0
-        },
-         {
-          "id": "q1",
-          "frequency": 3304746060,
-          "pi_pulse_amplitude": 0.06616,
-          "pi_pulse_duration": 5.2e-8,
-          "pulse_type": "Gaussian",
-          "pulse_sigma": 6.5e-9,
-          "t1_decoherence": 0,
-          "t2_decoherence": 0
-        }
-      ],
-      "readout_resonator": [
-        {
-          "id": "q0",
-          "acq_delay": 0,
-          "acq_integration_time": 0.0000025,
-          "frequency": 6490416256,
-          "pulse_amplitude": 0.0032,
-          "pulse_delay": 3e-7,
-          "pulse_duration": 0.000003,
-          "pulse_type": "Square"
-        },
-                {
-          "id": "q1",
-          "acq_delay": 5e-8,
-          "acq_integration_time": 0.000001,
-          "frequency": 7090416256,
-          "pulse_amplitude": 0.0132,
-          "pulse_delay": 3e-7,
-          "pulse_duration": 0.000002,
-          "pulse_type": "Square"
-        }
-      ]
+    "gates": {
+      "u": {
+        "qubits": [
+          0
+        ],
+        "qasm_def": "gate id q { U(0, 0, 0) q; }",
+        "parameters": []
+      },
+      "h": {
+        "qubits": [
+          0
+        ],
+        "qasm_def": "gate id q { U(0, 0, 0) q; }",
+        "parameters": []
+      },
+      "x": {
+        "qubits": [
+          0
+        ],
+        "qasm_def": "gate id q { U(0, 0, 0) q; }",
+        "parameters": []
+      }
     },
-    "qubit_lo_freq": [
-      3283000000,
-      3483000000
-    ]
+    "timelog": {
+      "REGISTERED": "2023-11-15T13:58:58.676Z",
+      "LAST_UPDATED": "2023-11-15T13:58:58.676Z"
+    }
   },
   {
     "name": "Malformed",
@@ -85,7 +358,9 @@
     "version": "2023.05.23",
     "num_qubits": 12,
     "num_couplers": 8,
-    "timelog": {"REGISTERED": "2023-05-23T11:06:05.686Z"},
+    "timelog": {
+      "REGISTERED": "2023-05-23T11:06:05.686Z"
+    },
     "num_resonators": 12,
     "dt": 1e-9,
     "dtm": 1e-9,
@@ -139,7 +414,10 @@
         11
       ]
     ],
-    "qubit_ids": ["q0", "q1"],
+    "qubit_ids": [
+      "q0",
+      "q1"
+    ],
     "device_properties": {
       "qubit": [
         {
@@ -422,7 +700,9 @@
     "name": "Dummy",
     "version": "2022.10.09",
     "num_qubits": 3,
-    "timelog": {"REGISTERED": "2023-05-23T11:06:05.686Z"},
+    "timelog": {
+      "REGISTERED": "2023-05-23T11:06:05.686Z"
+    },
     "coupling_map": [
       [
         0,
@@ -443,7 +723,9 @@
   {
     "name": "OpenQASM",
     "num_qubits": 5,
-    "timelog": {"REGISTERED": "2023-05-23T11:06:05.686Z"},
+    "timelog": {
+      "REGISTERED": "2023-05-23T11:06:05.686Z"
+    },
     "coupling_map": [
       [
         0,
