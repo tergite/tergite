@@ -89,6 +89,7 @@ ToDo
 ----
 
 - [ ] Add docs and doc generation
+- [ ] Add an appropriate note that explains the demos and says that code in the archive will not be maintained
 
 Contribution Guidelines
 -----------------------
