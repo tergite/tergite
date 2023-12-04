@@ -472,7 +472,7 @@ class _DeviceProperties:
 class _ReadoutResonatorProps:
     """ReadoutResonator Device configuration"""
 
-    idx: int
+    id: int
     x_position: int
     y_position: int
     readout_line: int
@@ -489,7 +489,7 @@ class _ReadoutResonatorProps:
 class _QubitProps:
     """Qubit Device configuration"""
 
-    idx: int
+    id: int
     x_position: int
     y_position: int
     xy_drive_line: int
