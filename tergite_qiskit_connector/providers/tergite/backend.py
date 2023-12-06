@@ -290,13 +290,6 @@ class OpenPulseBackend(TergiteBackend):
         """the collection of properties specific to this backend"""
         return self.data["device_properties"]
 
-    @functools.cached_property
-    def calibration_tables(self) -> tuple:
-        """dataframes with empirical calibration values specific to this backend."""
-        # cache and return dataframes to caller
-        print("loading calibration tables ... ...")
-        return calibrations.load_tables(backend=self)
-
     @property
     def qubit_lo_freq(self) -> list:
         return [0.0] * self.data["num_qubits"]
