@@ -465,10 +465,10 @@ def _get_expected_transpiled_circuit():
         name="RX(θ, (1,))",
         alignment_context=pulse.transforms.AlignLeft(),
     )
-    rx_block.append(pulse.SetFrequency(3304746060, pulse.DriveChannel(1)))
+    rx_block.append(pulse.SetFrequency(3932312578.2853203, pulse.DriveChannel(1)))
     rx_block.append(
         pulse.Play(
-            pulse.Gaussian(duration=52, amp=(0.03308 + 0j), sigma=6, name="RX q1"),
+            pulse.Gaussian(duration=52, amp=(0.0290173467+0j), sigma=6, name="RX q1"),
             pulse.DriveChannel(1),
             name="RX q1",
         )
