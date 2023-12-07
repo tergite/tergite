@@ -419,7 +419,6 @@ class TergiteBackendConfig:
     version: str
     meas_map: List[List[int]]
     coupling_map: List[Tuple[int, int]]
-    qubit_ids: Dict[int, str]
     description: str = None
     simulator: bool = False
     num_qubits: int = 0
@@ -428,6 +427,7 @@ class TergiteBackendConfig:
     online_date: Optional[str] = None
     dt: Optional[float] = None
     dtm: Optional[float] = None
+    qubit_ids: Dict[int, str] = dataclasses.field(default_factory=dict)
     device_properties: Optional["_DeviceProperties"] = None
     meas_lo_freq: Optional[List[int]] = None
     qubit_lo_freq: Optional[List[int]] = None
@@ -473,9 +473,6 @@ class _ReadoutResonatorProps:
     """ReadoutResonator Device configuration"""
 
     id: int
-    x_position: int
-    y_position: int
-    readout_line: int
     acq_delay: float
     acq_integration_time: float
     frequency: int
@@ -483,6 +480,10 @@ class _ReadoutResonatorProps:
     pulse_delay: float
     pulse_duration: float
     pulse_type: str
+    index: Optional[int] = None
+    x_position: Optional[int] = None
+    y_position: Optional[int] = None
+    readout_line: Optional[int] = None
 
 
 @dataclasses.dataclass
@@ -490,10 +491,6 @@ class _QubitProps:
     """Qubit Device configuration"""
 
     id: int
-    x_position: int
-    y_position: int
-    xy_drive_line: int
-    z_drive_line: int
     frequency: int
     pi_pulse_amplitude: float
     pi_pulse_duration: float
@@ -501,3 +498,8 @@ class _QubitProps:
     pulse_sigma: float
     t1_decoherence: float
     t2_decoherence: float
+    index: Optional[int] = None
+    x_position: Optional[int] = None
+    y_position: Optional[int] = None
+    xy_drive_line: Optional[int] = None
+    z_drive_line: Optional[int] = None
