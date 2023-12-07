@@ -53,7 +53,7 @@ class TergiteBackend(BackendV2):
     max_circuits = infinity
 
     def __init__(
-            self, /, *, data: "TergiteBackendConfig", provider: Provider, base_url: str
+        self, /, *, data: "TergiteBackendConfig", provider: Provider, base_url: str
     ):
         """Initialize a TergiteBackend based backend
 
@@ -331,7 +331,7 @@ class OpenPulseBackend(TergiteBackend):
         experiments = [
             compiler.schedule(experiment, backend=self)
             if (type(experiment) is not pulse.ScheduleBlock)
-               and (type(experiment) is not pulse.Schedule)
+            and (type(experiment) is not pulse.Schedule)
             else experiment  # already a schedule, so don't convert
             for experiment in experiments
         ]
@@ -368,7 +368,7 @@ class OpenQASMBackend(TergiteBackend):
         return gmap
 
     def make_qobj(
-            self, experiments: Union[List[QuantumCircuit], QuantumCircuit], /, **kwargs
+        self, experiments: Union[List[QuantumCircuit], QuantumCircuit], /, **kwargs
     ) -> QasmQobj:
         """Constructs a QasmQobj from an OpenQASM circuit, or a list of them
 

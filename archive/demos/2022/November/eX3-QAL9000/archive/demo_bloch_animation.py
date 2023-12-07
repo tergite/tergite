@@ -48,6 +48,7 @@ with contextlib.redirect_stderr(None):
         compiler.transpile(tomog_circs(theta), backend=backend) for theta in thetadef
     ]
 
+
 # function to update figure
 def updatefig(j):
     if not j:

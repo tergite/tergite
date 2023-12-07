@@ -10,17 +10,18 @@ from shutil import move
 import time
 import numpy as np
 
-plt.ion() # enable interactive mode
+plt.ion()  # enable interactive mode
 
 folder = Path(input("Frame folder? ")).resolve()
 
-fig, ax = plt.subplots(figsize=(4.6,4.6))
+fig, ax = plt.subplots(figsize=(4.6, 4.6))
 
 # show first frame, draw interactively on this image object
 im = ax.imshow(plt.imread(Path(input("First frame? ")).resolve()))
 ax.axis("off")
 
-def draw_frame(fig, ax, frame_path : Path):
+
+def draw_frame(fig, ax, frame_path: Path):
     global im
 
     image_j = plt.imread(frame_path)
@@ -29,10 +30,10 @@ def draw_frame(fig, ax, frame_path : Path):
     im.set_array(image_j)
 
     fig.canvas.draw()
-    fig.canvas.flush_events()   
+    fig.canvas.flush_events()
 
 
-frames = iter( folder / f"frame{j}.jpg" for j in range(1000))
+frames = iter(folder / f"frame{j}.jpg" for j in range(1000))
 frame = next(frames)
 
 while True:
@@ -58,7 +59,6 @@ while True:
         frame = next(frames)
     else:
         frame = frame
-
 
 
 plt.show()

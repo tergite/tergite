@@ -25,6 +25,7 @@ xdef = np.linspace(0, 1)
 riemann_est = sum(f(xdef) * np.diff(xdef)[0])
 riemann_est_pi = riemann_est * 4
 
+
 # ---------- Monte Carlo estimate, from pseudo random numbers
 def mc_hitmiss(fn: callable, *, M: int) -> tuple:
     np.random.seed(0)
@@ -60,7 +61,6 @@ class _test:
 
 
 def qmc_hitmiss(fn: callable, *, M: int) -> tuple:
-
     job = _test()  # <- REPLACE THIS WITH SOMETHING THATS WAITABLE
     while job.status() != JobStatus.DONE:
         time.sleep(1)
@@ -125,6 +125,7 @@ riemann_rects = [
 for r in riemann_rects:
     axs[0].add_patch(r)
 plot_estimate(axs[0], riemann_est_pi)
+
 
 # plot monte carlo samples for the MC and QMC methods
 def plot_samples(ax: object, samples: np.array):

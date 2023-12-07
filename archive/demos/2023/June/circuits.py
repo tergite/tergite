@@ -5,14 +5,16 @@ import typing
 from time import sleep
 
 import numpy as np
+
 # working with qiskit-aer 0.8.2
 import qiskit
 from qiskit import transpile
+
 try:
     from qiskit.providers.tergite import Provider
     from qiskit.providers.tergite.backend import TergiteBackend
 except:
-    print('Could not import Tergite!')
+    print("Could not import Tergite!")
 from qiskit.result import marginal_counts
 from qiskit_aer import AerSimulator
 
@@ -22,17 +24,20 @@ from utils import Utils
 # Import Tergite
 # from qiskit.providers.tergite import Tergite
 
+
 class HybridLayerCircuit:
     """
     This class provides a simple interface for interaction
     with the quantum circuit
     """
 
-    def __init__(self,
-                 backend: qiskit.providers.Backend = qiskit.Aer.get_backend('aer_simulator'),
-                 shots: int = 100,
-                 qubits: typing.List[int] = None,
-                 run_id: str = 'default'):
+    def __init__(
+        self,
+        backend: qiskit.providers.Backend = qiskit.Aer.get_backend("aer_simulator"),
+        shots: int = 100,
+        qubits: typing.List[int] = None,
+        run_id: str = "default",
+    ):
         self.backend = backend
         self.shots = shots
         self.qubits = qubits
@@ -72,16 +77,11 @@ class HybridLayerCircuit:
         job_args = tuple([t_qc])
 
         if isinstance(self.backend, AerSimulator):
-            job_kwargs = {
-                'shots': self.shots
-            }
+            job_kwargs = {"shots": self.shots}
         elif isinstance(self.backend, TergiteBackend):
-            job_kwargs = {
-                'meas_level': 2,
-                'meas_return': 'single'
-            }
+            job_kwargs = {"meas_level": 2, "meas_return": "single"}
         else:
-            raise NotImplementedError('Cannot resolve backend!')
+            raise NotImplementedError("Cannot resolve backend!")
 
         job = self.backend.run(*job_args, **job_kwargs)
 

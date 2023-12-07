@@ -33,7 +33,6 @@ save_old_frames()
 
 
 def compute_new_frame(j: int):
-
     # Do some labour, which computes a frame and saves
     # to a folder...
     noise = np.random.rand(50, 50)

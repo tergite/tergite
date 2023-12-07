@@ -25,6 +25,7 @@ xdef = np.linspace(0, 1)
 riemann_est = sum(f(xdef) * np.diff(xdef)[0])
 riemann_est_pi = riemann_est * 4
 
+
 # ---------- Monte Carlo estimate, from pseudo random numbers
 def mc_hitmiss(fn: callable, *, M: int) -> tuple:
     np.random.seed(0)
@@ -66,7 +67,6 @@ job_ids = [
 
 
 def qmc_hitmiss(fn: callable, *, current_U: np.ndarray, job_id: str, M: int) -> tuple:
-
     #    job = _test()  # <- REPLACE THIS WITH SOMETHING THATS WAITABLE
     #    while job.status() != JobStatus.DONE:
     #        time.sleep(2)

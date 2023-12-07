@@ -21,15 +21,19 @@ N_TRAIN_SAMPLES = 100
 N_EVAL_SAMPLES = 20
 
 # TODO: which backend do we wanna use?
-BACKEND = Utils.get_backend('new_nine_qubits', shots=SHOTS)
+BACKEND = Utils.get_backend("new_nine_qubits", shots=SHOTS)
 
 # generate data
-train_loader = DataLoader(IQDataGenerator.get_2d_binary_class(n_samples=N_TRAIN_SAMPLES),
-                          batch_size=1,
-                          shuffle=True)
-eval_loader = DataLoader(IQDataGenerator.get_2d_binary_class(n_samples=N_EVAL_SAMPLES),
-                         batch_size=1,
-                         shuffle=True)
+train_loader = DataLoader(
+    IQDataGenerator.get_2d_binary_class(n_samples=N_TRAIN_SAMPLES),
+    batch_size=1,
+    shuffle=True,
+)
+eval_loader = DataLoader(
+    IQDataGenerator.get_2d_binary_class(n_samples=N_EVAL_SAMPLES),
+    batch_size=1,
+    shuffle=True,
+)
 
 # init model
 model = Net(RUN_ID, n_qubits=N_QUBITS, qubits=QUBITS, backend=BACKEND, shots=SHOTS)
@@ -38,6 +42,6 @@ model = Net(RUN_ID, n_qubits=N_QUBITS, qubits=QUBITS, backend=BACKEND, shots=SHO
 trained_model, losses = train_model(model, train_loader, TRAIN_EPOCHS)
 
 # save
-torch.save(trained_model, f'temp/{RUN_ID}.model')
+torch.save(trained_model, f"temp/{RUN_ID}.model")
 
 accuracy = eval_model(trained_model, eval_loader)

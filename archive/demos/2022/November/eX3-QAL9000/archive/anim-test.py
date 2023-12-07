@@ -68,9 +68,9 @@ def tomog_circs(theta):
 
 precomputed_tomog_circs = [tomog_circs(theta) for theta in thetadef]
 
+
 # function to update figure
 def updatefig(j):
-
     job = backend.run(precomputed_tomog_circs[j], meas_level=2)
     while job.status() != JobStatus.DONE:
         time.sleep(0.1)  # blocking wait

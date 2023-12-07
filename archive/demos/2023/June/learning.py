@@ -13,11 +13,11 @@ from circuits import HybridLayerCircuit
 
 
 class HybridFunction(Function):
-    """ Hybrid quantum - classical function definition """
+    """Hybrid quantum - classical function definition"""
 
     @staticmethod
     def forward(ctx, input, quantum_circuit, shift):
-        """ Forward pass computation """
+        """Forward pass computation"""
         ctx.shift = shift
         ctx.quantum_circuit = quantum_circuit
 
@@ -29,7 +29,7 @@ class HybridFunction(Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        """ Backward pass computation """
+        """Backward pass computation"""
         input, expectation_z = ctx.saved_tensors
         input_list = np.array(input.tolist())
 
@@ -41,7 +41,9 @@ class HybridFunction(Function):
             expectation_right = ctx.quantum_circuit.run(shift_right[i])
             expectation_left = ctx.quantum_circuit.run(shift_left[i])
 
-            gradient = torch.tensor([expectation_right]) - torch.tensor([expectation_left])
+            gradient = torch.tensor([expectation_right]) - torch.tensor(
+                [expectation_left]
+            )
             gradients.append(gradient)
         # gradients = np.array([gradients]).T
         # gradients = torch.t(torch.stack(gradients))
@@ -50,19 +52,20 @@ class HybridFunction(Function):
 
 
 class Hybrid(nn.Module):
-    """ Hybrid quantum - classical layer definition """
+    """Hybrid quantum - classical layer definition"""
 
-    def __init__(self,
-                 backend: qiskit.providers.Backend,
-                 shots: int,
-                 shift,
-                 qubits: typing.List[int] = None,
-                 run_id: str = 'default'):
+    def __init__(
+        self,
+        backend: qiskit.providers.Backend,
+        shots: int,
+        shift,
+        qubits: typing.List[int] = None,
+        run_id: str = "default",
+    ):
         super(Hybrid, self).__init__()
-        self.quantum_circuit = HybridLayerCircuit(backend=backend,
-                                                  shots=shots,
-                                                  qubits=qubits,
-                                                  run_id=run_id)
+        self.quantum_circuit = HybridLayerCircuit(
+            backend=backend, shots=shots, qubits=qubits, run_id=run_id
+        )
         self.shift = shift
         self.run_id = run_id
 
@@ -71,12 +74,15 @@ class Hybrid(nn.Module):
 
 
 class Net(nn.Module):
-    def __init__(self, run_id,
-                 n_qubits: int = 1,
-                 qubits: typing.List[int] = None,
-                 backend=qiskit.Aer.get_backend('aer_simulator'),
-                 shots: int = 1024,
-                 n_neurons: int = 16):
+    def __init__(
+        self,
+        run_id,
+        n_qubits: int = 1,
+        qubits: typing.List[int] = None,
+        backend=qiskit.Aer.get_backend("aer_simulator"),
+        shots: int = 1024,
+        n_neurons: int = 16,
+    ):
         super(Net, self).__init__()
 
         # TODO: We could fine tune here, if we want to have qubits bins and more combinations of layers
@@ -88,11 +94,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(2, n_neurons)
         self.fc2 = nn.Linear(n_neurons, in_hybrid_layer)
 
-        self.hybrid = Hybrid(backend,
-                             shots,
-                             np.pi / 2,
-                             qubits=qubits,
-                             run_id=run_id)
+        self.hybrid = Hybrid(backend, shots, np.pi / 2, qubits=qubits, run_id=run_id)
 
     def forward(self, x):
         x = x.view(1, -1)
@@ -102,13 +104,11 @@ class Net(nn.Module):
         return torch.cat((x, 1 - x), -1)
 
 
-def train_model(model: nn.Module,
-                train_loader,
-                epochs: int,
-                plot: bool = False) -> typing.Tuple['nn.Module', typing.List[float]]:
+def train_model(
+    model: nn.Module, train_loader, epochs: int, plot: bool = False
+) -> typing.Tuple["nn.Module", typing.List[float]]:
     # TODO: If one would like to write a beautiful ML framework, it might be better to pass the optimizer as a parameter
-    optimizer = optim.Adam(model.parameters(),
-                           lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     loss_func = nn.NLLLoss()
 
     loss_list = []
@@ -116,7 +116,9 @@ def train_model(model: nn.Module,
     model.train()
     for epoch in range(epochs):
         total_loss = []
-        for batch_idx, (data, target) in tqdm(enumerate(train_loader), desc=f'{epoch = }', unit='samples'):
+        for batch_idx, (data, target) in tqdm(
+            enumerate(train_loader), desc=f"{epoch = }", unit="samples"
+        ):
             optimizer.zero_grad()
             output = model(data)
             loss = loss_func(output, target)
@@ -127,14 +129,16 @@ def train_model(model: nn.Module,
 
         loss_list.append(sum(total_loss) / len(total_loss))
 
-        print('\nTraining [{:.0f}%]\tLoss: {:.4f}'.format(
-            100. * (epoch + 1) / epochs, loss_list[-1]))
+        print(
+            "\nTraining [{:.0f}%]\tLoss: {:.4f}".format(
+                100.0 * (epoch + 1) / epochs, loss_list[-1]
+            )
+        )
 
     return model, loss_list
 
 
-def eval_model(model: nn.Module,
-               eval_loader):
+def eval_model(model: nn.Module, eval_loader):
     model.eval()
     loss_func = nn.NLLLoss()
     total_loss = []
@@ -150,9 +154,10 @@ def eval_model(model: nn.Module,
             total_loss.append(loss.item())
 
         accuracy = sum(total_loss) / len(total_loss)
-        print('Performance on test data:\n\tLoss: {:.4f}\n\tAccuracy: {:.1f}%'.format(
-            accuracy,
-            correct / len(eval_loader) * 100)
+        print(
+            "Performance on test data:\n\tLoss: {:.4f}\n\tAccuracy: {:.1f}%".format(
+                accuracy, correct / len(eval_loader) * 100
+            )
         )
 
     return accuracy
