@@ -484,6 +484,7 @@ class _ReadoutResonatorProps:
     x_position: Optional[int] = None
     y_position: Optional[int] = None
     readout_line: Optional[int] = None
+    lda_parameters: Optional[Dict[str, Any]] = None
 
 
 @dataclasses.dataclass
