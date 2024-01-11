@@ -10,7 +10,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+# This code was modified from the original by:
+#
+# - Martin Ahindura 2023
+# - Stefan Hill 2023
 """Handles the creation of schedules for the devices of type OpenPulseBackend"""
 from typing import TYPE_CHECKING, Iterable
 
@@ -100,18 +103,19 @@ def measure(backend: "OpenPulseBackend", qubits: Iterable) -> pulse.ScheduleBloc
         qiskit.pulse.ScheduleBlock: the schedule implementing the measurement
     """
     device_properties = backend.device_properties
-    readout_resonator = device_properties.get("readout_resonator")
+    readout_resonator_props = device_properties.get("readout_resonator")
 
     sched = pulse.ScheduleBlock(name=f"Measure({qubits})")
     for q in qubits:
+        readout_resonator = readout_resonator_props[q]
         sched += pulse.SetFrequency(
-            readout_resonator[q].get("frequency"),
+            readout_resonator.get("frequency"),
             channel=backend.measure_channel(q),
         )
         sched += pulse.Play(
             pulse.Constant(
-                amp=readout_resonator[q].get("pulse_amplitued"),
-                duration=round(readout_resonator[q].get("pulse_duration") / backend.dt),
+                amp=readout_resonator.get("pulse_amplitude"),
+                duration=round(readout_resonator.get("pulse_duration") / backend.dt),
                 name=f"Readout q{q}",
             ),
             channel=backend.measure_channel(q),
@@ -122,9 +126,7 @@ def measure(backend: "OpenPulseBackend", qubits: Iterable) -> pulse.ScheduleBloc
             name=f"Time of flight q{q}",
         )
         sched += pulse.Acquire(
-            duration=round(
-                readout_resonator[q].get("acq_integration_time") / backend.dt
-            ),
+            duration=round(readout_resonator.get("acq_integration_time") / backend.dt),
             channel=backend.acquire_channel(q),
             mem_slot=backend.memory_slot(q),
             name=f"Integration window q{q}",

@@ -464,7 +464,7 @@ class _ReadoutResonatorProps:
     acq_delay: float
     acq_integration_time: float
     frequency: int
-    pulse_amplitued: float
+    pulse_amplitude: float
     pulse_delay: float
     pulse_duration: float
     pulse_type: str
