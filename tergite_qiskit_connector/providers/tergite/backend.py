@@ -429,6 +429,7 @@ class TergiteBackendConfig:
     dtm: Optional[float] = None
     qubit_ids: Dict[int, str] = dataclasses.field(default_factory=dict)
     device_properties: Optional["_DeviceProperties"] = None
+    discriminators: Optional[Dict[str, Any]] = None
     meas_lo_freq: Optional[List[int]] = None
     qubit_lo_freq: Optional[List[int]] = None
     qubit_calibrations: Optional[Dict[str, Any]] = None
@@ -436,6 +437,8 @@ class TergiteBackendConfig:
     resonator_calibrations: Optional[Dict[str, Any]] = None
     gates: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
+    # TODO: Remove immediately, just for testing
+    properties: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         """Run after initialization of the dataclass"""
