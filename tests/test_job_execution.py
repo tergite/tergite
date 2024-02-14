@@ -13,15 +13,11 @@
 import json
 import uuid
 from collections import Counter
-from pathlib import Path
-from tempfile import gettempdir
-from typing import Optional
 
 import numpy as np
 import pytest
 from qiskit import QuantumCircuit, circuit, compiler, pulse
 from qiskit.providers import JobStatus
-from qiskit.pulse.transforms import AlignLeft
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
@@ -43,9 +39,32 @@ from tests.conftest import (
     TEST_JOB_RESULTS,
 )
 from tests.utils.records import get_record
+from tests.utils.requests import MockRequest, get_request_list
+
+_EXPECTED_MOCK_REQUESTS = [
+    MockRequest(
+        url="https://api.tergite.example/jobs?backend=Well-formed",
+        method="POST",
+    ),
+    MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
+    MockRequest(
+        url="https://api.tergite.example/jobs/test_job_id",
+        method="GET",
+        has_text=False,
+    ),
+    MockRequest(
+        url="https://api.tergite.example/jobs/test_job_id",
+        method="GET",
+        has_text=False,
+    ),
+    MockRequest(
+        url="http://loke.tergite.example/test_file.hdf5",
+        method="GET",
+    ),
+]
 
 
-def test_transpile(api):
+def test_transpile():
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits"""
     backend = _get_backend()
     qc = _get_test_qiskit_circuit()
@@ -63,8 +82,12 @@ def test_run(api):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+    requests_made = get_request_list(api)
+
     assert got == expected
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
 
 
 def test_run_basic_auth(basic_auth_api):
@@ -76,8 +99,12 @@ def test_run_basic_auth(basic_auth_api):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+    requests_made = get_request_list(basic_auth_api)
+
     assert got == expected
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
 
 
 @pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
@@ -91,6 +118,9 @@ def test_run_invalid_basic_auth(username, password, basic_auth_api):
     with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
+    requests_made = get_request_list(basic_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:1]
+
 
 def test_run_bearer_auth(bearer_auth_api):
     """backend.run returns a registered job for API behind bearer auth"""
@@ -101,8 +131,12 @@ def test_run_bearer_auth(bearer_auth_api):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+    requests_made = get_request_list(bearer_auth_api)
+
     assert got == expected
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
@@ -116,6 +150,9 @@ def test_run_invalid_bearer_auth(token, bearer_auth_api):
     with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
+    requests_made = get_request_list(bearer_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:1]
+
 
 def test_job_result(api):
     """job.result() returns a successful job's results"""
@@ -124,8 +161,12 @@ def test_job_result(api):
     job = backend.run(tc, meas_level=2)
 
     expected = _get_expected_job_result(backend=backend, job=job)
+
     got = job.result()
+    requests_made = get_request_list(api)
+
     assert got.to_dict() == expected.to_dict()
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
 def test_job_result_basic_auth(basic_auth_api):
@@ -135,8 +176,12 @@ def test_job_result_basic_auth(basic_auth_api):
     job = backend.run(tc, meas_level=2)
 
     expected = _get_expected_job_result(backend=backend, job=job)
+
     got = job.result()
+    requests_made = get_request_list(basic_auth_api)
+
     assert got.to_dict() == expected.to_dict()
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
 @pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
@@ -155,6 +200,9 @@ def test_job_result_invalid_basic_auth(username, password, basic_auth_api):
     ):
         _ = job.result()
 
+    requests_made = get_request_list(basic_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_result_bearer_auth(bearer_auth_api):
     """job.result() returns a successful job's results for API behind bearer auth"""
@@ -164,7 +212,10 @@ def test_job_result_bearer_auth(bearer_auth_api):
 
     expected = _get_expected_job_result(backend=backend, job=job)
     got = job.result()
+    requests_made = get_request_list(bearer_auth_api)
+
     assert got.to_dict() == expected.to_dict()
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
 @pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
@@ -182,6 +233,9 @@ def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
     ):
         _ = job.result()
 
+    requests_made = get_request_list(bearer_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_status(api):
     """job.status() returns a successful job's status"""
@@ -190,7 +244,10 @@ def test_job_status(api):
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
+    requests_made = get_request_list(api)
+
     assert got == JobStatus.DONE
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
 def test_job_status_basic_auth(basic_auth_api):
@@ -200,7 +257,10 @@ def test_job_status_basic_auth(basic_auth_api):
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
+    requests_made = get_request_list(basic_auth_api)
+
     assert got == JobStatus.DONE
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
 @pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
@@ -219,6 +279,9 @@ def test_job_status_invalid_basic_auth(username, password, basic_auth_api):
     ):
         _ = job.status()
 
+    requests_made = get_request_list(basic_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_status_bearer_auth(bearer_auth_api):
     """job.status() returns a successful job's status for API behind bearer auth"""
@@ -227,7 +290,10 @@ def test_job_status_bearer_auth(bearer_auth_api):
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
+    requests_made = get_request_list(bearer_auth_api)
+
     assert got == JobStatus.DONE
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
 @pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
@@ -245,6 +311,9 @@ def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
     ):
         _ = job.status()
 
+    requests_made = get_request_list(bearer_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_download_url(api):
     """job.download_url returns a successful job's download_url"""
@@ -253,7 +322,10 @@ def test_job_download_url(api):
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
+    requests_made = get_request_list(api)
+
     assert got == TEST_JOB_RESULTS["download_url"]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
 def test_job_download_url_basic_auth(basic_auth_api):
@@ -263,7 +335,10 @@ def test_job_download_url_basic_auth(basic_auth_api):
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
+    requests_made = get_request_list(basic_auth_api)
+
     assert got == TEST_JOB_RESULTS["download_url"]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
 @pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
@@ -282,6 +357,9 @@ def test_job_download_url_invalid_basic_auth(username, password, basic_auth_api)
     ):
         _ = job.download_url
 
+    requests_made = get_request_list(basic_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_download_url_bearer_auth(bearer_auth_api):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
@@ -290,7 +368,10 @@ def test_job_download_url_bearer_auth(bearer_auth_api):
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
+    requests_made = get_request_list(bearer_auth_api)
+
     assert got == TEST_JOB_RESULTS["download_url"]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
 @pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
@@ -308,6 +389,10 @@ def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
     ):
         _ = job.download_url
 
+    requests_made = get_request_list(bearer_auth_api)
+
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_logfile(api, tmp_results_file):
     """job.logfile downloads a job's data to tmp"""
@@ -316,11 +401,13 @@ def test_job_logfile(api, tmp_results_file):
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
+    requests_made = get_request_list(api)
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
 
 
 def test_job_logfile_basic_auth(basic_auth_api, tmp_results_file):
@@ -330,11 +417,13 @@ def test_job_logfile_basic_auth(basic_auth_api, tmp_results_file):
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
+    requests_made = get_request_list(basic_auth_api)
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
 
 
 @pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
@@ -353,6 +442,10 @@ def test_job_logfile_invalid_basic_auth(username, password, basic_auth_api):
     ):
         _ = job.logfile
 
+    requests_made = get_request_list(basic_auth_api)
+
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+
 
 def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
     """job.logfile downloads a successful job's results for API behind bearer auth"""
@@ -361,11 +454,13 @@ def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
+    requests_made = get_request_list(bearer_auth_api)
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
 
 
 @pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
@@ -382,6 +477,9 @@ def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
         RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
     ):
         _ = job.logfile
+
+    requests_made = get_request_list(bearer_auth_api)
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
 def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:

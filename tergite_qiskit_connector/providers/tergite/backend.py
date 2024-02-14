@@ -89,7 +89,11 @@ class TergiteBackend(BackendV2):
         jobs_url = self.base_url + REST_API_MAP["jobs"]
         provider: "TergiteProvider" = self.provider
         auth_headers = provider.get_auth_headers()
-        response = requests.post(jobs_url, headers=auth_headers)
+        response = requests.post(
+            jobs_url,
+            headers=auth_headers,
+            params=dict(backend=self.name),
+        )
         if response.ok:
             job_registration = response.json()
         else:
