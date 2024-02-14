@@ -12,11 +12,12 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """A sample script doing a very simple quantum operation"""
+import time
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 
-from tergite_qiskit_connector.providers.tergite import Tergite
+from tergite_qiskit_connector.providers.tergite import Tergite, Job
 from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 
 if __name__ == "__main__":
@@ -35,7 +36,7 @@ if __name__ == "__main__":
 
     # create the Qiskit circuit
     qc = circuit.QuantumCircuit(2, 2)
-    qc.h(1)
+    qc.x(1)
     qc.measure(1, 1)
     qc.draw()
 
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     tc.draw()
 
     # run the circuit
-    job = backend.run(tc, meas_level=2)
+    job: Job = backend.run(tc, meas_level=2)
 
     # view the results
-    job.results()
+    job.result()
