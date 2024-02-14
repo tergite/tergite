@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tergite-qiskit-connector"
-version = "0.1.0"
+version = "0.1.1"
 description = "qiskit provider for the Tergite quantum computers"
 authors = [
     "Miroslav Dobsicek <dobsicek@chalmers.se>",
@@ -8,12 +8,13 @@ authors = [
 ]
 maintainers = [
     "Martin Ahindura <martin.ahindura@chlamers.se>",
-    "Abdullah-al Amin <>"
+    "Abdullah-al Amin <alamina@chalmers.se>",
+    "Stefan Hill <stefanhi@chalmers.se>"
 ]
 license = "Apache-2.0"
 readme = "README.rst"
 packages = [{include = "tergite_qiskit_connector"}]
-keywords = ["quatum-computer", "qiskit", "quatum", "tergite"]
+keywords = ["quantum-computer", "qiskit", "quantum", "tergite"]
 repository = "https://github.com/tergite/tergite-qiskit-connector"
 homepage = "https://github.com/tergite/tergite-qiskit-connector"
 
