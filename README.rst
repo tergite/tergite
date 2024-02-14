@@ -86,13 +86,13 @@ Create a Throw-away Provider Account
 - You can look at the `examples folder <./examples>`_ for more samples.
 
 Examples and demos
-----
+------------------
+
 This project has a long history with contributions of many different partners.
 All files in the ``archive`` folder are scripts from live demonstrations, which show the historical progression of the project.
 Since research in quantum computing is moving fast, these files are meant to inspire and might not be functional with the source code of this library.
 
 To find out how to use the library, please take a look into the notebooks and scripts inside the ``examples`` folder.
-
 
 ToDo
 ----
