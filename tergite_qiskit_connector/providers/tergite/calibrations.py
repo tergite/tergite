@@ -25,6 +25,7 @@ from .config import REST_API_MAP
 
 if TYPE_CHECKING:
     from .backend import OpenPulseBackend
+    from .provider import Provider as TergiteProvider
 
 
 # TODO: Replace with BCC graph node
@@ -51,91 +52,6 @@ class Node:
 
     def __repr__(self) -> str:
         return self.job_id
-
-
-def load_tables(*, backend: "OpenPulseBackend") -> tuple:
-    """Parses the job_id calibration tables got from the API.
-
-    Each job_id in the cells is parsed into a "calibration node".
-
-    A calibration node corresponds to a document in the calibrations/
-    column in MongoDB. The fields of calibration nodes correspond
-    to the top-level keys of the calibration document.
-
-    For example, if there is a job_id in the qubit calibration table
-    with job_id = "ad9c9e3d-c05e-4a9f-a45f-6ee9a3be5f24" and there is
-    also a document in the calibrations/ column with the following
-    structure:
-    {
-      "job_id": "ad9c9e3d-c05e-4a9f-a45f-6ee9a3be5f24",
-      "type": "qubit_calibrations",
-      "name": "qubit_spectroscopy",
-      "frequency": 3749584708.1745853,
-      "timelog": {
-        "REGISTERED": "2022-10-26T07:07:07.347Z"
-      }
-    }
-    Then, there will be a calibration node X in the qubit calibration table
-    with: X.job_id = "ad9c9e3d-c05e-4a9f-a45f-6ee9a3be5f24"
-          X.name = "qubit_spectroscopy"
-          X.frequency = 3749584708.1745853
-          ...
-          etc.
-
-    Args:
-        backend: the instance of
-            :class:`~tergite_qiskit_connector.providers.tergite.backend:TergiteBackend`
-            from which the calibration tables are to be loaded.
-
-    Returns:
-        A (Q, R, C) tuple of pandas DataFrames Q, R, and C where
-            Q contains the calibration nodes for all the qubit devices.
-            R contains the calibration nodes for all the resonator devices.
-            C contains the calibration nodes for all the coupler devices.
-    """
-
-    def _load_and_index(data_index_key: str, data_table_key: str):
-        # helper function for loading dataframe
-        df = pd.DataFrame(data=backend.data[data_table_key])
-
-        ind_colname = data_index_key.split("num_")[-1][:-1]
-        df[ind_colname] = [i for i in range(0, backend.data[data_index_key])]
-        df.set_index(ind_colname, inplace=True)
-        return df
-
-    df_qcal = _load_and_index("num_qubits", "qubit_calibrations")
-    df_rcal = _load_and_index("num_resonators", "resonator_calibrations")
-    df_ccal = _load_and_index("num_couplers", "coupler_calibrations")
-
-    # FIXME: Send a single GET request to the API instead of sending multiple.
-    #        Need a new API endpoint for retrieving multiple documents.
-    def _convert_to_node(job_id: str):
-        # Sends a get request to the API and resolves the reported job_id to calibration parameters
-        calibs_url = backend.base_url + REST_API_MAP["calibrations"]
-        if job_id:
-            response = requests.get(calibs_url + "/" + str(job_id))
-            if response.ok:
-                document = response.json()
-                # job_id was not found in the calibrations collection in MongoDB
-                if type(document) is str:
-                    raise RuntimeError(
-                        f"job_id {job_id} does not have a corresponding calibration."
-                    )
-                else:
-                    return Node(document)
-
-            # unable to talk on the network
-            else:
-                raise RuntimeError(f"Unable to GET calibration parameters from MSS.")
-        else:
-            return None
-
-    # parse all job_ids to calibration document nodes
-    for df in (df_qcal, df_rcal, df_ccal):
-        for column in df:
-            df[column] = df[column].apply(_convert_to_node)
-
-    return df_qcal, df_rcal, df_ccal
 
 
 def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Target):
