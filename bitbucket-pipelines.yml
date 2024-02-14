@@ -21,7 +21,7 @@ definitions:
           - pipx install poetry
           - poetry install
           - source $(poetry env info --path)/bin/activate
-          - pytest
+          - pytest tests
           - deactivate
     - step: &Lint-step
         name: lint
@@ -37,45 +37,36 @@ definitions:
           - pipx install poetry
           - poetry install
           - source $(poetry env info --path)/bin/activate
-          - black . --check
+          - black tergite_qiskit_connector --check
           - deactivate
-    - step: &Downstream-check
-        name: Downstream Flag Check
-        script:
-          - if [ "${SHOULD_PUSH_DOWNSTREAM}" != "true" ]; then printf "downstream push not enabled"; exit; fi
 
 pipelines:
   pull-requests:
     '**':
-      - step:
-          name: check target branch
-          script:
-            - if [ "${BITBUCKET_PR_DESTINATION_BRANCH}" != "main" ]; then printf "not a target branch we want to check"; exit; fi
-            - printf 'running pipeline'
       - parallel:
         - step: *Lint-step
         - step: *Test-step
 
   tags:
     "v*":
-      - step: *Downstream-check
       - parallel:
         - step: *Lint-step
         - step: *Test-step
       - step:
           name: Push downstream
           script:
+            - if [ "${SHOULD_PUSH_DOWNSTREAM}" != "true" ]; then printf "downstream push not enabled"; exit; fi
             - git pull -r $DOWNSTREAM_REPO $BITBUCKET_TAG || echo "tag $BITBUCKET_TAG does not exist"
             - git push $DOWNSTREAM_REPO $BITBUCKET_TAG || echo "tag $BITBUCKET_TAG already exists"
 
   branches:
     main:
-      - step: *Downstream-check
       - parallel:
           - step: *Lint-step
           - step: *Test-step
       - step:
           name: Push downstream
           script:
+            - if [ "${SHOULD_PUSH_DOWNSTREAM}" != "true" ]; then printf "downstream push not enabled"; exit; fi
             - git pull -r $DOWNSTREAM_REPO main || echo "main branch does not exist"
             - git push $DOWNSTREAM_REPO main
