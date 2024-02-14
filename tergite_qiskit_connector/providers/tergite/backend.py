@@ -468,7 +468,6 @@ class _DeviceProperties:
 class _ReadoutResonatorProps:
     """ReadoutResonator Device configuration"""
 
-    id: int
     acq_delay: float
     acq_integration_time: float
     frequency: int
@@ -476,6 +475,7 @@ class _ReadoutResonatorProps:
     pulse_delay: float
     pulse_duration: float
     pulse_type: str
+    id: Optional[int] = None
     index: Optional[int] = None
     x_position: Optional[int] = None
     y_position: Optional[int] = None
@@ -487,7 +487,6 @@ class _ReadoutResonatorProps:
 class _QubitProps:
     """Qubit Device configuration"""
 
-    id: int
     frequency: int
     pi_pulse_amplitude: float
     pi_pulse_duration: float
@@ -495,6 +494,7 @@ class _QubitProps:
     pulse_sigma: float
     t1_decoherence: float
     t2_decoherence: float
+    id: Optional[int] = None
     index: Optional[int] = None
     x_position: Optional[int] = None
     y_position: Optional[int] = None

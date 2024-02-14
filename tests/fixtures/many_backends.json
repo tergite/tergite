@@ -65,7 +65,7 @@
           "pulse_sigma": 6.5e-9,
           "t1_decoherence": null,
           "t2_decoherence": null,
-          "id": "q18"
+          "index": "q18"
         },
         {
           "x_position": null,
@@ -79,7 +79,7 @@
           "pulse_sigma": 6.5e-9,
           "t1_decoherence": null,
           "t2_decoherence": null,
-          "id": "q19"
+          "index": "q19"
         },
         {
           "x_position": null,
@@ -149,7 +149,7 @@
           "pulse_sigma": 6.5e-9,
           "t1_decoherence": null,
           "t2_decoherence": null,
-          "id": "q24"
+          "index": "q24"
         },
         {
           "x_position": null,

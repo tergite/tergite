@@ -100,7 +100,7 @@ How to Test
 
   .. code:: shell
 
-    pytest
+    pytest tests
 
 
 References
