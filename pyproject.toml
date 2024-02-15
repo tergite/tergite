@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tergite-qiskit-connector"
-version = "0.1.2"
+version = "0.2.0"
 description = "qiskit provider for the Tergite quantum computers"
 authors = [
     "Miroslav Dobsicek <dobsicek@chalmers.se>",
