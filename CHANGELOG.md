@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-02-15
+
+### Added
+
+### Changed
+
+- Removed username-password authentication
+
+### Fixed
+
+## [0.1.2] - 2024-02-15
+
+### Added
+
+### Changed
+
+- Changed the examples in the examples folder to experiments that work
+
+### Fixed
+
+## [0.1.1] - 2024-02-14
+
+### Added
+
+- Reintroduced the archives of past projects
+
+### Changed
+
+### Fixed
+
+- Fixed wrong backend attached to jobs created in MSS
+
 ## [0.1.0] - 2023-11-16
 
 ### Added

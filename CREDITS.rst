@@ -6,3 +6,6 @@ Miroslav Dobsicek
 
 Axel Andersson
     Added support for OpenPulse
+
+Martin Ahindura
+    Added bearer token authentication
