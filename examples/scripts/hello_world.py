@@ -25,12 +25,8 @@ from tergite_qiskit_connector.providers.tergite.provider_account import Provider
 if __name__ == "__main__":
     # the Tergite API URL e.g. "https://api.tergite.example"
     API_URL = "https://api.qal9000.se"
-    # API token for connecting to tergite. Required if no username/password
+    # API token for connecting to tergite
     API_TOKEN = "<your Tergite API key >"
-    # API username, required if API_TOKEN is not set.
-    API_USERNAME = None  # "<your API username>"
-    # API password, required if API_USERNAME is set
-    API_PASSWORD = "<your API password>"
     # The name of the Quantum Computer to use from the available quantum computers
     BACKEND_NAME = "SimulatorC"
     # the name of this service. For your own bookkeeping.
@@ -45,17 +41,10 @@ if __name__ == "__main__":
     qc.measure_all()
 
     # create a provider
-    if API_USERNAME:
-        account_extras = {"username": API_USERNAME, "password": API_PASSWORD}
-    else:
-        account_extras = {}
-
     # provider account creation can be skipped in case you already saved
     # your provider account to the `~/.qiskit/tergiterc` file.
     # See below how that is done.
-    account = ProviderAccount(
-        service_name=SERVICE_NAME, url=API_URL, token=API_TOKEN, extras=account_extras
-    )
+    account = ProviderAccount(service_name=SERVICE_NAME, url=API_URL, token=API_TOKEN)
     provider = Tergite.use_provider_account(account)
     # to save this account to the `~/.qiskit/tergiterc` file, add the `save=True`
     # provider = Tergite.use_provider_account(account, save=True)
@@ -76,7 +65,9 @@ if __name__ == "__main__":
     result = None
     while result is None:
         if elapsed_time > POLL_TIMEOUT:
-            raise TimeoutError(f"result polling timeout {POLL_TIMEOUT} seconds exceeded")
+            raise TimeoutError(
+                f"result polling timeout {POLL_TIMEOUT} seconds exceeded"
+            )
 
         time.sleep(1)
         elapsed_time += 1

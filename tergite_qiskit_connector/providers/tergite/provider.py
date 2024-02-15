@@ -115,15 +115,8 @@ class Provider(ProviderV1):
         Returns:
             dict of authorization of the authorization headers if account has auth else None
         """
-        try:
-            username = self.provider_account.extras["username"]
-            password = self.provider_account.extras.get("password", "")
-            auth = bytearray(f"{username}:{password}", "utf-8")
-            encoded_auth = b64encode(auth).decode("ascii")
-            return {"Authorization": f"Basic {encoded_auth}"}
-        except (TypeError, KeyError):
-            if self.provider_account.token:
-                return {"Authorization": f"Bearer {self.provider_account.token}"}
+        if self.provider_account.token:
+            return {"Authorization": f"Bearer {self.provider_account.token}"}
 
         return None
 

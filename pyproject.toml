@@ -36,7 +36,7 @@ tqdm = ">=4.64.1"
 more-itertools = ">=8.14.0"
 matplotlib = ">=3.5.3"
 matplotlib-inline = ">=0.1.6"
-black = "^23.9.1"
+black = {extras = ["jupyter"], version = "^23.9.1"}
 isort = "^5.12.0"
 
 

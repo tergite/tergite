@@ -28,30 +28,12 @@ Provider Setup
 - With the credentials received from Tergite, create and save a provider account by calling
   ``Tergite.use_provider_account(account, save=True)``.
 
-  When using "API_TOKEN", use:
-
   .. code:: python
 
     from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 
     account = ProviderAccount(
-        service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN", extras={}
-    )
-    provider = Tergite.use_provider_account(account, save=True)
-
-  When using "USERNAME" and "PASSWORD", use:
-
-  .. code:: python
-
-    from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
-
-    account = ProviderAccount(
-            service_name="MY_SERVICE_NAME",
-            url="TERGITE_API_URL",
-            extras={
-                "username": "MY_TERGITE_API_USERNAME",
-                "password": "MY_TERGITE_API__PASSWORD"
-            }
+        service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN"
     )
     provider = Tergite.use_provider_account(account, save=True)
 

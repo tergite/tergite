@@ -20,8 +20,6 @@ from tests.utils.fixtures import load_json_fixture
 
 API_URL = "https://api.tergite.example"
 QUANTUM_COMPUTER_URL = "http://loke.tergite.example"
-API_USERNAME = "admin"
-API_PASSWORD = "password123"
 API_TOKEN = "some-token"
 BACKENDS_LIST = load_json_fixture("many_backends.json")
 TEST_JOB_ID = "test_job_id"
@@ -47,33 +45,7 @@ TEST_JOB_RESULTS = {
 RAW_TEST_JOB_RESULTS = json.dumps(TEST_JOB_RESULTS).encode("utf-8")
 GOOD_BACKEND = "Well-formed"
 MALFORMED_BACKEND = "Malformed"
-INVALID_API_BASIC_AUTHS = [
-    (
-        "foo",
-        "bar",
-    ),
-    (
-        API_USERNAME,
-        "bar",
-    ),
-    (
-        "foo",
-        API_PASSWORD,
-    ),
-    (
-        "",
-        API_PASSWORD,
-    ),
-    (
-        API_USERNAME,
-        "",
-    ),
-    (
-        API_PASSWORD,
-        API_USERNAME,
-    ),
-]
-INVALID_API_TOKENS = ["foo", "bar", API_PASSWORD, API_USERNAME]
+INVALID_API_TOKENS = ["foo", "bar", "mayo", "API_USERNAME"]
 
 
 @pytest.fixture
@@ -91,55 +63,6 @@ def api(requests_mock):
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH, headers={}, content=RAW_TEST_JOB_RESULTS
     )
-    yield requests_mock
-
-
-@pytest.fixture
-def basic_auth_api(requests_mock):
-    """The mock api with basic auth"""
-    auth = bytearray(f"{API_USERNAME}:{API_PASSWORD}", "utf-8")
-    encoded_auth = b64encode(auth).decode("ascii")
-    request_headers = {"Authorization": f"Basic {encoded_auth}"}
-
-    # mocks
-    no_auth_matcher = _without_headers(request_headers)
-    requests_mock.get(
-        _BACKENDS_URL, json=BACKENDS_LIST, request_headers=request_headers
-    )
-    requests_mock.get(
-        _BACKENDS_URL, status_code=401, additional_matcher=no_auth_matcher
-    )
-
-    # job registration
-    requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
-    requests_mock.post(_JOBS_URL, status_code=401, additional_matcher=no_auth_matcher)
-
-    # job upload
-    requests_mock.post(
-        QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200
-    )
-    requests_mock.post(
-        QUANTUM_COMPUTER_URL, status_code=401, additional_matcher=no_auth_matcher
-    )
-
-    # job results
-    requests_mock.get(
-        _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=TEST_JOB_RESULTS
-    )
-    requests_mock.get(
-        _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
-    )
-
-    # download file
-    requests_mock.get(
-        _TEST_RESULTS_DOWNLOAD_PATH,
-        request_headers=request_headers,
-        content=RAW_TEST_JOB_RESULTS,
-    )
-    requests_mock.get(
-        _TEST_RESULTS_DOWNLOAD_PATH, status_code=401, additional_matcher=no_auth_matcher
-    )
-
     yield requests_mock
 
 

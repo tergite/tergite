@@ -20,13 +20,10 @@ from tergite_qiskit_connector.providers.tergite import (
 from tergite_qiskit_connector.providers.tergite.backend import TergiteBackendConfig
 from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 from tests.conftest import (
-    API_PASSWORD,
     API_TOKEN,
     API_URL,
-    API_USERNAME,
     BACKENDS_LIST,
     GOOD_BACKEND,
-    INVALID_API_BASIC_AUTHS,
     INVALID_API_TOKENS,
     MALFORMED_BACKEND,
 )
@@ -52,27 +49,6 @@ def test_get_malformed_backend(api):
         provider.get_backend(MALFORMED_BACKEND)
 
 
-def test_basic_auth(basic_auth_api):
-    """Retrieves the data if backend is shielded with basic auth"""
-    provider = _get_test_provider(
-        url=API_URL, username=API_USERNAME, password=API_PASSWORD
-    )
-    expected_json = get_record(BACKENDS_LIST, _filter={"name": GOOD_BACKEND})
-    expected = OpenPulseBackend(
-        data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
-    )
-    got = provider.get_backend(GOOD_BACKEND)
-    assert got == expected
-
-
-@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
-def test_invalid_basic_auth(username, password, basic_auth_api):
-    """Invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
-    provider = _get_test_provider(url=API_URL, username=username, password=password)
-    with pytest.raises(RuntimeError, match="GET request for backends timed out."):
-        provider.get_backend(GOOD_BACKEND)
-
-
 def test_bearer_auth(bearer_auth_api):
     """Retrieves the data if backend is shielded with basic auth"""
     provider = _get_test_provider(url=API_URL, token=API_TOKEN)
@@ -92,13 +68,7 @@ def test_invalid_bearer_auth(token, bearer_auth_api):
         provider.get_backend(GOOD_BACKEND)
 
 
-def _get_test_provider(
-    url: str, token: str = None, username: str = None, password: str = None
-) -> Provider:
-    """Retrieves a provider to be used for testing given the optional token, username, passwords kwargs"""
-    extras = {}
-    if username:
-        extras = {"username": username, "password": password}
-
-    account = ProviderAccount(service_name="test", url=url, token=token, extras=extras)
+def _get_test_provider(url: str, token: str = None) -> Provider:
+    """Retrieves a provider to be used for testing given the optional token"""
+    account = ProviderAccount(service_name="test", url=url, token=token)
     return Tergite.use_provider_account(account)

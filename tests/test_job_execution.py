@@ -25,13 +25,10 @@ from tergite_qiskit_connector.providers.tergite import Job, OpenPulseBackend, Te
 from tergite_qiskit_connector.providers.tergite.backend import TergiteBackendConfig
 from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
 from tests.conftest import (
-    API_PASSWORD,
     API_TOKEN,
     API_URL,
-    API_USERNAME,
     BACKENDS_LIST,
     GOOD_BACKEND,
-    INVALID_API_BASIC_AUTHS,
     INVALID_API_TOKENS,
     NUMBER_OF_SHOTS,
     QUANTUM_COMPUTER_URL,
@@ -90,38 +87,6 @@ def test_run(api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
 
 
-def test_run_basic_auth(basic_auth_api):
-    """backend.run returns a registered job for API behind basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    backend.set_options(shots=NUMBER_OF_SHOTS)
-    tc = _get_expected_transpiled_circuit()
-    qobj_id = str(uuid.uuid4())
-    expected = _get_expected_job(
-        backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
-    )
-
-    got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
-    requests_made = get_request_list(basic_auth_api)
-
-    assert got == expected
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
-
-
-@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
-def test_run_invalid_basic_auth(username, password, basic_auth_api):
-    """backend.run with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
-    backend = _get_backend(username=username, password=password)
-    backend.set_options(shots=NUMBER_OF_SHOTS)
-    tc = _get_expected_transpiled_circuit()
-    qobj_id = str(uuid.uuid4())
-
-    with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
-        _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
-
-    requests_made = get_request_list(basic_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:1]
-
-
 def test_run_bearer_auth(bearer_auth_api):
     """backend.run returns a registered job for API behind bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -169,41 +134,6 @@ def test_job_result(api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
-def test_job_result_basic_auth(basic_auth_api):
-    """job.result() returns a successful job's results for API behind basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    expected = _get_expected_job_result(backend=backend, job=job)
-
-    got = job.result()
-    requests_made = get_request_list(basic_auth_api)
-
-    assert got.to_dict() == expected.to_dict()
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
-
-
-@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
-def test_job_result_invalid_basic_auth(username, password, basic_auth_api):
-    """job.result() with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    # change the username, password to the invalid ones
-    backend.provider.provider_account.extras["username"] = username
-    backend.provider.provider_account.extras["password"] = password
-
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
-        _ = job.result()
-
-    requests_made = get_request_list(basic_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
-
-
 def test_job_result_bearer_auth(bearer_auth_api):
     """job.result() returns a successful job's results for API behind bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -218,7 +148,7 @@ def test_job_result_bearer_auth(bearer_auth_api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
-@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+@pytest.mark.parametrize("token", INVALID_API_TOKENS)
 def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
     """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -250,39 +180,6 @@ def test_job_status(api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
-def test_job_status_basic_auth(basic_auth_api):
-    """job.status() returns a successful job's status for API behind basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    got = job.status()
-    requests_made = get_request_list(basic_auth_api)
-
-    assert got == JobStatus.DONE
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
-
-
-@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
-def test_job_status_invalid_basic_auth(username, password, basic_auth_api):
-    """job.status() with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    # change the username, password to the invalid ones
-    backend.provider.provider_account.extras["username"] = username
-    backend.provider.provider_account.extras["password"] = password
-
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
-        _ = job.status()
-
-    requests_made = get_request_list(basic_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
-
-
 def test_job_status_bearer_auth(bearer_auth_api):
     """job.status() returns a successful job's status for API behind bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -296,7 +193,7 @@ def test_job_status_bearer_auth(bearer_auth_api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
-@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+@pytest.mark.parametrize("token", INVALID_API_TOKENS)
 def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
     """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -328,39 +225,6 @@ def test_job_download_url(api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
-def test_job_download_url_basic_auth(basic_auth_api):
-    """job.download_url returns a successful job's download_url for API behind basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    got = job.download_url
-    requests_made = get_request_list(basic_auth_api)
-
-    assert got == TEST_JOB_RESULTS["download_url"]
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
-
-
-@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
-def test_job_download_url_invalid_basic_auth(username, password, basic_auth_api):
-    """job.download_url with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    # change the username, password to the invalid ones
-    backend.provider.provider_account.extras["username"] = username
-    backend.provider.provider_account.extras["password"] = password
-
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
-        _ = job.download_url
-
-    requests_made = get_request_list(basic_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
-
-
 def test_job_download_url_bearer_auth(bearer_auth_api):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -374,7 +238,7 @@ def test_job_download_url_bearer_auth(bearer_auth_api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
 
 
-@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+@pytest.mark.parametrize("token", INVALID_API_TOKENS)
 def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
     """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -410,43 +274,6 @@ def test_job_logfile(api, tmp_results_file):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
 
 
-def test_job_logfile_basic_auth(basic_auth_api, tmp_results_file):
-    """job.logfile downloads a successful job's results for API behind basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    assert job.logfile == tmp_results_file
-    requests_made = get_request_list(basic_auth_api)
-
-    with open(tmp_results_file, "rb") as file:
-        got = json.load(file)
-
-    assert got == TEST_JOB_RESULTS
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
-
-
-@pytest.mark.parametrize("username, password", INVALID_API_BASIC_AUTHS)
-def test_job_logfile_invalid_basic_auth(username, password, basic_auth_api):
-    """job.logfile with invalid basic auth raises RuntimeError if backend is shielded with basic auth"""
-    backend = _get_backend(username=API_USERNAME, password=API_PASSWORD)
-    tc = _get_expected_transpiled_circuit()
-    job = backend.run(tc, meas_level=2)
-
-    # change the username, password to the invalid ones
-    backend.provider.provider_account.extras["username"] = username
-    backend.provider.provider_account.extras["password"] = password
-
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
-        _ = job.logfile
-
-    requests_made = get_request_list(basic_auth_api)
-
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
-
-
 def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
     """job.logfile downloads a successful job's results for API behind bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -463,7 +290,7 @@ def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
 
 
-@pytest.mark.parametrize("token", INVALID_API_BASIC_AUTHS)
+@pytest.mark.parametrize("token", INVALID_API_TOKENS)
 def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
     """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(token=API_TOKEN)
@@ -580,15 +407,9 @@ def _get_expected_transpiled_circuit():
     return qc
 
 
-def _get_backend(token: str = None, username: str = None, password: str = None):
+def _get_backend(token: str = None):
     """Retrieves the right backend"""
-    extras = {}
-    if username:
-        extras = {"username": username, "password": password}
-
-    account = ProviderAccount(
-        service_name="test", url=API_URL, token=token, extras=extras
-    )
+    account = ProviderAccount(service_name="test", url=API_URL, token=token)
     provider = Tergite.use_provider_account(account)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": GOOD_BACKEND})
     return OpenPulseBackend(
