@@ -1,6 +1,8 @@
 # This code is part of Tergite
 #
 # (C) Copyright Axel Andersson 2022
+# (C) Copyright Stefan Hill 2023
+# (C) Copyright Martin Ahindura 2023, 2024
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -25,20 +27,22 @@ if __name__ == "__main__":
     API_URL = "https://api.qal9000.se"
     # API token for connecting to tergite. Required if no username/password
     API_TOKEN = "<your Tergite API key >"
-    # API username, required if API_TOKEN is not set
-    API_USERNAME = "<your API username>"
+    # API username, required if API_TOKEN is not set.
+    API_USERNAME = None  # "<your API username>"
     # API password, required if API_USERNAME is set
     API_PASSWORD = "<your API password>"
     # The name of the Quantum Computer to use from the available quantum computers
-    BACKEND_NAME = "Loke"
+    BACKEND_NAME = "SimulatorC"
     # the name of this service. For your own bookkeeping.
     SERVICE_NAME = "local"
+    # the timeout in seconds for how long to keep checking for results
+    POLL_TIMEOUT = 100
 
     # create the Qiskit circuit
-    qc = circuit.QuantumCircuit(2, 2)
-    qc.x(1)
-    qc.measure(1, 1)
-    qc.draw()
+    qc = circuit.QuantumCircuit(1)
+    qc.x(0)
+    qc.h(0)
+    qc.measure_all()
 
     # create a provider
     if API_USERNAME:
@@ -63,10 +67,19 @@ if __name__ == "__main__":
 
     # compile the circuit
     tc = compiler.transpile(qc, backend=backend)
-    tc.draw()
 
     # run the circuit
-    job: Job = backend.run(tc, meas_level=2)
+    job: Job = backend.run(tc, meas_level=2, meas_return="single")
 
     # view the results
-    job.result()
+    elapsed_time = 0
+    result = None
+    while result is None:
+        if elapsed_time > POLL_TIMEOUT:
+            raise TimeoutError(f"result polling timeout {POLL_TIMEOUT} seconds exceeded")
+
+        time.sleep(1)
+        elapsed_time += 1
+        result = job.result()
+
+    print(result.get_counts())
