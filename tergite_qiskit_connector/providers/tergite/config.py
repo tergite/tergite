@@ -12,6 +12,7 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Handles the loading and saving of configuration to tergiterc file"""
+import dataclasses
 import pathlib
 import re
 from configparser import ConfigParser
@@ -33,13 +34,17 @@ REST_API_MAP = {
 class Tergiterc:
     """the Configuration parser for tergiterc files"""
 
-    def __init__(self):
+    def __init__(self, rc_file: pathlib.Path = TERGITERC_FILE):
         """Initializes a Tergiterc instance
 
         The instance initialized, saves to and retrieves its
-        data from ``$HOME/.qiskit/tergiterc``
+        data from file_path
+
+        Args:
+            rc_file: the path where the tergiterc file is saved, defaults to ``$HOME/.qiskit/tergiterc``
         """
-        self._parser = Tergiterc._get_parser()
+        self._file_path = rc_file
+        self._parser = Tergiterc._get_parser(rc_file)
 
     def load_accounts(self) -> List["ProviderAccount"]:
         """Retrieves the accounts from the tergiterc file
@@ -49,6 +54,9 @@ class Tergiterc:
                 :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
                 as read from the tergiterc file
         """
+        account_fields = {
+            field.name: True for field in dataclasses.fields(ProviderAccount)
+        }
         accounts = []
 
         parser = self._parser
@@ -66,7 +74,16 @@ class Tergiterc:
 
                 section_items = dict(parser.items(section))
                 service_name = section.split(" ", 1)[1].strip()
-                new_account = ProviderAccount(service_name, **section_items)
+
+                # extract the extras (since on saving to file, they are flattened)
+                account_options = {"extras": {}}
+                for k, v in section_items.items():
+                    if k in account_fields:
+                        account_options[k] = v
+                    else:
+                        account_options["extras"][k] = v
+
+                new_account = ProviderAccount(service_name, **account_options)
                 accounts.append(new_account)
 
         return accounts
@@ -101,26 +118,25 @@ class Tergiterc:
             for key, value in config.items():
                 self._parser.set(section_name, str(key), str(value))
 
-        with TERGITERC_FILE.open("w") as dest:
+        with self._file_path.open("w") as dest:
             self._parser.write(dest)
 
     @staticmethod
-    def _get_parser() -> Optional[ConfigParser]:
+    def _get_parser(rc_file: pathlib.Path) -> Optional[ConfigParser]:
         """Initializes a :class:`configparser.ConfigParser` instance that
-        has read from ``$HOME/.qiskit/tergiterc``
+        has read from rc_file
 
-        It returns None if ``$HOME/.qiskit/tergiterc`` does not exist.
+        It returns None if rc_file does not exist.
 
         Returns:
             Optional[configparser.ConfigParser]: the ConfigParser with the
-                ``$HOME/.qiskit/tergiterc`` loaded in it if the
-                file does not exist
+                rc_file loaded in it if the file exists
         """
-        if not TERGITERC_FILE.exists():
+        if not rc_file.exists():
             return None
 
         parser = ConfigParser()
         parser.SECTCRE = re.compile(r"\[ *(?P<header>[^]]+?) *\]")
-        parser.read(TERGITERC_FILE)
+        parser.read(rc_file)
 
         return parser

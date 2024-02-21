@@ -1,0 +1,19 @@
+[
+  { "service_name": "foo", "url": "http://localhost:8002" },
+  { "service_name": "bar", "url": "http://example.com", "token": "some-token" },
+  {
+    "service_name": "foo-bar",
+    "url": "http://localhost",
+    "token": "another-token",
+    "extras": {}
+  },
+  {
+    "service_name": "foo-bar-extra",
+    "url": "http://localhost:6000",
+    "token": "another-token",
+    "extras": {
+      "username": "johndoe",
+      "password": "some-password"
+    }
+  }
+]

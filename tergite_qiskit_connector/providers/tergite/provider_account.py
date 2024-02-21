@@ -11,7 +11,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass
@@ -19,7 +19,7 @@ class ProviderAccount:
     service_name: str
     url: str
     token: str = None
-    extras: dict = None
+    extras: dict = field(default_factory=dict)
 
     def to_dict(self: object) -> dict:
         return asdict(self)

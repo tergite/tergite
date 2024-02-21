@@ -10,7 +10,6 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 import json
-from base64 import b64encode
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -117,6 +116,19 @@ def tmp_results_file():
     """The path to the tmp file where results are downloaded"""
     yield _TMP_RESULTS_PATH
     _TMP_RESULTS_PATH.unlink()
+
+
+@pytest.fixture
+def mock_tergiterc() -> Path:
+    """The mock tergite rc file path"""
+    tergiterc_file = Path(gettempdir()) / ".qiskit" / "test_tergiterc"
+    tergiterc_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(tergiterc_file, mode="w") as file:
+        pass
+
+    yield tergiterc_file
+    tergiterc_file.unlink(missing_ok=True)
 
 
 def _without_headers(headers):

@@ -12,10 +12,11 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Defines the Factory class that contains multiple Tergite Providers."""
+import pathlib
 from collections import OrderedDict
 from typing import TYPE_CHECKING, List, Optional
 
-from .config import Tergiterc
+from .config import TERGITERC_FILE, Tergiterc
 from .provider import Provider
 
 if TYPE_CHECKING:
@@ -23,11 +24,14 @@ if TYPE_CHECKING:
 
 
 class Factory:
-    """Container of multiple Tergite Provider's, retrievable by service name"""
+    """Container of multiple Tergite Provider's, retrievable by service name
 
-    def __init__(self):
+    It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`
+    """
+
+    def __init__(self, rc_file: pathlib.Path = TERGITERC_FILE):
         self._providers = OrderedDict()
-        self._tergiterc = Tergiterc()
+        self._tergiterc = Tergiterc(rc_file=rc_file)
 
         # get a list of provider account objects from tergiterc
         accounts_list = self._tergiterc.load_accounts()
