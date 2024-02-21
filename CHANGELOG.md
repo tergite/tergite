@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2024-02-21
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fixed 'TypeError: 'NoneType' object is not iterable' in use_provider_account(account, save=True)
+- Fixed 'ProviderAccount.__init__() got an unexpected keyword argument' when loading accounts from tergiterc file
+
 ## [0.2.0] - 2024-02-15
 
 ### Added
