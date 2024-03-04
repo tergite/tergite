@@ -13,6 +13,11 @@ We love your input! We want to make contributing to this project as easy and tra
 - Proposing new features
 - Becoming a maintainer
 
+Versioning
+----------
+
+When versioning we follow the format ``{year}.{month}.{patch_number}`` e.g. ``2023.12.0``.
+
 We Develop with Github
 ----------------------
 

@@ -3,9 +3,26 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
+and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
+
+## [2023.12.0] - 2024-03-04
+
+This is part of the tergite release v2023.12.0 that is the last to support [Labber](https://www.keysight.com/us/en/products/software/application-sw/labber-software.html).
+Labber is being deprecated.
+
+### Added
+
+### Changed
+
+- The format of the version to `{year}.{month}.{patch_number}`
+
+### Fixed
+
+### Contributors
+
+-   Martin Ahindura <martin.ahindura@chalmers.se>
 
 ## [0.2.1] - 2024-02-21
 

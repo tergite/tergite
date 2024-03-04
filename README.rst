@@ -17,20 +17,23 @@ Install using pip
 Dependencies
 ------------
 
-- `Python +3.8 <https://www.python.org/>`_
+- `Python 3.8, 3.9, 3.10 <https://www.python.org/>`_
 - `Qiskit <https://github.com/Qiskit/qiskit>`_
+- `Tergite MSS <https://github.com/tergite/tergite-mss>`_
 
 Provider Setup
 ---------------
 
 - Ensure you have `Python +3.8 <https://www.python.org/>`_ installed.
-- Create an account with `Tergite <https://www.qal9000.se/>`_ if you haven't already.
+- Create an account with `QAL 9000 <https://www.qal9000.se/>`_ if you haven't already. (Or you can have your own `tergite MSS <https://github.com/tergite/tergite-mss>`_ running)
 - With the credentials received from Tergite, create and save a provider account by calling
   ``Tergite.use_provider_account(account, save=True)``.
 
   .. code:: python
 
     from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
+
+    TERGITE_API_URL="https://api.qal9000.se"  # or the URL to your own tergite MSS
 
     account = ProviderAccount(
         service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN"
@@ -106,6 +109,16 @@ License
 -------
 
 `Apache 2.0 License <./LICENSE.txt>`_
+
+Acknowledgements
+----------------
+
+This project was sponsored by:
+
+-   `Knut and Alice Wallenburg Foundation <https://kaw.wallenberg.org/en>`_ under the `Wallenberg Center for Quantum Technology (WAQCT) <https://www.chalmers.se/en/centres/wacqt/>`_ project at `Chalmers University of Technology <https://www.chalmers.se>`_
+-   `Nordic e-Infrastructure Collaboration (NeIC) <https://neic.no>`_ and `NordForsk <https://www.nordforsk.org/sv>`_ under the `NordIQuEst <https://neic.no/nordiquest/>`_ project
+-   `European Union's Horizon Europe <https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en>`_ under the `OpenSuperQ <https://cordis.europa.eu/project/id/820363>`_ project
+-   `European Union's Horizon Europe <https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en>`_ under the `OpenSuperQPlus <https://opensuperqplus.eu/>`_ project
 
 
 .. |PyPI version| image:: https://badge.fury.io/py/tergite-qiskit-connector.svg
