@@ -7,6 +7,21 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2024.02.0] - 2024-03-14
+
+This is part of the tergite release v2024.02.0 which introduces authentication, authorization and accounting to the
+tergite stack
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Contributors
+
+-   Martin Ahindura <martin.ahindura@chalmers.se>
+
 ## [2023.12.0] - 2024-03-04
 
 This is part of the tergite release v2023.12.0 that is the last to support [Labber](https://www.keysight.com/us/en/products/software/application-sw/labber-software.html).
