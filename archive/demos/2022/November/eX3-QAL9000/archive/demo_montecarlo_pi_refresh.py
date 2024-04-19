@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import requests
 from qiskit.providers.jobstatus import JobStatus
-
 from qiskit.providers.tergite import Tergite
 
 # Task: Estimate Pi numerically

@@ -38,7 +38,8 @@ from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
 
-from . import calibrations
+from tergite.qiskit.providers import calibrations
+
 from .config import REST_API_MAP
 from .job import Job
 
@@ -83,7 +84,7 @@ class TergiteBackend(BackendV2):
         """Registers a new asynchronous job with the Tergite API.
 
         Returns:
-             tergite_qiskit_connector.providers.tergite.job.Job: An asynchronous
+             tergite.qiskit.providers.job.Job: An asynchronous
                  job registered in the Tergite API to be executed
         """
         jobs_url = self.base_url + REST_API_MAP["jobs"]
@@ -126,7 +127,7 @@ class TergiteBackend(BackendV2):
                 object.
 
         Returns:
-            tergite_qiskit_connector.providers.tergite.job.Job: The job object for the run
+            tergite.qiskit.providers.job.Job: The job object for the run
         """
         job = self.register_job()
         qobj = self.make_qobj(experiments, **kwargs)

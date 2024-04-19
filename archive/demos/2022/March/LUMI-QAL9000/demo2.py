@@ -1,9 +1,5 @@
-from pprint import pprint
-
-from qiskit.visualization import plot_histogram
-
 from qiskit import *
-from qiskit.providers.tergite import Tergite
+from tergite.qiskit.providers import Tergite
 
 provider = Tergite.get_provider()
 pingu_backend = provider.get_backend("pingu")

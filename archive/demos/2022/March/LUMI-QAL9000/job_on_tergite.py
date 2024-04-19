@@ -14,10 +14,8 @@
 # this file is meant to be run interactively for objects inspection
 # python -i tests/job_on_tergite.py
 
-from qiskit.visualization import plot_histogram
-
 from qiskit import *
-from qiskit.providers.tergite import Tergite
+from tergite.qiskit.providers import Tergite
 
 provider = Tergite.get_provider()
 backend = provider.get_backend("pingu")

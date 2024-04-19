@@ -1,9 +1,9 @@
-Tergite Qiskit Connector
-========================
+Tergite
+=======
 
 |PyPI version| |license| |CI| |PyPI pyversions|
 
-The `Qiskit <https://github.com/Qiskit/qiskit>`_ provider for connecting to the Tergite quantum computers.
+The SDK for connecting to the Tergite quantum computers, including `Qiskit <https://github.com/Qiskit/qiskit>`_ providers.
 
 Installation
 ------------
@@ -12,26 +12,26 @@ Install using pip
 
 .. code:: shell
 
-    pip install tergite_qiskit_connector
+    pip install tergite
 
 Dependencies
 ------------
 
 - `Python 3.8, 3.9, 3.10 <https://www.python.org/>`_
 - `Qiskit <https://github.com/Qiskit/qiskit>`_
-- `Tergite MSS <https://github.com/tergite/tergite-mss>`_
+- `Tergite Frontend <https://github.com/tergite/tergite-frontend>`_
 
 Provider Setup
 ---------------
 
 - Ensure you have `Python +3.8 <https://www.python.org/>`_ installed.
-- Create an account with `QAL 9000 <https://www.qal9000.se/>`_ if you haven't already. (Or you can have your own `tergite MSS <https://github.com/tergite/tergite-mss>`_ running)
+- Create an account with `QAL 9000 <https://www.qal9000.se/>`_ if you haven't already. (Or you can have your own `tergite Frontend <https://github.com/tergite/tergite-frontend>`_ running)
 - With the credentials received from Tergite, create and save a provider account by calling
   ``Tergite.use_provider_account(account, save=True)``.
 
   .. code:: python
 
-    from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
+    from tergite.qiskit.providers.provider_account import ProviderAccount
 
     TERGITE_API_URL="https://api.qal9000.se"  # or the URL to your own tergite MSS
 
@@ -87,14 +87,14 @@ ToDo
 Contribution Guidelines
 -----------------------
 
-If you would like to contribute to tergite-qiskit-connector, please have a look at our
+If you would like to contribute to tergite, please have a look at our
 `contribution guidelines <./CONTRIBUTING.rst>`_
 
 Authors
 -------
 
 This project is a work of
-`many contributors <https://github.com/tergite/tergite-qiskit-connector/graphs/contributors>`_.
+`many contributors <https://github.com/tergite/tergite/graphs/contributors>`_.
 
 Special credit goes to the authors of this project as seen in the `CREDITS <./CREDITS.rst>`_ file.
 
@@ -121,14 +121,14 @@ This project was sponsored by:
 -   `European Union's Horizon Europe <https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en>`_ under the `OpenSuperQPlus <https://opensuperqplus.eu/>`_ project
 
 
-.. |PyPI version| image:: https://badge.fury.io/py/tergite-qiskit-connector.svg
-   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+.. |PyPI version| image:: https://badge.fury.io/py/tergite.svg
+   :target: https://pypi.python.org/pypi/tergite/
 
-.. |license| image:: https://img.shields.io/pypi/l/tergite-qiskit-connector.svg
-   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+.. |license| image:: https://img.shields.io/pypi/l/tergite.svg
+   :target: https://pypi.python.org/pypi/tergite/
 
-.. |CI| image:: https://github.com/tergite/tergite-qiskit-connector/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/tergite/tergite-qiskit-connector/actions
+.. |CI| image:: https://github.com/tergite/tergite/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/tergite/tergite/actions
 
-.. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/tergite-qiskit-connector.svg
-   :target: https://pypi.python.org/pypi/tergite-qiskit-connector/
+.. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/tergite.svg
+   :target: https://pypi.python.org/pypi/tergite/

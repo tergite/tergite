@@ -11,11 +11,13 @@ import qiskit.pulse as pulse
 import qiskit.quantum_info as qi
 import retworkx.visualization as rxv
 from matplotlib import pyplot as plt
+from qiskit import Aer
 from qiskit.ignis.verification.tomography import (
     StateTomographyFitter,
     state_tomography_circuits,
 )
 from qiskit.providers.jobstatus import JobStatus
+from qiskit.providers.tergite import Tergite
 from qiskit.visualization import (
     plot_bloch_multivector,
     plot_histogram,
@@ -26,9 +28,6 @@ from qiskit.visualization import (
 )
 from qiskit.visualization.pulse_v2.stylesheet import IQXDebugging, IQXSimple
 from qiskit_experiments.library.tomography import StateTomography
-
-from qiskit import Aer
-from qiskit.providers.tergite import Tergite
 
 backend = Aer.get_backend("aer_simulator")
 

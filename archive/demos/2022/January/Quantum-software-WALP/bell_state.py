@@ -1,10 +1,12 @@
 from pprint import pprint
 
 import qiskit.quantum_info as qi
+from qiskit import *
 from qiskit.ignis.verification.tomography import (
     StateTomographyFitter,
     state_tomography_circuits,
 )
+from tergite.qiskit.providers import Tergite
 from qiskit.visualization import (
     plot_bloch_multivector,
     plot_histogram,
@@ -13,9 +15,6 @@ from qiskit.visualization import (
     plot_state_paulivec,
     plot_state_qsphere,
 )
-
-from qiskit import *
-from qiskit.providers.tergite import Tergite
 
 #
 # Note: This code has been used on "Quantum software" PoC hearing

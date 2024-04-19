@@ -1,10 +1,6 @@
-import matplotlib as mpl
-
+import imageio
 from pylab import *
 from qutip import *
-from matplotlib import cm
-import imageio
-
 from tqdm import tqdm
 
 

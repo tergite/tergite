@@ -1,14 +1,10 @@
 #!/usr/bin/env python3.9
 # coding: utf-8
 
-import matplotlib.pyplot as plt
-from pathlib import Path
-from PIL import Image
 from os import system
-from datetime import datetime
-from shutil import move
-import time
-import numpy as np
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 
 plt.ion()  # enable interactive mode
 

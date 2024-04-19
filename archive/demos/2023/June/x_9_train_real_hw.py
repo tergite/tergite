@@ -1,10 +1,9 @@
 from datetime import datetime
 
 import torch
-from torch.utils.data import DataLoader
-
 from data_handling import IQDataGenerator
-from learning import Net, train_model, eval_model
+from learning import Net, eval_model, train_model
+from torch.utils.data import DataLoader
 from utils import Utils
 
 # Set this global ID to some value or the model value that you want to learn

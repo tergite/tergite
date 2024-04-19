@@ -51,13 +51,13 @@ class Factory:
 
         Args:
             account: the instance of the
-                :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
                 for which the provider is to be initialized
             save: whether the account should be persisted to the tergiterc file
 
         Returns:
             A new instance of the
-                :class:`~tergite_qiskit_connector.providers.tergite.provider.Provider`
+                :class:`~tergite.providers.tergite.provider.Provider`
                 for the given account
         """
         if save:

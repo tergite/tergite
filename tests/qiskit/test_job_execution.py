@@ -21,9 +21,9 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from tergite_qiskit_connector.providers.tergite import Job, OpenPulseBackend, Tergite
-from tergite_qiskit_connector.providers.tergite.backend import TergiteBackendConfig
-from tergite_qiskit_connector.providers.tergite.provider_account import ProviderAccount
+from tergite.qiskit.providers import Job, OpenPulseBackend, Tergite
+from tergite.qiskit.providers.backend import TergiteBackendConfig
+from tergite.qiskit.providers.provider_account import ProviderAccount
 from tests.conftest import (
     API_TOKEN,
     API_URL,

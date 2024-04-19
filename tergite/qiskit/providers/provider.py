@@ -15,8 +15,7 @@
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-from base64 import b64encode
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import requests
 from qiskit.providers import ProviderV1
@@ -35,7 +34,7 @@ class Provider(ProviderV1):
 
         Args:
             account: the instance of the
-                :class:tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                :class:tergite.providers.tergite.provider_account.ProviderAccount`
                 with which to connect to the Tergite API
         """
         super().__init__()

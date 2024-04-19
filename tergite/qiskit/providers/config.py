@@ -51,7 +51,7 @@ class Tergiterc:
 
         Returns:
             list of instances of
-                :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
                 as read from the tergiterc file
         """
         account_fields = {
@@ -93,7 +93,7 @@ class Tergiterc:
 
         Args:
             accounts: the list of instances of
-                :class:`~tergite_qiskit_connector.providers.tergite.provider_account.ProviderAccount`
+                :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
                 to save
 
         Raises:

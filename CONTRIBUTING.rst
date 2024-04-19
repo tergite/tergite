@@ -1,5 +1,5 @@
-Contributing to tergite-qiskit-connector
-========================================
+Contributing to tergite
+=======================
 
 **This project is currently not accepting pull requests from the general public yet.**
 
@@ -43,11 +43,11 @@ Any contributions you make will be under the Apache 2.0 Software Licenses
 In short, when you submit code changes, your submissions are understood to be under the
 same `Apache 2.0 License <./LICENSE.txt>`_ that covers the project. Feel free to contact the maintainers if that's a concern.
 
-Report bugs using Github's `issues <https://github.com/tergite/tergite-qiskit-connector/issues>`
+Report bugs using Github's `issues <https://github.com/tergite/tergite/issues>`
 --------------------------------------------------------------------------------------------------
 
 We use Github issues to track bugs. Report a bug
-by `opening a new issue <https://github.com/tergite/tergite-qiskit-connector/issues>`_; it's that easy!
+by `opening a new issue <https://github.com/tergite/tergite/issues>`_; it's that easy!
 
 ## Write bug reports with detail, background, and sample code
 
@@ -86,8 +86,8 @@ How to Test
 
   .. code:: shell
 
-    git clone git@github.com:tergite/tergite-qiskit-connector.git
-    cd tergite-qiskit-connector
+    git clone git@github.com:tergite/tergite.git
+    cd tergite
 
 - Install the dependencies
 
