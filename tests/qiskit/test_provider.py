@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 
-from tergite_qiskit_connector.providers.tergite import factory, provider_account
+from tergite.qiskit.providers import factory, provider_account
 from tests.utils.fixtures import load_json_fixture
 
 _PROVIDER_ACCOUNTS = load_json_fixture("provider_accounts.json")

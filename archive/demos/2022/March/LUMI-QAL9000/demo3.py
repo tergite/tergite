@@ -1,9 +1,6 @@
-from pprint import pprint
-
-from qiskit.visualization import plot_histogram
-
 from qiskit import *
-from qiskit.providers.tergite import Tergite
+from tergite.qiskit.providers import Tergite
+from qiskit.visualization import plot_histogram
 
 IBMQ.load_account()
 

@@ -5,11 +5,10 @@ import qiskit
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from circuits import HybridLayerCircuit
 from torch import optim
 from torch.autograd import Function
 from tqdm import tqdm
-
-from circuits import HybridLayerCircuit
 
 
 class HybridFunction(Function):

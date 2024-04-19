@@ -37,7 +37,7 @@ definitions:
           - pipx install poetry
           - poetry install
           - source $(poetry env info --path)/bin/activate
-          - black tergite_qiskit_connector --check
+          - black tergite --check
           - deactivate
 
 pipelines:

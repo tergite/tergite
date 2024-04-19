@@ -14,8 +14,6 @@
 # this file is meant to be run interactively for objects inspection
 # python -i tests/job_on_simulator.py
 
-from qiskit.visualization import plot_histogram
-
 from qiskit import *
 
 backend = BasicAer.get_backend("qasm_simulator")

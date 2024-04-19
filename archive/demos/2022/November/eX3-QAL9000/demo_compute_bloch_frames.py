@@ -3,6 +3,7 @@
 
 import contextlib
 import time
+
 import matplotlib.pyplot as plt
 import numpy as np
 import qiskit.circuit as circuit
@@ -12,16 +13,15 @@ with contextlib.redirect_stderr(None):
     from qiskit.ignis.verification.tomography import StateTomographyFitter
     from qiskit.ignis.verification.tomography import state_tomography_circuits
 
+from datetime import datetime
+from os import listdir, makedirs
+from pathlib import Path
+from shutil import move
+
 from qiskit.providers.jobstatus import JobStatus
+from tergite.qiskit.providers import Tergite
 from qiskit.visualization import plot_bloch_multivector
 from tqdm.auto import tqdm
-
-from qiskit.providers.tergite import Tergite
-
-from pathlib import Path
-from os import makedirs, listdir
-from datetime import datetime
-from shutil import move
 
 folder = Path("demo_bloch_frames").resolve()
 

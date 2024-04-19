@@ -41,7 +41,7 @@ jobs:
         if: ${{ vars.SHOULD_LINT == 'true' }}
         run: |
           source .venv/bin/activate
-          black tergite_qiskit_connector --check
+          black tergite --check
       - name: Run tests
         run: |
           source .venv/bin/activate

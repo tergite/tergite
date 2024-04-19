@@ -11,15 +11,13 @@ import qiskit
 from qiskit import transpile
 
 try:
-    from qiskit.providers.tergite import Provider
-    from qiskit.providers.tergite.backend import TergiteBackend
+    from tergite.qiskit.providers import Provider
+    from tergite.qiskit.providers.backend import TergiteBackend
 except:
     print("Could not import Tergite!")
 from qiskit.result import marginal_counts
 from qiskit_aer import AerSimulator
-
 from utils import Utils
-
 
 # Import Tergite
 # from qiskit.providers.tergite import Tergite

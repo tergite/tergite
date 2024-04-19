@@ -1,18 +1,16 @@
 #!/usr/bin/env python3.9
 # coding: utf-8
-import time
+from datetime import datetime
+from os import listdir, makedirs
+from pathlib import Path
+from shutil import move
+from uuid import uuid4 as uuid
+
+import matplotlib.pyplot as plt
 import numpy as np
 import requests
-import matplotlib.pyplot as plt
-from uuid import uuid4 as uuid
-from qiskit.providers.jobstatus import JobStatus
-from qiskit.providers.tergite import Tergite
+from tergite.qiskit.providers import Tergite
 from tqdm.auto import tqdm
-from pathlib import Path
-from os import makedirs
-from os import listdir
-from datetime import datetime
-from shutil import move
 
 folder = Path("demo_qmc_frames").resolve()
 

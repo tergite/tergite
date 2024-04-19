@@ -15,17 +15,13 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import pandas as pd
 import qiskit.circuit as circuit
-import requests
 from qiskit.transpiler import InstructionProperties, Target
 
 from . import template_schedules as templates
-from .config import REST_API_MAP
 
 if TYPE_CHECKING:
     from .backend import OpenPulseBackend
-    from .provider import Provider as TergiteProvider
 
 
 # TODO: Replace with BCC graph node
@@ -62,7 +58,7 @@ def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Targ
 
     Args:
         backend: the instance of
-            :class:`~tergite_qiskit_connector.providers.tergite.backend:TergiteBackend`
+            :class:`~tergite.providers.tergite.backend:TergiteBackend`
             for which to add the instructions
         qubits: a tuple of qubits on which the instruction is to be run
         target: the target on which the instruction is to be added

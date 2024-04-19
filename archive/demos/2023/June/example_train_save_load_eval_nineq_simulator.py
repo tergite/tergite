@@ -2,18 +2,12 @@ from datetime import datetime
 
 import torch
 import torch.nn as nn
+from data_handling import IQDataGenerator
+from learning import Net
 from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
 from utils import Utils
-from data_handling import IQDataGenerator
-from learning import Net
-
-from pylab import cos, sin
-from qutip import basis
-
-from visuals import animate_bloch
 
 RUN_ID = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 N_QUBITS = 2

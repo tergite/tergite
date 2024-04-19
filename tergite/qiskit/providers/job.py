@@ -32,7 +32,8 @@ from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
 
 if TYPE_CHECKING:
-    from . import Provider
+    from tergite.qiskit.providers.tergite import Provider
+
     from .backend import TergiteBackend
 
 STATUS_MAP = {
