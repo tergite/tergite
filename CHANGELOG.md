@@ -7,6 +7,16 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2024.04.0] - 2024-04-19
+
+### Added
+
+### Changed
+
+- Renamed tergite-qiskit-connector to `tergite`
+
+### Fixed
+
 ## [2024.02.0] - 2024-03-14
 
 This is part of the tergite release v2024.02.0 which introduces authentication, authorization and accounting to the
