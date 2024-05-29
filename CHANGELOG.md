@@ -7,6 +7,19 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2024.04.1] - 2024-05-29
+
+### Added
+
+### Changed
+
+- Changed README.rst to README.md
+- Changed CONTRIBUTING.rst to CONTRIBUTING.md
+- Changed CREDITS.rst to CREDITS.md
+- Updated the contribution guidelines and government model statements
+
+### Fixed
+
 ## [2024.04.0] - 2024-04-19
 
 ### Added
