@@ -1,18 +1,19 @@
 [tool.poetry]
 name = "tergite"
-version = "2024.04.0"
-description = "qiskit provider for the Tergite quantum computers"
+version = "2024.04.1"
+description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
-    "Miroslav Dobsicek <dobsicek@chalmers.se>",
-    "Axel Andersson <>"
+    "Miroslav Dobsicek",
+    "Axel Andersson",
+    "Martin Ahindura",
+    "Stefan Hill",
+    "Abdullah-al Amin"
 ]
 maintainers = [
-    "Martin Ahindura <martin.ahindura@chlamers.se>",
-    "Abdullah-al Amin <alamina@chalmers.se>",
-    "Stefan Hill <stefanhi@chalmers.se>"
+    "Chalmers Next Labs AB <quantum.nextlabs@chalmers.se>",
 ]
 license = "Apache-2.0"
-readme = "README.rst"
+readme = "README.md"
 packages = [{include = "tergite"}]
 keywords = ["quantum-computer", "qiskit", "quantum", "tergite", "sdk"]
 repository = "https://github.com/tergite/tergite"

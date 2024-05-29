@@ -96,7 +96,7 @@ jobs:
   upstream:
     name: Update upstream
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }} && ${{ vars.SHOULD_PUSH_UPSTREAM == 'true' }}
+    if: ${{ github.event_name == 'push' && vars.SHOULD_PUSH_UPSTREAM == 'true' }}
     needs: tests
     steps:
       - name: Checkout the commit
