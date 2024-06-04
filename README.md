@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/tergite.svg)](https://pypi.python.org/pypi/tergite/) [![license](https://img.shields.io/pypi/l/tergite.svg)](https://pypi.python.org/pypi/tergite/) [![CI](https://github.com/tergite/tergite/actions/workflows/ci.yml/badge.svg)](https://github.com/tergite/tergite/actions) [![PyPI pyversions](https://img.shields.io/pypi/pyversions/tergite.svg)](https://pypi.python.org/pypi/tergite/)  
 
-The SDK in the [Tergite software stack](https://tergite.github.io/) for connecting to the Swedish quantum computer.  
+The SDK in the [Tergite software stack](https://tergite.github.io/) for connecting to the Swedish quantum computer.    
 
 It includes:
 
