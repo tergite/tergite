@@ -66,8 +66,6 @@ deploy production:
   stage: release
   environment: production
   image: python:3.8-slim
-  only:
-    - tags
   rules:
     - if: $SHOULD_PUBLISH_TO_PROD == "true" && $CI_COMMIT_TAG =~ /^v.*$/
   script:
