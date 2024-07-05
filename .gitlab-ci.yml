@@ -4,7 +4,10 @@ stages:
   - release
 
 .poetry_install: &poetry_install
-  - pipx install poetry==1.2.0
+  - python -m pip install --user pipx
+  - python -m pipx ensurepath
+  - source ~/.profile
+  - pipx install poetry==1.5.1
   - poetry install --no-interaction --no-root
 
 .run_pytests: &run_pytests
