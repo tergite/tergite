@@ -25,8 +25,8 @@ import qiskit.pulse as pulse
 import requests
 from numpy import inf as infinity
 from qiskit.circuit import QuantumCircuit
-from qiskit.providers import BackendV2, Options, Provider
-from qiskit.providers.models import BackendConfiguration
+from qiskit.providers import BackendV2, Options
+from qiskit_ibm_runtime.models import BackendConfiguration
 from qiskit.pulse.channels import (
     AcquireChannel,
     ControlChannel,
@@ -34,14 +34,25 @@ from qiskit.pulse.channels import (
     MeasureChannel,
     MemorySlot,
 )
-from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
 
 from tergite.qiskit.providers import calibrations
 
+# cross compatibility with future qiskit version where deprecated packages are removed
+try:
+    from qiskit.compiler.assembler import assemble
+    from qiskit.qobj import PulseQobj, QasmQobj
+except ImportError:
+    from tergite.qiskit.deprecated.compiler.assembler import assemble
+    from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
+
+
 from .config import REST_API_MAP
 from .job import Job
+
+import warnings
+
 
 if TYPE_CHECKING:
     from .provider import Provider as TergiteProvider
@@ -54,7 +65,12 @@ class TergiteBackend(BackendV2):
     max_circuits = infinity
 
     def __init__(
-        self, /, *, data: "TergiteBackendConfig", provider: Provider, base_url: str
+        self,
+        /,
+        *,
+        data: "TergiteBackendConfig",
+        provider: "TergiteProvider",
+        base_url: str,
     ):
         """Initialize a TergiteBackend based backend
 
@@ -335,14 +351,19 @@ class OpenPulseBackend(TergiteBackend):
         ]
 
         # assemble schedules to PulseQobj
-        return compiler.assemble(
-            experiments=experiments,
-            backend=self,
-            shots=self.options.shots,
-            qubit_lo_freq=self.qubit_lo_freq,
-            meas_lo_freq=self.meas_lo_freq,
-            **kwargs,
-        )
+        with warnings.catch_warnings():
+            # The method assemble is deprecated
+            warnings.filterwarnings(
+                "ignore", category=DeprecationWarning, module="qiskit"
+            )
+            return assemble(
+                experiments=experiments,
+                backend=self,
+                shots=self.options.shots,
+                qubit_lo_freq=self.qubit_lo_freq,
+                meas_lo_freq=self.meas_lo_freq,
+                **kwargs,
+            )
 
 
 class OpenQASMBackend(TergiteBackend):
@@ -384,9 +405,12 @@ class OpenQASMBackend(TergiteBackend):
                 raise TypeError(f"Experiment {e} is not an instance of QuantumCircuit.")
 
         circuits = compiler.transpile(circuits=experiments, backend=self)
-        return compiler.assemble(
-            experiments=circuits, shots=self.options.shots, **kwargs
-        )
+        with warnings.catch_warnings():
+            # The class QobjExperimentHeader is deprecated
+            warnings.filterwarnings(
+                "ignore", category=DeprecationWarning, module="qiskit"
+            )
+            return assemble(experiments=circuits, shots=self.options.shots, **kwargs)
 
     def configuration(self) -> BackendConfiguration:
         return BackendConfiguration(

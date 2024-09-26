@@ -13,20 +13,24 @@
 # that they have been altered from the originals.
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+# This code was altered from the original on 25th of Septeber, 2024 by Adilet Tuleuov
+
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
 from typing import Dict, List, Optional, Union
 
 import requests
-from qiskit.providers import ProviderV1
 from qiskit.providers.providerutils import filter_backends
 
 from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackendConfig
+
 from .config import REST_API_MAP
 from .provider_account import ProviderAccount
 
+from qiskit.providers.exceptions import QiskitBackendNotFoundError
 
-class Provider(ProviderV1):
+
+class Provider:
     """The Qiskit Provider with which to access the Tergite quantum computers"""
 
     def __init__(self, /, account: ProviderAccount):
@@ -124,3 +128,63 @@ class Provider(ProviderV1):
 
     def __repr__(self, /):
         return "<{} from Tergite Qiskit>".format(self.__class__.__name__)
+
+
+    # The below code is part of Qiskit.
+    #
+    # (C) Copyright IBM 2020.
+    #
+    # This code is licensed under the Apache License, Version 2.0. You may
+    # obtain a copy of this license in the LICENSE.txt file in the root directory
+    # of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+    #
+    # Any modifications or derivative works of this code must retain this
+    # copyright notice, and modified files need to carry a notice indicating
+    # that they have been altered from the originals.
+    #
+    # This code is part of Tergite
+    #
+    # (C) Adilet Tuleuov 2024
+    #
+    # This code is licensed under the Apache License, Version 2.0. You may
+    # obtain a copy of this license in the LICENSE.txt file in the root directory
+    # of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+    #
+    # Any modifications or derivative works of this code must retain this
+    # copyright notice, and modified files need to carry a notice indicating
+    # that they have been altered from the originals.
+    #
+    # ---------------- ALTERATION NOTICE ---------------- #
+    # This code has been derived from the Qiskit abstract ProviderV1 class
+
+    def get_backend(
+        self, name=None, **kwargs
+    ) -> Union[OpenPulseBackend, OpenQASMBackend]:
+        """Return a single backend matching the specified filtering.
+
+        Args:
+            name (str): name of the backend.
+            **kwargs: dict used for filtering.
+
+        Returns:
+            Backend: a backend matching the filtering.
+
+        Raises:
+            QiskitBackendNotFoundError: if no backend could be found or
+                more than one backend matches the filtering criteria.
+        """
+        # As Qiskit ProviderV1 class was deprecated
+        # See: https://github.com/Qiskit/qiskit/pull/12145
+
+        # This class was migrated from Abstract ProviderV1 class
+        # From: https://github.com/Qiskit/qiskit/blob/1.2.2/qiskit/providers/provider.py#L53
+
+        backends = self.backends(name, **kwargs)
+        if len(backends) > 1:
+            raise QiskitBackendNotFoundError(
+                "More than one backend matches the criteria"
+            )
+        if not backends:
+            raise QiskitBackendNotFoundError("No backend matches the criteria")
+
+        return backends[0]
