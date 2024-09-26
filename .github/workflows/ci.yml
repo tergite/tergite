@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -56,10 +56,10 @@ jobs:
       - name: Checkout the commit
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.9"
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
@@ -94,18 +94,3 @@ jobs:
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry publish
-
-  upstream:
-    name: Update upstream
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && vars.SHOULD_PUSH_UPSTREAM == 'true' }}
-    needs: tests
-    steps:
-      - name: Checkout the commit
-        uses: actions/checkout@v3
-
-      - name: Push upstream
-        run: |
-          git config user.email ${{ secrets.UPSTREAM_USER }}
-          git pull -r ${{ secrets.UPSTREAM_REPO }} ${{ github.ref_name }} || echo "${{ github.ref_name }} does not exist"
-          git push ${{ secrets.UPSTREAM_REPO }} ${{ github.ref_name }} || echo "${{ github.ref_name }} already exists"
