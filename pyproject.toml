@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tergite"
-version = "2024.09.0"
+version = "2024.09.1"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
     "Miroslav Dobsicek",
@@ -22,12 +22,13 @@ homepage = "https://github.com/tergite/tergite"
 [tool.poetry.dependencies]
 python = "^3.8"
 requests = ">=2.25.1"
-qiskit-terra = "0.22.0"
+qiskit-terra = "==0.22.0"
 pandas = ">=1.4.2"
-qiskit-aer = ">=0.11.0"
+qiskit-aer = "==0.11.0"
 qiskit-experiments = ">=0.4.0"
 qiskit-ibmq-provider = ">=0.19.2"
 qiskit-ignis = ">=0.7.1"
+qiskit = "==0.39.0"
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"

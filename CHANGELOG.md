@@ -7,6 +7,12 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2024.09.1] - 2024-09-26
+
+## Fixed
+
+- Limited to qiskit == 0.39.0 to avoid unexpected errors with packages that depend on qiskit
+
 ## [2024.09.0] - 2024-09-16
 
 - Nothing changed

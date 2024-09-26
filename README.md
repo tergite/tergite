@@ -27,7 +27,7 @@ pip install tergite
 ## Dependencies
 
 - [Python 3.8, 3.9, 3.10](https://www.python.org/)
-- [Qiskit](https://github.com/Qiskit/qiskit)
+- [Qiskit 0.39.0](https://github.com/Qiskit/qiskit)
 - [Tergite Frontend](https://github.com/tergite/tergite-frontend)
 
 ## Provider Setup
@@ -39,6 +39,7 @@ pip install tergite
 - With the credentials received from Tergite, create and save a provider account by calling `Tergite.use_provider_account(account, save=True)`.
 
 ```python
+from tergite.qiskit.providers import Tergite
 from tergite.qiskit.providers.provider_account import ProviderAccount
 
 TERGITE_API_URL="https://api.qal9000.se"  # or the URL to your own tergite MSS
