@@ -7,6 +7,10 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded Qiskit version to 1.0+ 
+
 ## [2024.09.1] - 2024-09-26
 
 ## Fixed

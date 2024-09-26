@@ -21,15 +21,21 @@ from typing import TYPE_CHECKING, Optional, Tuple, Union
 from uuid import uuid4
 
 import requests
-from qiskit.providers import BackendV1, JobV1
+from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JobStatus
-from qiskit.qobj import PulseQobj, QasmQobj
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from requests import Response
 
 from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
+
+
+# cross compatibility with future qiskit version where deprecated packages are removed
+try:
+    from qiskit.qobj import PulseQobj, QasmQobj
+except ImportError:
+    from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
 
 if TYPE_CHECKING:
     from tergite.qiskit.providers.tergite import Provider
@@ -88,7 +94,7 @@ class Job(JobV1):
             "job_id": job_id,
             "type": "script",  # ?
         }
-        if type(payload) is QasmQobj:
+        if isinstance(payload, QasmQobj):
             job_entry["name"] = "qasm_dummy_job"
             job_entry.update(
                 {
@@ -97,8 +103,7 @@ class Job(JobV1):
                     "post_processing": "process_qiskit_qasm_runner_qasm_dummy_job",
                 }
             )
-
-        elif type(payload) is PulseQobj:
+        elif isinstance(payload, PulseQobj):
             payload = payload.to_dict()
             # In-place RLE pulse library for compression
             for pulse in payload["config"]["pulse_library"]:
@@ -110,7 +115,6 @@ class Job(JobV1):
                     "params": {"qobj": payload},
                 }
             )
-
         else:
             raise RuntimeError(f"Unprocessable payload type: {type(payload)}")
 

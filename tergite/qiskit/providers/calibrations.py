@@ -66,7 +66,8 @@ def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Targ
     # TODO: Fetch error statistics of gates from database
 
     rx_theta = circuit.Parameter("theta")
-    rz_lambda = circuit.Parameter("lambda")
+    # changed lambda to lambda_param as it's not a valid name when it's used as a parameter further in transpilation
+    rz_lambda = circuit.Parameter("lambda_param")
     delay_tau = circuit.Parameter("tau")
 
     # Reset qubits to ground state
@@ -106,10 +107,15 @@ def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Targ
     }
     target.add_instruction(circuit.Delay(delay_tau), delay_props)
 
+    measure_instruction = circuit.measure.Measure()
+
     # Measurement
+
+    # Add all the qubits that are going to be measured
     measure_props = {
-        qubits: InstructionProperties(
-            error=0.0, calibration=templates.measure(backend, qubits)
+        (q,): InstructionProperties(
+            error=0.0, calibration=templates.measure(backend, [q])
         )
+        for q in qubits
     }
-    target.add_instruction(circuit.measure.Measure(), measure_props)
+    target.add_instruction(measure_instruction, measure_props)

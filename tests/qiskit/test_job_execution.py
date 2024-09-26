@@ -24,6 +24,15 @@ from qiskit.result.models import ExperimentResult, ExperimentResultData
 from tergite.qiskit.providers import Job, OpenPulseBackend, Tergite
 from tergite.qiskit.providers.backend import TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
+
+import warnings
+
+# cross compatibility with future qiskit version where deprecated packages are removed
+try:
+    from qiskit.compiler.assembler import assemble 
+except ImportError:
+    from tergite.qiskit.deprecated.compiler.assembler import assemble 
+
 from tests.conftest import (
     API_TOKEN,
     API_URL,
@@ -37,6 +46,7 @@ from tests.conftest import (
 )
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
+from tests.utils.quantum_circuits import remove_idle_qubits
 
 _EXPECTED_MOCK_REQUESTS = [
     MockRequest(
@@ -66,9 +76,16 @@ def test_transpile():
     backend = _get_backend()
     qc = _get_test_qiskit_circuit()
     expected = _get_expected_transpiled_circuit()
-    got = compiler.transpile(qc, backend=backend)
-    assert got == expected
 
+    # Transpile the circuit
+    got = compiler.transpile(qc, backend=backend, initial_layout=qc.qubits)
+
+    # Remove idle qubits from the circuit, otherwise comparison fails even though active parts are equivalent 
+    got = remove_idle_qubits(got)
+    expected = remove_idle_qubits(expected)
+
+    # Compare the circuits appropriately
+    assert got == expected, "Transpiled circuit does not match expected result."
 
 def test_run(api):
     """backend.run returns a registered job"""
@@ -342,15 +359,20 @@ def _get_expected_job(
 ) -> Job:
     """Returns the expected job after being initialized"""
     schedule = compiler.schedule(transpiled_circuit, backend=backend)
-    qobj = compiler.assemble(
-        experiments=[schedule],
-        backend=backend,
-        shots=NUMBER_OF_SHOTS,
-        qubit_lo_freq=backend.qubit_lo_freq,
-        meas_lo_freq=backend.meas_lo_freq,
-        qobj_id=qobj_id,
-        **options,
-    )
+    with warnings.catch_warnings():
+            # The class QobjExperimentHeader is deprecated
+            warnings.filterwarnings(
+                "ignore", category=DeprecationWarning, module="qiskit"
+            )
+            qobj = assemble(
+                experiments=[schedule],
+                backend=backend,
+                shots=NUMBER_OF_SHOTS,
+                qubit_lo_freq=backend.qubit_lo_freq,
+                meas_lo_freq=backend.meas_lo_freq,
+                qobj_id=qobj_id,
+                **options,
+            )
 
     job = Job(backend=backend, job_id=TEST_JOB_ID, upload_url=QUANTUM_COMPUTER_URL)
 
@@ -393,7 +415,8 @@ def _get_expected_transpiled_circuit():
     rx_block.append(pulse.SetFrequency(3932312578.2853203, pulse.DriveChannel(1)))
     rx_block.append(
         pulse.Play(
-            pulse.Gaussian(duration=52, amp=(0.0290173467 + 0j), sigma=6, name="RX q1"),
+            # amp represents the magnitude of the complex amplitude and can't be complex
+            pulse.Gaussian(duration=52, amp=(0.0290173467), sigma=6, name="RX q1"),
             pulse.DriveChannel(1),
             name="RX q1",
         )
