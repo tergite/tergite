@@ -10,10 +10,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """tests for the running of qiskit circuits on the tergite backend"""
+import io
 import json
 import uuid
 from collections import Counter
 
+import h5py
 import numpy as np
 import pytest
 from qiskit import QuantumCircuit, circuit, compiler, pulse
@@ -29,9 +31,9 @@ import warnings
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 try:
-    from qiskit.compiler.assembler import assemble 
+    from qiskit.compiler.assembler import assemble
 except ImportError:
-    from tergite.qiskit.deprecated.compiler.assembler import assemble 
+    from tergite.qiskit.deprecated.compiler.assembler import assemble
 
 from tests.conftest import (
     API_TOKEN,
@@ -80,12 +82,13 @@ def test_transpile():
     # Transpile the circuit
     got = compiler.transpile(qc, backend=backend, initial_layout=qc.qubits)
 
-    # Remove idle qubits from the circuit, otherwise comparison fails even though active parts are equivalent 
+    # Remove idle qubits from the circuit, otherwise comparison fails even though active parts are equivalent
     got = remove_idle_qubits(got)
     expected = remove_idle_qubits(expected)
 
     # Compare the circuits appropriately
     assert got == expected, "Transpiled circuit does not match expected result."
+
 
 def test_run(api):
     """backend.run returns a registered job"""
@@ -326,6 +329,28 @@ def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
     assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
 
 
+def test_provider_job(api_with_logfile, token: str = None):
+    """Test that Provider.job returns the correct Job object."""
+
+    # create a job the usual way
+    backend = _get_backend()
+    transpiled_circuit = _get_expected_transpiled_circuit()
+    job = backend.run(transpiled_circuit, meas_level=2)
+    job_id = job.job_id()
+
+    # retrieve job from provider
+    account = ProviderAccount(service_name="test", url=API_URL, token=token)
+    provider = Tergite.use_provider_account(account)
+    retrieved_job = provider.job(job_id)
+
+    retrieved_result = retrieved_job.result()
+    result = job.result()
+
+    assert (
+        retrieved_result.get_counts() == result.get_counts()
+    ), "The retrieved job result does not match the original job result."
+
+
 def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
     """Returns the expected job result"""
     results = [
@@ -360,19 +385,17 @@ def _get_expected_job(
     """Returns the expected job after being initialized"""
     schedule = compiler.schedule(transpiled_circuit, backend=backend)
     with warnings.catch_warnings():
-            # The class QobjExperimentHeader is deprecated
-            warnings.filterwarnings(
-                "ignore", category=DeprecationWarning, module="qiskit"
-            )
-            qobj = assemble(
-                experiments=[schedule],
-                backend=backend,
-                shots=NUMBER_OF_SHOTS,
-                qubit_lo_freq=backend.qubit_lo_freq,
-                meas_lo_freq=backend.meas_lo_freq,
-                qobj_id=qobj_id,
-                **options,
-            )
+        # The class QobjExperimentHeader is deprecated
+        warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit")
+        qobj = assemble(
+            experiments=[schedule],
+            backend=backend,
+            shots=NUMBER_OF_SHOTS,
+            qubit_lo_freq=backend.qubit_lo_freq,
+            meas_lo_freq=backend.meas_lo_freq,
+            qobj_id=qobj_id,
+            **options,
+        )
 
     job = Job(backend=backend, job_id=TEST_JOB_ID, upload_url=QUANTUM_COMPUTER_URL)
 

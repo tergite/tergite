@@ -26,6 +26,7 @@ qiskit = "^1"
 pandas = ">=1.4.2"
 numpy = ">=1.26.0"
 qiskit-ibm-runtime = ">=0.28.0"
+h5py = ">=3.8.0"
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
