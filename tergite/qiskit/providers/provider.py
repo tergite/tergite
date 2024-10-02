@@ -17,17 +17,30 @@
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
+import os
+import tempfile
 from typing import Dict, List, Optional, Union
 
+import shutil
+import h5py
+import json
 import requests
 from qiskit.providers.providerutils import filter_backends
+from qiskit.providers import JobV1
 
 from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackendConfig
 
 from .config import REST_API_MAP
 from .provider_account import ProviderAccount
+from .job import Job
 
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
+
+# cross compatibility with future qiskit version where deprecated packages are removed
+try:
+    from qiskit.qobj import PulseQobj
+except ImportError:
+    from tergite.qiskit.deprecated.qobj import PulseQobj
 
 
 class Provider:
@@ -90,6 +103,72 @@ class Provider:
 
         return backends
 
+    def job(self, job_id: str) -> JobV1:
+        """Retrieve a runtime job."""
+
+        # use provided API_URL to access jobs endpoint
+        url = f"{self.provider_account.url}{REST_API_MAP['jobs']}/{job_id}"
+        auth_headers = self.get_auth_headers()
+        response = requests.get(url, headers=auth_headers)
+
+        if response.ok:
+            job_data = response.json()
+        else:
+            raise RuntimeError(f"Failed to GET memory of job: {self.job_id()}")
+
+        # get backend from job_data -> backend_name
+        backend_name: str = job_data["backend"]
+        backend = self.get_backend(name=backend_name)
+
+        # get upload url from job_data -> download_url
+        download_url = job_data["download_url"]
+
+        # download the file from the download_url
+        file_response = requests.get(download_url, stream=True)
+
+        # get a cross-platform temp folder
+        tempdir = tempfile.gettempdir()
+        hdf_filepath = os.path.join(tempdir, f"job_data-{job_id}.hdf5")
+
+        if file_response.ok:
+            with open(hdf_filepath, "wb") as f:
+                # Write the downloaded file to a temporary file
+                shutil.copyfileobj(file_response.raw, f)
+        else:
+            raise RuntimeError(f"Failed to download job file for job: {job_id}")
+
+        # open the HDF5 file using h5py
+        with h5py.File(hdf_filepath, "r") as hdf:
+            # access the 'header' group and list its contents
+            header_group = hdf["header"]
+
+            if "qobj_metadata" in header_group:
+                qobj_group = header_group["qobj_metadata"]
+
+                shots = qobj_group.attrs.get("shots", None)
+                qobj_id = qobj_group.attrs.get("qobj_id", None)
+                num_experiments = qobj_group.attrs.get("num_experiments", None)
+            else:
+                raise RuntimeError(
+                    "Expected 'qobj' dataset not found in 'header' group."
+                )
+
+            if "qobj_data" in header_group:
+                qobj_group = header_group["qobj_data"]
+                experiment_data = qobj_group.attrs.get("experiment_data", None)
+
+        job = Job(backend=backend, job_id=job_id, upload_url=download_url)
+
+        # update the job metadata
+        job.metadata["shots"] = shots
+        job.metadata["qobj_id"] = qobj_id
+        job.metadata["num_experiments"] = num_experiments
+
+        # attach a full qobj as a payload
+        job.payload = PulseQobj.from_dict(data=json.loads(experiment_data))
+
+        return job
+
     def _get_backend_configs(self) -> List[TergiteBackendConfig]:
         """Retrieves the backend configs from which to construct Backend objects"""
         parsed_data = []
@@ -128,7 +207,6 @@ class Provider:
 
     def __repr__(self, /):
         return "<{} from Tergite Qiskit>".format(self.__class__.__name__)
-
 
     # The below code is part of Qiskit.
     #

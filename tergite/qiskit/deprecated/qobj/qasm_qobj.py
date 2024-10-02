@@ -24,8 +24,8 @@
 #
 # ---------------- ALTERATION NOTICE ---------------- #
 # This code was modified on September 23, 2023 by Adilet Tuleuov
-# Import statements were adjusted to isolate deprecated packages from qiskit package. 
-# The reason is to suppport existing functionality that is to be removed from qiskit package. 
+# Import statements were adjusted to isolate deprecated packages from qiskit package.
+# The reason is to suppport existing functionality that is to be removed from qiskit package.
 
 """Module providing definitions of OpenQASM 2 Qobj classes."""
 
