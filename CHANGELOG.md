@@ -7,6 +7,10 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Added
+
+- Added the `job()` method to provider to retrieve job by job ID
+
 ### Changed
 
 - Upgraded Qiskit version to 1.0+ 
