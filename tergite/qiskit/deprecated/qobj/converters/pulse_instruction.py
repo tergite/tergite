@@ -66,6 +66,8 @@ class ParametricPulseShapes(Enum):
     gaussian_square_echo = "gaussian_square_echo"
     drag = "Drag"
     constant = "Constant"
+    cos = "Cos"
+    wacqt_cz_gate_pulse = "Wacqt_cz_gate_pulse"
 
     @classmethod
     def from_instance(

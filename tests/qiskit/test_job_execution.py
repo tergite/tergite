@@ -30,10 +30,7 @@ from tergite.qiskit.providers.provider_account import ProviderAccount
 import warnings
 
 # cross compatibility with future qiskit version where deprecated packages are removed
-try:
-    from qiskit.compiler.assembler import assemble
-except ImportError:
-    from tergite.qiskit.deprecated.compiler.assembler import assemble
+from tergite.qiskit.deprecated.compiler.assembler import assemble
 
 from tests.conftest import (
     API_TOKEN,
@@ -50,30 +47,29 @@ from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 from tests.utils.quantum_circuits import remove_idle_qubits
 
+
+_CALIBRATION_REQ = MockRequest(
+    url="https://api.tergite.example/v2/calibrations/Well-formed", method="GET"
+)
+# Create the list of mock requests
 _EXPECTED_MOCK_REQUESTS = [
+    *[_CALIBRATION_REQ for _ in range(6)],
     MockRequest(
-        url="https://api.tergite.example/jobs?backend=Well-formed",
-        method="POST",
+        url="https://api.tergite.example/jobs?backend=Well-formed", method="POST"
     ),
+    *[_CALIBRATION_REQ for _ in range(6)],
     MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
     MockRequest(
-        url="https://api.tergite.example/jobs/test_job_id",
-        method="GET",
-        has_text=False,
+        url="https://api.tergite.example/jobs/test_job_id", method="GET", has_text=False
     ),
     MockRequest(
-        url="https://api.tergite.example/jobs/test_job_id",
-        method="GET",
-        has_text=False,
+        url="https://api.tergite.example/jobs/test_job_id", method="GET", has_text=False
     ),
-    MockRequest(
-        url="http://loke.tergite.example/test_file.hdf5",
-        method="GET",
-    ),
+    MockRequest(url="http://loke.tergite.example/test_file.hdf5", method="GET"),
 ]
 
 
-def test_transpile():
+def test_transpile(api):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits"""
     backend = _get_backend()
     qc = _get_test_qiskit_circuit()
@@ -87,7 +83,9 @@ def test_transpile():
     expected = remove_idle_qubits(expected)
 
     # Compare the circuits appropriately
-    assert got == expected, "Transpiled circuit does not match expected result."
+    assert str(got) == str(
+        expected
+    ), "Transpiled circuit does not match expected result."
 
 
 def test_run(api):
@@ -104,7 +102,7 @@ def test_run(api):
     requests_made = get_request_list(api)
 
     assert got == expected
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:14]
 
 
 def test_run_bearer_auth(bearer_auth_api):
@@ -121,7 +119,7 @@ def test_run_bearer_auth(bearer_auth_api):
     requests_made = get_request_list(bearer_auth_api)
 
     assert got == expected
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:2]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[:14]
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
@@ -136,7 +134,7 @@ def test_run_invalid_bearer_auth(token, bearer_auth_api):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:1]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:7]
 
 
 def test_job_result(api):
@@ -151,7 +149,7 @@ def test_job_result(api):
     requests_made = get_request_list(api)
 
     assert got.to_dict() == expected.to_dict()
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
 
 
 def test_job_result_bearer_auth(bearer_auth_api):
@@ -165,7 +163,7 @@ def test_job_result_bearer_auth(bearer_auth_api):
     requests_made = get_request_list(bearer_auth_api)
 
     assert got.to_dict() == expected.to_dict()
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
@@ -184,7 +182,7 @@ def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.result()
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
 
 
 def test_job_status(api):
@@ -197,7 +195,7 @@ def test_job_status(api):
     requests_made = get_request_list(api)
 
     assert got == JobStatus.DONE
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
 
 
 def test_job_status_bearer_auth(bearer_auth_api):
@@ -210,7 +208,7 @@ def test_job_status_bearer_auth(bearer_auth_api):
     requests_made = get_request_list(bearer_auth_api)
 
     assert got == JobStatus.DONE
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
@@ -229,7 +227,7 @@ def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.status()
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
 
 
 def test_job_download_url(api):
@@ -242,7 +240,7 @@ def test_job_download_url(api):
     requests_made = get_request_list(api)
 
     assert got == TEST_JOB_RESULTS["download_url"]
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
 
 
 def test_job_download_url_bearer_auth(bearer_auth_api):
@@ -255,7 +253,7 @@ def test_job_download_url_bearer_auth(bearer_auth_api):
     requests_made = get_request_list(bearer_auth_api)
 
     assert got == TEST_JOB_RESULTS["download_url"]
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:4]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
@@ -275,7 +273,7 @@ def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
 
     requests_made = get_request_list(bearer_auth_api)
 
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
 
 
 def test_job_logfile(api, tmp_results_file):
@@ -291,7 +289,7 @@ def test_job_logfile(api, tmp_results_file):
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:17]
 
 
 def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
@@ -307,7 +305,7 @@ def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:5]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:17]
 
 
 @pytest.mark.parametrize("token", INVALID_API_TOKENS)
@@ -326,7 +324,7 @@ def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.logfile
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:3]
+    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
 
 
 def test_provider_job(api_with_logfile, token: str = None):

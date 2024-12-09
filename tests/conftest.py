@@ -28,13 +28,14 @@ QOBJ_EXAMPLE = load_json_fixture("qobj_example.json")
 TEST_JOB_ID = "test_job_id"
 NUMBER_OF_SHOTS = 100
 
-_BACKENDS_URL = f"{API_URL}/backends"
+_BACKENDS_URL = f"{API_URL}/v2/devices"
 _JOBS_URL = f"{API_URL}/jobs"
 _TEST_JOB_RESULTS_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
 _TEST_RESULTS_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
 _TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
+_TEST_CALIBRATION_URL = f"{API_URL}/v2/calibrations/Well-formed"
 
 TEST_JOB_RESULTS = {
     "status": "DONE",
@@ -62,6 +63,7 @@ TEST_JOB_RESULTS_LOGFILE = {
         ],
     },
 }
+TEST_CALIBRATION_RESULTS = load_json_fixture("calibrations_v2.json")
 
 
 @pytest.fixture
@@ -79,6 +81,7 @@ def api(requests_mock):
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH, headers={}, content=RAW_TEST_JOB_RESULTS
     )
+    requests_mock.get(_TEST_CALIBRATION_URL, headers={}, json=TEST_CALIBRATION_RESULTS)
     yield requests_mock
 
 
@@ -125,6 +128,12 @@ def bearer_auth_api(requests_mock):
         _TEST_RESULTS_DOWNLOAD_PATH, status_code=401, additional_matcher=no_auth_matcher
     )
 
+    # # Add the missing mock for the calibration request
+    requests_mock.get(
+        _TEST_CALIBRATION_URL,
+        request_headers=request_headers,
+        json=TEST_CALIBRATION_RESULTS,
+    )
     yield requests_mock
 
 
@@ -164,6 +173,8 @@ def api_with_logfile(requests_mock, hdf5_content):
     # Download file - use hdf5_content
     requests_mock.get(_TEST_LOGFILE_DOWNLOAD_PATH, headers={}, content=hdf5_content)
 
+    # # Add the mock for the calibration request
+    requests_mock.get(_TEST_CALIBRATION_URL, json=TEST_CALIBRATION_RESULTS)
     yield requests_mock
 
 

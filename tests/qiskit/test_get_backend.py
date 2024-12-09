@@ -13,7 +13,9 @@
 import pytest
 
 from tergite.qiskit.providers import OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import TergiteBackendConfig
+from tergite.qiskit.providers.backend import (
+    TergiteBackendConfig,
+)
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tests.conftest import (
     API_TOKEN,

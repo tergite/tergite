@@ -21,7 +21,7 @@ from qiskit.transpiler import InstructionProperties, Target
 from . import template_schedules as templates
 
 if TYPE_CHECKING:
-    from .backend import OpenPulseBackend
+    from .backend import OpenPulseBackend, DeviceCalibrationV2
 
 
 # TODO: Replace with BCC graph node
@@ -50,7 +50,14 @@ class Node:
         return self.job_id
 
 
-def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Target):
+def add_instructions(
+    *,
+    backend: "OpenPulseBackend",
+    qubits: tuple,
+    couplers: tuple,
+    target: Target,
+    device_properties: "DeviceCalibrationV2"
+):
     """Adds Rx, Rz gates and Delay and Measure instructions for each qubit
     to the transpiler target provided.
 
@@ -61,6 +68,7 @@ def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Targ
             :class:`~tergite.providers.tergite.backend:TergiteBackend`
             for which to add the instructions
         qubits: a tuple of qubits on which the instruction is to be run
+        couplers: a tuple of couplers for two-qubit operations
         target: the target on which the instruction is to be added
     """
     # TODO: Fetch error statistics of gates from database
@@ -83,7 +91,10 @@ def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Targ
     # Rotation around X-axis on Bloch sphere
     rx_props = {
         (q,): InstructionProperties(
-            error=0.0, calibration=templates.rx(backend, (q,), rx_theta)
+            error=0.0,
+            calibration=templates.rx(
+                backend, (q,), rx_theta, device_properties=device_properties
+            ),
         )
         for q in qubits
     }
@@ -114,8 +125,27 @@ def add_instructions(*, backend: "OpenPulseBackend", qubits: tuple, target: Targ
     # Add all the qubits that are going to be measured
     measure_props = {
         (q,): InstructionProperties(
-            error=0.0, calibration=templates.measure(backend, [q])
+            error=0.0,
+            calibration=templates.measure(
+                backend, [q], device_properties=device_properties
+            ),
         )
         for q in qubits
     }
     target.add_instruction(measure_instruction, measure_props)
+
+    if couplers:
+        cz_props = {
+            (control_qubit, target_qubit): InstructionProperties(
+                error=0.0,
+                calibration=templates.cz(
+                    backend,
+                    control_qubits=[control_qubit],
+                    target_qubits=[target_qubit],
+                    device_properties=device_properties,
+                ),
+            )
+            for control_qubit, target_qubit in couplers
+        }
+
+        target.add_instruction(circuit.library.CZGate(), cz_props)
