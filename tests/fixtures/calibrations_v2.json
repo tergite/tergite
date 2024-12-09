@@ -1,0 +1,1027 @@
+{
+  "_id": {
+    "$oid": "674876885960b11e2c313ee7"
+  },
+  "name": "Well-formed",
+  "version": "1.0.0",
+  "qubits": [
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 16,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.777917Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.778039Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4225000000,
+        "date": "2024-11-28T13:56:24.777672Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.778163Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.778285Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.778524Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.778406Z",
+        "unit": ""
+      },
+      "id": 17,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 18,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 19,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 20,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 21,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 22,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 23,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 24,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    },
+    {
+      "t1_decoherence": {
+        "value": 0.000034,
+        "date": "2024-11-28T13:56:24.776796Z",
+        "unit": "s"
+      },
+      "t2_decoherence": {
+        "value": 0.000033,
+        "date": "2024-11-28T13:56:24.776922Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 4800000000,
+        "date": "2024-11-28T13:56:24.776505Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": null,
+      "readout_assignment_error": null,
+      "pi_pulse_amplitude": {
+        "value": 0.029,
+        "date": "2024-11-28T13:56:24.777047Z",
+        "unit": ""
+      },
+      "pi_pulse_duration": {
+        "value": 5.6e-8,
+        "date": "2024-11-28T13:56:24.777173Z",
+        "unit": ""
+      },
+      "pulse_type": {
+        "value": "Gaussian",
+        "date": "2024-11-28T13:56:24.777418Z",
+        "unit": ""
+      },
+      "pulse_sigma": {
+        "value": 7e-9,
+        "date": "2024-11-28T13:56:24.777295Z",
+        "unit": ""
+      },
+      "id": 25,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "xy_drive_line": null,
+      "z_drive_line": null
+    }
+  ],
+  "resonators": [
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.778860Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.778984Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7260080000,
+        "date": "2024-11-28T13:56:24.779105Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.1266499392606423,
+        "date": "2024-11-28T13:56:24.779472Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.779227Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.779350Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.779624Z",
+        "unit": ""
+      },
+      "id": 16,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 17,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 18,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 19,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 20,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 21,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 22,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 23,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 24,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    },
+    {
+      "acq_delay": {
+        "value": 5e-8,
+        "date": "2024-11-28T13:56:24.779876Z",
+        "unit": "s"
+      },
+      "acq_integration_time": {
+        "value": 0.000001,
+        "date": "2024-11-28T13:56:24.779998Z",
+        "unit": "s"
+      },
+      "frequency": {
+        "value": 7380000000,
+        "date": "2024-11-28T13:56:24.780120Z",
+        "unit": "Hz"
+      },
+      "pulse_amplitude": {
+        "value": 0.12660078572926436,
+        "date": "2024-11-28T13:56:24.780487Z",
+        "unit": ""
+      },
+      "pulse_delay": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.780241Z",
+        "unit": "s"
+      },
+      "pulse_duration": {
+        "value": 9e-7,
+        "date": "2024-11-28T13:56:24.780364Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "Square",
+        "date": "2024-11-28T13:56:24.780625Z",
+        "unit": ""
+      },
+      "id": 25,
+      "index": null,
+      "x_position": null,
+      "y_position": null,
+      "readout_line": null
+    }
+  ],
+  "couplers": [
+    {
+      "frequency": {
+        "value": 7800000000,
+        "date": "2024-11-28T13:56:24.781635Z",
+        "unit": "Hz"
+      },
+      "frequency_detuning": {
+        "value": -15000000,
+        "date": "2024-11-28T13:56:24.781756Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": {
+        "value": -170000000,
+        "date": "2024-11-28T13:56:24.781879Z",
+        "unit": "Hz"
+      },
+      "coupling_strength_02": {
+        "value": 70000000,
+        "date": "2024-11-28T13:56:24.782000Z",
+        "unit": "Hz"
+      },
+      "coupling_strength_12": {
+        "value": 70000000,
+        "date": "2024-11-28T13:56:24.782120Z",
+        "unit": "Hz"
+      },
+      "cz_pulse_amplitude": {
+        "value": 0.08,
+        "date": "2024-11-28T13:56:24.782241Z",
+        "unit": ""
+      },
+      "cz_pulse_dc_bias": {
+        "value": 0.275,
+        "date": "2024-11-28T13:56:24.782363Z",
+        "unit": ""
+      },
+      "cz_pulse_phase_offset": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.782488Z",
+        "unit": "rad"
+      },
+      "cz_pulse_duration_before": {
+        "value": 8.8e-8,
+        "date": "2024-11-28T13:56:24.782620Z",
+        "unit": "s"
+      },
+      "cz_pulse_duration_rise": {
+        "value": 2.5e-8,
+        "date": "2024-11-28T13:56:24.782738Z",
+        "unit": "s"
+      },
+      "cz_pulse_duration_constant": {
+        "value": 3.7e-7,
+        "date": "2024-11-28T13:56:24.782856Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "wacqt_cz_gate_pulse",
+        "date": "2024-11-28T13:56:24.782971Z",
+        "unit": ""
+      },
+      "id": 0
+    },
+    {
+      "frequency": {
+        "value": 7800000000,
+        "date": "2024-11-28T13:56:24.781635Z",
+        "unit": "Hz"
+      },
+      "frequency_detuning": {
+        "value": -15000000,
+        "date": "2024-11-28T13:56:24.781756Z",
+        "unit": "Hz"
+      },
+      "anharmonicity": {
+        "value": -170000000,
+        "date": "2024-11-28T13:56:24.781879Z",
+        "unit": "Hz"
+      },
+      "coupling_strength_02": {
+        "value": 70000000,
+        "date": "2024-11-28T13:56:24.782000Z",
+        "unit": "Hz"
+      },
+      "coupling_strength_12": {
+        "value": 70000000,
+        "date": "2024-11-28T13:56:24.782120Z",
+        "unit": "Hz"
+      },
+      "cz_pulse_amplitude": {
+        "value": 0.08,
+        "date": "2024-11-28T13:56:24.782241Z",
+        "unit": ""
+      },
+      "cz_pulse_dc_bias": {
+        "value": 0.275,
+        "date": "2024-11-28T13:56:24.782363Z",
+        "unit": ""
+      },
+      "cz_pulse_phase_offset": {
+        "value": 0,
+        "date": "2024-11-28T13:56:24.782488Z",
+        "unit": "rad"
+      },
+      "cz_pulse_duration_before": {
+        "value": 8.8e-8,
+        "date": "2024-11-28T13:56:24.782620Z",
+        "unit": "s"
+      },
+      "cz_pulse_duration_rise": {
+        "value": 2.5e-8,
+        "date": "2024-11-28T13:56:24.782738Z",
+        "unit": "s"
+      },
+      "cz_pulse_duration_constant": {
+        "value": 3.7e-7,
+        "date": "2024-11-28T13:56:24.782856Z",
+        "unit": "s"
+      },
+      "pulse_type": {
+        "value": "wacqt_cz_gate_pulse",
+        "date": "2024-11-28T13:56:24.782971Z",
+        "unit": ""
+      },
+      "id": 1
+    }
+  ],
+  "discriminators": {
+    "lda": {
+      "q0": {
+        "coef_0": -23.07457037298018,
+        "coef_1": 23.86344546794025,
+        "intercept": -0.4766480862205764
+      },
+      "q1": {
+        "coef_0": -23.07457037298018,
+        "coef_1": 23.86344546794025,
+        "intercept": -0.4766480862205764
+      }
+    }
+  },
+  "last_calibrated": "2024-11-28T13:56:24.776922Z",
+  "timelog": {
+    "REGISTERED": "2024-11-28T13:56:24.860Z"
+  }
+}

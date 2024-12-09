@@ -18,15 +18,24 @@
 from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
+
+from sympy import symbols
 import qiskit.circuit as circuit
 import qiskit.pulse as pulse
+from qiskit.pulse.library import SymbolicPulse
+
+
+from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
-    from .backend import OpenPulseBackend
+    from .backend import OpenPulseBackend, DeviceCalibrationV2
 
 
 def rx(
-    backend: "OpenPulseBackend", qubits: Iterable, rx_theta: circuit.Parameter
+    backend: "OpenPulseBackend",
+    qubits: Iterable,
+    rx_theta: circuit.Parameter,
+    device_properties: "DeviceCalibrationV2",
 ) -> pulse.ScheduleBlock:
     """Creates a rotation around the x-axis on the Bloch sphere for the list of qubits in the backend.
 
@@ -42,20 +51,19 @@ def rx(
     Returns:
         qiskit.pulse.ScheduleBlock: the schedule implementing the rotation
     """
-    device_properties = backend.device_properties
-    qubit = device_properties.get("qubit")
+    qubit = device_properties.qubits
 
     sched = pulse.ScheduleBlock(name=f"RX(θ, {qubits})")
     for q in qubits:
         sched += pulse.SetFrequency(
-            qubit[q]["frequency"],
+            qubit[q].frequency.value,
             channel=backend.drive_channel(q),
         )
         sched += pulse.Play(
             pulse.Gaussian(
-                duration=round(qubit[q].get("pi_pulse_duration") / backend.dt),
-                amp=rx_theta / np.pi * qubit[q].get("pi_pulse_amplitude"),
-                sigma=round(qubit[q].get("pulse_sigma") / backend.dt),
+                duration=round(qubit[q].pi_pulse_duration.value / backend.dt),
+                amp=rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value,
+                sigma=round(qubit[q].pulse_sigma.value / backend.dt),
                 name=f"RX q{q}",
             ),
             channel=backend.drive_channel(q),
@@ -89,7 +97,106 @@ def rz(
     return sched
 
 
-def measure(backend: "OpenPulseBackend", qubits: Iterable) -> pulse.ScheduleBlock:
+def wacqt_cz_gate(duration, name, numerical_args):
+    # define the time variable
+    t = symbols("t", real=True)
+
+    # define symbolic variables (can also be passed as parameters)
+    symbolic_args = {
+        "t_w": symbols("t_w", real=True),
+        "t_rf": symbols("t_rf", real=True),
+        "t_p": symbols("t_p", real=True),
+        "delta_0": symbols("delta_0", real=True),
+    }
+
+    # create the symbolic expression
+    envelope_expr = delta_t_function_sympy(t, symbolic_args)
+
+    # substitute numerical values into the symbolic expression
+    if numerical_args:
+        envelope_expr = envelope_expr.subs(numerical_args)
+
+    numerical_args["amp"] = [numerical_args["amp"], 0]
+    # create the SymbolicPulse instance
+    instance = SymbolicPulse(
+        pulse_type="Wacqt_cz_gate_pulse",
+        duration=duration,
+        parameters=numerical_args,
+        envelope=envelope_expr,
+        name=name,
+    )
+
+    return instance
+
+
+def cz(
+    backend: "OpenPulseBackend",
+    control_qubits: Iterable,
+    target_qubits: Iterable,
+    device_properties: "DeviceCalibrationV2",
+) -> pulse.ScheduleBlock:
+    """Two qubit CNOT gate building block. TODO: Add doc comment."""
+    qubit_props = device_properties.qubits
+    coupler_props = device_properties.couplers
+
+    sched = pulse.ScheduleBlock(
+        name=f"CZ(θ, control={control_qubits}, target={target_qubits})"
+    )
+
+    for control_qubit, target_qubit in zip(control_qubits, target_qubits):
+        control_props = qubit_props[control_qubit]
+        target_props = qubit_props[target_qubit]
+
+        # Get control channels between control and target qubits
+        control_channels = backend.control_channel((control_props.id, target_props.id))
+
+        c_props = [x for x in coupler_props if x.id == control_channels[0].index]
+        c_props = c_props[0] if c_props else None
+
+        # TODO: raise error if c_props is none
+
+        f1 = min(target_props.frequency.value, control_props.frequency.value)
+        f0 = max(target_props.frequency.value, control_props.frequency.value)
+
+        alpha0 = c_props.anharmonicity.value
+
+        f2 = c_props.frequency.value  # Coupler frequency
+        detuning = c_props.frequency_detuning.value  # detuning in radial frequency
+
+        args = {
+            "delta_0": c_props.cz_pulse_amplitude.value,  # Maximum delta value
+            "Theta": c_props.cz_pulse_dc_bias.value,  # DC bias term
+            "omega_c0": 2 * np.pi * f2,  # Maximum frequency in Hz
+            "omega_Phi": detuning
+            + 2 * np.pi * (f1 - f0 - alpha0),  # Transition frequency in Hz
+            "phi": c_props.cz_pulse_phase_offset.value,  # Phase offset
+            "t_w": c_props.cz_pulse_duration_before.value,  # s, duration before pulse
+            "t_rf": c_props.cz_pulse_duration_rise.value,  # s, rise time
+            "t_p": c_props.cz_pulse_duration_constant.value,  # s, constant pulse duration
+        }
+
+        t_gate = args["t_rf"] + args["t_p"] + 2 * args["t_w"]
+        # required param for pulse, for display purposes delta_0 is equivalent to max_amplitude
+        amp = args["delta_0"]
+        # this is for display purposes, as we overriding frequency modulation in backend
+        freq = int(f2)
+
+        args["amp"] = amp
+        args["freq"] = freq
+
+        cz_gate = wacqt_cz_gate(
+            duration=round(t_gate / backend.dt), name="cz_pulse", numerical_args=args
+        )
+        sched += pulse.Play(cz_gate, control_channels[0])
+
+    return sched
+
+
+def measure(
+    backend: "OpenPulseBackend",
+    qubits: Iterable,
+    device_properties: "DeviceCalibrationV2",
+) -> pulse.ScheduleBlock:
     """Creates a measurement on the list of qubits in the given backend.
 
     It returns a backend-specific schedule which implements
@@ -102,20 +209,19 @@ def measure(backend: "OpenPulseBackend", qubits: Iterable) -> pulse.ScheduleBloc
     Returns:
         qiskit.pulse.ScheduleBlock: the schedule implementing the measurement
     """
-    device_properties = backend.device_properties
-    readout_resonator_props = device_properties.get("readout_resonator")
+    readout_resonator_props = device_properties.resonators
 
     sched = pulse.ScheduleBlock(name=f"Measure({qubits})")
     for q in qubits:
         readout_resonator = readout_resonator_props[q]
         sched += pulse.SetFrequency(
-            readout_resonator.get("frequency"),
+            readout_resonator.frequency.value,
             channel=backend.measure_channel(q),
         )
         sched += pulse.Play(
             pulse.Constant(
-                amp=readout_resonator.get("pulse_amplitude"),
-                duration=round(readout_resonator.get("pulse_duration") / backend.dt),
+                amp=readout_resonator.pulse_amplitude.value,
+                duration=round(readout_resonator.pulse_duration.value / backend.dt),
                 name=f"Readout q{q}",
             ),
             channel=backend.measure_channel(q),
@@ -126,7 +232,7 @@ def measure(backend: "OpenPulseBackend", qubits: Iterable) -> pulse.ScheduleBloc
             name=f"Time of flight q{q}",
         )
         sched += pulse.Acquire(
-            duration=round(readout_resonator.get("acq_integration_time") / backend.dt),
+            duration=round(readout_resonator.acq_integration_time.value / backend.dt),
             channel=backend.acquire_channel(q),
             mem_slot=backend.memory_slot(q),
             name=f"Integration window q{q}",

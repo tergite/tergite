@@ -31,11 +31,7 @@ from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
 
 
-# cross compatibility with future qiskit version where deprecated packages are removed
-try:
-    from qiskit.qobj import PulseQobj, QasmQobj
-except ImportError:
-    from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
+from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
 
 if TYPE_CHECKING:
     from tergite.qiskit.providers.tergite import Provider

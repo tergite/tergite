@@ -19,7 +19,7 @@
 import functools
 import os
 import tempfile
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 
 import shutil
 import h5py
@@ -28,7 +28,12 @@ import requests
 from qiskit.providers.providerutils import filter_backends
 from qiskit.providers import JobV1
 
-from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackendConfig
+from .backend import (
+    OpenPulseBackend,
+    OpenQASMBackend,
+    TergiteBackendConfig,
+    DeviceCalibrationV2,
+)
 
 from .config import REST_API_MAP
 from .provider_account import ProviderAccount
@@ -36,11 +41,7 @@ from .job import Job
 
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
 
-# cross compatibility with future qiskit version where deprecated packages are removed
-try:
-    from qiskit.qobj import PulseQobj
-except ImportError:
-    from tergite.qiskit.deprecated.qobj import PulseQobj
+from tergite.qiskit.deprecated.qobj import PulseQobj
 
 
 class Provider:
@@ -102,6 +103,12 @@ class Provider:
             backends[obj.name] = obj
 
         return backends
+
+    def get_latest_calibration(self, backend_name=None) -> DeviceCalibrationV2:
+        """Get latest calibration data."""
+        # TODO: Consider making it update_calibration
+        # TODO: get many calibrations and filter lates by date (?)
+        return self._get_backend_calibration(backend_name=backend_name)
 
     def job(self, job_id: str) -> JobV1:
         """Retrieve a runtime job."""
@@ -172,7 +179,7 @@ class Provider:
     def _get_backend_configs(self) -> List[TergiteBackendConfig]:
         """Retrieves the backend configs from which to construct Backend objects"""
         parsed_data = []
-        url = f"{self.provider_account.url}{REST_API_MAP['backends']}"
+        url = f"{self.provider_account.url}{REST_API_MAP['devices']}"
 
         # reset malformed backends map
         self._malformed_backends.clear()
@@ -190,6 +197,38 @@ class Provider:
                 self._malformed_backends[record["name"]] = f"{exp}\n{exp.__traceback__}"
 
         return parsed_data
+
+    def _get_backend_calibration(self, backend_name: str = None) -> DeviceCalibrationV2:
+        """Retrieves the latest backend calibration data and returns Calibration objects"""
+        # Construct the URL for the calibrations endpoint
+        calibrations_url = (
+            f"{self.provider_account.url}{REST_API_MAP['calibrations']}/{backend_name}"
+        )
+
+        # Get authentication headers from the provider
+        headers = self.get_auth_headers()
+
+        # Make the GET request to the calibrations endpoint
+        response = requests.get(url=calibrations_url, headers=headers)
+
+        if not response.ok:
+            raise RuntimeError(
+                f"Failed to get device calibrations for '{backend_name}': "
+                f"{response.status_code} {response.text}"
+            )
+
+        # Parse the JSON response
+        data = response.json()
+
+        # Create a DeviceCalibrationV2 object from the response data
+        try:
+            device_calibration = DeviceCalibrationV2(**data)
+        except Exception as e:
+            raise ValueError(
+                f"Error parsing device calibration data for '{backend_name}': {e}"
+            ) from e
+
+        return device_calibration
 
     def get_auth_headers(self) -> Optional[Dict[str, str]]:
         """Retrieves the auth header for this provider.

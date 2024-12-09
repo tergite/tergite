@@ -39,7 +39,7 @@ class MockRequest:
 
 
 def get_request_list(requests_mocker) -> List[MockRequest]:
-    """Retrieves the list of requests from the requests_mocker
+    """Retrieves the list of requests from the requests_mocker.
 
     Args:
         requests_mocker: the Mock object from requests_mock
@@ -47,4 +47,5 @@ def get_request_list(requests_mocker) -> List[MockRequest]:
     Returns:
         the list of MockRequest made
     """
+
     return [MockRequest.load(v) for v in requests_mocker.request_history]

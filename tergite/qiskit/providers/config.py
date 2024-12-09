@@ -26,8 +26,8 @@ REST_API_MAP = {
     "jobs": "/jobs",
     "result": "/result",
     "download_url": "/download_url",
-    "calibrations": "/calibrations",
-    "backends": "/backends",
+    "devices": "/v2/devices",
+    "calibrations": "/v2/calibrations",
 }
 
 

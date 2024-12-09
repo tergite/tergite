@@ -14,10 +14,15 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Defines the backend types provided by Tergite."""
+
+from __future__ import annotations
+
 import dataclasses
 import functools
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from pydantic import BaseModel, Extra, root_validator
+
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -39,14 +44,8 @@ from qiskit.transpiler.coupling import CouplingMap
 
 from tergite.qiskit.providers import calibrations
 
-# cross compatibility with future qiskit version where deprecated packages are removed
-try:
-    from qiskit.compiler.assembler import assemble
-    from qiskit.qobj import PulseQobj, QasmQobj
-except ImportError:
-    from tergite.qiskit.deprecated.compiler.assembler import assemble
-    from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
-
+from tergite.qiskit.deprecated.compiler.assembler import assemble
+from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
 
 from .config import REST_API_MAP
 from .job import Job
@@ -263,6 +262,7 @@ class OpenPulseBackend(TergiteBackend):
         "sech_deriv",
         "gaussian_square",
         "drag",
+        "wacqt_cz_gate_pulse",
     ]
 
     def configuration(self) -> BackendConfiguration:
@@ -295,21 +295,19 @@ class OpenPulseBackend(TergiteBackend):
     def dtm(self) -> float:
         return self.data["dtm"]
 
-    @functools.cached_property
+    @property
     def target(self) -> Target:
+        device_properties = self.provider.get_latest_calibration(backend_name=self.name)
         gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
         if self.data["characterized"]:
             calibrations.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data["num_qubits"])),
+                couplers=tuple(self.data["coupling_map"]),
                 target=gmap,
+                device_properties=device_properties,
             )
         return gmap
-
-    @functools.cached_property
-    def device_properties(self) -> dict:
-        """the collection of properties specific to this backend"""
-        return self.data["device_properties"]
 
     @property
     def qubit_lo_freq(self) -> list:
@@ -331,11 +329,16 @@ class OpenPulseBackend(TergiteBackend):
     def memory_slot(self, qubit_idx: int) -> MemorySlot:
         return MemorySlot(qubit_idx)
 
-    def control_channel(self, qubits: list) -> list:
-        if qubits not in self.coupling_map.get_edges():
+    def control_channel(self, qubits):
+        """Return the control channel for the given qubits."""
+        if qubits in self.data["bidirectional_int_coupling_dict"]:
+            return [
+                pulse.ControlChannel(
+                    self.data["bidirectional_int_coupling_dict"][qubits]
+                )
+            ]
+        else:
             raise ValueError(f"Coupling {qubits} not in coupling map.")
-
-        return list(map(ControlChannel, qubits))
 
     def make_qobj(self, experiments: object, /, **kwargs) -> PulseQobj:
         if type(experiments) is not list:
@@ -349,7 +352,6 @@ class OpenPulseBackend(TergiteBackend):
             else experiment  # already a schedule, so don't convert
             for experiment in experiments
         ]
-
         # assemble schedules to PulseQobj
         with warnings.catch_warnings():
             # The method assemble is deprecated
@@ -383,6 +385,7 @@ class OpenQASMBackend(TergiteBackend):
         )
         gmap.add_instruction(circuit.Delay(circuit.Parameter("tau")))
         gmap.add_instruction(circuit.measure.Measure())
+        gmap.add_instruction(circuit.library.CZGate())
 
         return gmap
 
@@ -432,16 +435,28 @@ class OpenQASMBackend(TergiteBackend):
 
 @dataclasses.dataclass
 class TergiteBackendConfig:
-    """Basic structure of the config of a backend"""
+    """Version 2 of the TergiteBackendConfig dataclass"""
 
+    # Fields without default values
     name: str
+    version: str
+    number_of_qubits: int
+    is_online: bool
+    basis_gates: List[str]
+    coupling_map: List[Tuple[int, int]]
+    coordinates: List[Tuple[int, int]]
+    is_simulator: bool
+    coupling_dict: Dict[str, Union[str, List[str]]]
     characterized: bool
     open_pulse: bool
-    timelog: Dict[str, Any]
-    version: str
     meas_map: List[List[int]]
-    coupling_map: List[Tuple[int, int]]
-    description: str = None
+
+    # Fields with default values
+    _id: Optional[str] = None
+    last_online: Optional[str] = None
+    description: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
     simulator: bool = False
     num_qubits: int = 0
     num_couplers: int = 0
@@ -449,83 +464,103 @@ class TergiteBackendConfig:
     online_date: Optional[str] = None
     dt: Optional[float] = None
     dtm: Optional[float] = None
-    qubit_ids: Dict[int, str] = dataclasses.field(default_factory=dict)
-    device_properties: Optional["_DeviceProperties"] = None
-    discriminators: Optional[Dict[str, Any]] = None
+    timelog: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    qubit_ids: List[str] = dataclasses.field(default_factory=list)
     meas_lo_freq: Optional[List[int]] = None
     qubit_lo_freq: Optional[List[int]] = None
-    qubit_calibrations: Optional[Dict[str, Any]] = None
-    coupler_calibrations: Optional[Dict[str, Any]] = None
-    resonator_calibrations: Optional[Dict[str, Any]] = None
     gates: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
-    # TODO: Remove immediately, just for testing
     properties: Optional[Dict[str, Any]] = None
+    bidirectional_int_coupling_dict: Optional[Dict[Tuple[int, int], int]] = None
 
     def __post_init__(self):
         """Run after initialization of the dataclass"""
-        # convert nested dataclasses to dataclasses
-        if isinstance(self.device_properties, dict):
-            self.device_properties = _DeviceProperties(**self.device_properties)
+        int_coupling_dict = {
+            int(k.strip("u")): tuple([int(qubit.strip("q")) for qubit in v])
+            for k, v in self.coupling_dict.items()
+        }
+
+        # reverse coupling map with key as tuple of qubits and value as control channel
+        reversed_int_coupling_dict = {v: k for k, v in int_coupling_dict.items()}
+
+        # add bidirectionality
+        self.bidirectional_int_coupling_dict = {
+            **reversed_int_coupling_dict,
+            **{tuple(reversed(k)): v for k, v in reversed_int_coupling_dict.items()},
+        }
 
 
-@dataclasses.dataclass
-class _DeviceProperties:
-    """All Device Properties"""
+class CalibrationValue(BaseModel, extra=Extra.allow):
+    """A calibration value"""
 
-    qubit: Optional[List["_QubitProps"]] = None
-    readout_resonator: Optional[List["_ReadoutResonatorProps"]] = None
-    coupler: Optional[List[Dict[str, Any]]] = None
-
-    def __post_init__(self):
-        """Run after initialization of the dataclass"""
-        # convert nested dataclasses to dataclasses
-        if isinstance(self.qubit, list):
-            self.qubit = [
-                _QubitProps(**item) for item in self.qubit if isinstance(item, dict)
-            ]
-
-        if isinstance(self.readout_resonator, list):
-            self.readout_resonator = [
-                _ReadoutResonatorProps(**item)
-                for item in self.readout_resonator
-                if isinstance(item, dict)
-            ]
+    value: Union[float, str, int]
+    date: Optional[str] = None
+    unit: str = ""
 
 
-@dataclasses.dataclass
-class _ReadoutResonatorProps:
-    """ReadoutResonator Device configuration"""
+class QubitCalibration(BaseModel, extra=Extra.allow):
+    """Schema for the calibration data of the qubit"""
 
-    acq_delay: float
-    acq_integration_time: float
-    frequency: int
-    pulse_amplitude: float
-    pulse_delay: float
-    pulse_duration: float
-    pulse_type: str
+    t1_decoherence: Optional[CalibrationValue] = None
+    t2_decoherence: Optional[CalibrationValue] = None
+    frequency: Optional[CalibrationValue] = None
+    anharmonicity: Optional[CalibrationValue] = None
+    readout_assignment_error: Optional[CalibrationValue] = None
+    # parameters for x gate
+    pi_pulse_amplitude: Optional[CalibrationValue] = None
+    pi_pulse_duration: Optional[CalibrationValue] = None
+    pulse_type: Optional[CalibrationValue] = None
+    pulse_sigma: Optional[CalibrationValue] = None
     id: Optional[int] = None
-    index: Optional[int] = None
-    x_position: Optional[int] = None
-    y_position: Optional[int] = None
-    readout_line: Optional[int] = None
-    lda_parameters: Optional[Dict[str, Any]] = None
+    index: Optional[CalibrationValue] = None
+    x_position: Optional[CalibrationValue] = None
+    y_position: Optional[CalibrationValue] = None
+    xy_drive_line: Optional[CalibrationValue] = None
+    z_drive_line: Optional[CalibrationValue] = None
 
 
-@dataclasses.dataclass
-class _QubitProps:
-    """Qubit Device configuration"""
+class ResonatorCalibration(BaseModel, extra=Extra.allow):
+    """Schema for the calibration data of the resonator"""
 
-    frequency: int
-    pi_pulse_amplitude: float
-    pi_pulse_duration: float
-    pulse_type: str
-    pulse_sigma: float
-    t1_decoherence: float
-    t2_decoherence: float
+    acq_delay: Optional[CalibrationValue] = None
+    acq_integration_time: Optional[CalibrationValue] = None
+    frequency: Optional[CalibrationValue] = None
+    pulse_amplitude: Optional[CalibrationValue] = None
+    pulse_delay: Optional[CalibrationValue] = None
+    pulse_duration: Optional[CalibrationValue] = None
+    pulse_type: Optional[CalibrationValue] = None
     id: Optional[int] = None
-    index: Optional[int] = None
-    x_position: Optional[int] = None
-    y_position: Optional[int] = None
-    xy_drive_line: Optional[int] = None
-    z_drive_line: Optional[int] = None
+    index: Optional[CalibrationValue] = None
+    x_position: Optional[CalibrationValue] = None
+    y_position: Optional[CalibrationValue] = None
+    readout_line: Optional[CalibrationValue] = None
+
+
+class CouplersCalibration(BaseModel, extra=Extra.allow):
+    """Schema for the calibration data of the coupler"""
+
+    frequency: Optional[CalibrationValue] = None
+    frequency_detuning: Optional[CalibrationValue] = None
+    anharmonicity: Optional[CalibrationValue] = None
+    coupling_strength_02: Optional[CalibrationValue] = None
+    coupling_strength_12: Optional[CalibrationValue] = None
+    cz_pulse_amplitude: Optional[CalibrationValue] = None
+    cz_pulse_dc_bias: Optional[CalibrationValue] = None
+    cz_pulse_phase_offset: Optional[CalibrationValue] = None
+    cz_pulse_duration_before: Optional[CalibrationValue] = None
+    cz_pulse_duration_rise: Optional[CalibrationValue] = None
+    cz_pulse_duration_constant: Optional[CalibrationValue] = None
+    pulse_type: Optional[CalibrationValue] = None
+    id: Optional[int] = None
+
+
+class DeviceCalibrationV2(BaseModel):
+    """Schema for the calibration data of a given device"""
+
+    name: str
+    version: str
+    qubits: List[QubitCalibration]
+    resonators: Optional[List[ResonatorCalibration]] = None
+    couplers: Optional[List[CouplersCalibration]] = None
+    discriminators: Optional[Dict[str, Any]] = None
+    last_calibrated: str

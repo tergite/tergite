@@ -10,10 +10,13 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 ### Added
 
 - Added the `job()` method to provider to retrieve job by job ID
+- Added functionality to get control channel index given qubit tuple
+- Added two qubit CZ gate functionality 
 
 ### Changed
 
 - Upgraded Qiskit version to 1.0+ 
+- Use MSS v2 endpoints for backend and calibration data
 
 ## [2024.09.1] - 2024-09-26
 
