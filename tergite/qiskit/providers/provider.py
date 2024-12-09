@@ -222,7 +222,7 @@ class Provider:
     #
     # This code is part of Tergite
     #
-    # (C) Adilet Tuleuov 2024
+    # (C) Chalmers Next Labs (2024)
     #
     # This code is licensed under the Apache License, Version 2.0. You may
     # obtain a copy of this license in the LICENSE.txt file in the root directory

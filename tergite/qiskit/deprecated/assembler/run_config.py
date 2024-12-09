@@ -12,7 +12,7 @@
 #
 # This code is part of Tergite
 #
-# (C) Adilet Tuleuov 2024
+# (C) Chalmers Next Labs (2024)
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,9 +23,8 @@
 # that they have been altered from the originals.
 #
 # ---------------- ALTERATION NOTICE ---------------- #
-# This code was modified on September 23, 2023 by Adilet Tuleuov
-# Import statements were adjusted to isolate deprecated packages from qiskit package.
-# The reason is to suppport existing functionality that is to be removed from qiskit package.
+# This code was modified from the original by:
+# Chalmers Next Labs 2024
 
 """Models for RunConfig and its related components."""
 
