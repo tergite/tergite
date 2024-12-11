@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2024.12.0] - 2024-12-11
+
 ### Added
 
 - Added the `job()` method to provider to retrieve job by job ID
@@ -15,7 +17,7 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ### Changed
 
-- Upgraded Qiskit version to 1.0+ 
+- Upgraded Qiskit version to 1.0+, <1.3
 - Use MSS v2 endpoints for backend and calibration data
 
 ## [2024.09.1] - 2024-09-26
