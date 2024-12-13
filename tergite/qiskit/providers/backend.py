@@ -21,7 +21,7 @@ import dataclasses
 import functools
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
-from pydantic import BaseModel, Extra, root_validator
+from pydantic import BaseModel, Extra
 
 
 import qiskit.circuit as circuit
@@ -34,7 +34,6 @@ from qiskit.providers import BackendV2, Options
 from qiskit_ibm_runtime.models import BackendConfiguration
 from qiskit.pulse.channels import (
     AcquireChannel,
-    ControlChannel,
     DriveChannel,
     MeasureChannel,
     MemorySlot,
@@ -297,13 +296,14 @@ class OpenPulseBackend(TergiteBackend):
 
     @property
     def target(self) -> Target:
-        device_properties = self.provider.get_latest_calibration(backend_name=self.name)
+        provider: "TergiteProvider" = self.provider
+        device_properties = provider.get_latest_calibration(backend_name=self.name)
         gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
         if self.data["characterized"]:
             calibrations.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data["num_qubits"])),
-                couplers=tuple(self.data["coupling_map"]),
+                coupled_qubit_idxs=tuple(self.data["coupling_map"]),
                 target=gmap,
                 device_properties=device_properties,
             )
@@ -331,13 +331,10 @@ class OpenPulseBackend(TergiteBackend):
 
     def control_channel(self, qubits):
         """Return the control channel for the given qubits."""
-        if qubits in self.data["bidirectional_int_coupling_dict"]:
-            return [
-                pulse.ControlChannel(
-                    self.data["bidirectional_int_coupling_dict"][qubits]
-                )
-            ]
-        else:
+        try:
+            pulse_channel = self.data["qubit_ids_coupler_dict"][qubits]
+            return [pulse.ControlChannel(pulse_channel)]
+        except KeyError:
             raise ValueError(f"Coupling {qubits} not in coupling map.")
 
     def make_qobj(self, experiments: object, /, **kwargs) -> PulseQobj:
@@ -446,7 +443,6 @@ class TergiteBackendConfig:
     coupling_map: List[Tuple[int, int]]
     coordinates: List[Tuple[int, int]]
     is_simulator: bool
-    coupling_dict: Dict[str, Union[str, List[str]]]
     characterized: bool
     open_pulse: bool
     meas_map: List[List[int]]
@@ -465,28 +461,26 @@ class TergiteBackendConfig:
     dt: Optional[float] = None
     dtm: Optional[float] = None
     timelog: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    coupling_dict: Dict[str, Tuple[str, str]] = dataclasses.field(default_factory=dict)
+    qubit_ids_coupler_dict: Dict[Tuple[int, int], int] = dataclasses.field(
+        default_factory=dict
+    )
+    qubit_ids_coupler_map: List[Tuple[Tuple[int, int], int]] = dataclasses.field(
+        default_factory=list
+    )
     qubit_ids: List[str] = dataclasses.field(default_factory=list)
     meas_lo_freq: Optional[List[int]] = None
     qubit_lo_freq: Optional[List[int]] = None
     gates: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
     properties: Optional[Dict[str, Any]] = None
-    bidirectional_int_coupling_dict: Optional[Dict[Tuple[int, int], int]] = None
 
     def __post_init__(self):
         """Run after initialization of the dataclass"""
-        int_coupling_dict = {
-            int(k.strip("u")): tuple([int(qubit.strip("q")) for qubit in v])
-            for k, v in self.coupling_dict.items()
-        }
-
-        # reverse coupling map with key as tuple of qubits and value as control channel
-        reversed_int_coupling_dict = {v: k for k, v in int_coupling_dict.items()}
-
-        # add bidirectionality
-        self.bidirectional_int_coupling_dict = {
-            **reversed_int_coupling_dict,
-            **{tuple(reversed(k)): v for k, v in reversed_int_coupling_dict.items()},
+        # qubits_coupler_map is a list of key,value tuples for the qubit_ids_coupler_dict
+        # It is so because a dict with tuples as keys is not JSON serializable
+        self.qubit_ids_coupler_dict = {
+            tuple(k): v for (k, v) in self.qubit_ids_coupler_map
         }
 
 

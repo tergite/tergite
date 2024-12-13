@@ -7,7 +7,7 @@
     "basis_gates":[], 
     "coordinates":[], 
     "is_simulator":false, 
-    "coupling_dict":{"u0":["q16", "q17"], "u1":["q16", "q18"]}, 
+    "coupling_dict":{"u0":["q16", "q17"], "u1":["q16", "q18"]},
     "characterized": true,
     "open_pulse": true,
     "simulator": false,
@@ -30,14 +30,16 @@
       "q25"
     ],
     "coupling_map": [
-      [
-        0,
-        1
-      ],
-      [
-        0,
-        2
-      ]
+      [0, 1],
+      [0, 2],
+      [1, 0],
+      [2, 0]
+    ],
+    "qubit_ids_coupler_map": [
+      [[16, 17], 0],
+      [[16, 18], 1],
+      [[17, 16], 0],
+      [[18, 16], 1]
     ],
     "meas_map": [
       [

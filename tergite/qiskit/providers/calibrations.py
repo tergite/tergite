@@ -54,7 +54,7 @@ def add_instructions(
     *,
     backend: "OpenPulseBackend",
     qubits: tuple,
-    couplers: tuple,
+    coupled_qubit_idxs: tuple,
     target: Target,
     device_properties: "DeviceCalibrationV2"
 ):
@@ -68,8 +68,9 @@ def add_instructions(
             :class:`~tergite.providers.tergite.backend:TergiteBackend`
             for which to add the instructions
         qubits: a tuple of qubits on which the instruction is to be run
-        couplers: a tuple of couplers for two-qubit operations
+        coupled_qubit_idxs: a tuple of tuples of qubit indexes that are coupled
         target: the target on which the instruction is to be added
+        device_properties: the dynamic device parameters of the device
     """
     # TODO: Fetch error statistics of gates from database
 
@@ -134,18 +135,18 @@ def add_instructions(
     }
     target.add_instruction(measure_instruction, measure_props)
 
-    if couplers:
+    if coupled_qubit_idxs:
         cz_props = {
-            (control_qubit, target_qubit): InstructionProperties(
+            (control_qubit_idx, target_qubit_idx): InstructionProperties(
                 error=0.0,
                 calibration=templates.cz(
                     backend,
-                    control_qubits=[control_qubit],
-                    target_qubits=[target_qubit],
+                    control_qubit_idxs=[control_qubit_idx],
+                    target_qubit_idxs=[target_qubit_idx],
                     device_properties=device_properties,
                 ),
             )
-            for control_qubit, target_qubit in couplers
+            for control_qubit_idx, target_qubit_idx in coupled_qubit_idxs
         }
 
         target.add_instruction(circuit.library.CZGate(), cz_props)
