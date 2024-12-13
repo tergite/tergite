@@ -131,32 +131,36 @@ def wacqt_cz_gate(duration, name, numerical_args):
 
 def cz(
     backend: "OpenPulseBackend",
-    control_qubits: Iterable,
-    target_qubits: Iterable,
+    control_qubit_idxs: Iterable,
+    target_qubit_idxs: Iterable,
     device_properties: "DeviceCalibrationV2",
 ) -> pulse.ScheduleBlock:
     """Two qubit CNOT gate building block. TODO: Add doc comment."""
-    qubit_props = device_properties.qubits
-    coupler_props = device_properties.couplers
-
+    # FIXME: Why choose to pass control_qubits and target_qubits as Iterables yet
+    #    when being called, only as single value is passed
     sched = pulse.ScheduleBlock(
-        name=f"CZ(θ, control={control_qubits}, target={target_qubits})"
+        name=f"CZ(θ, control={control_qubit_idxs}, target={target_qubit_idxs})"
     )
 
-    for control_qubit, target_qubit in zip(control_qubits, target_qubits):
-        control_props = qubit_props[control_qubit]
-        target_props = qubit_props[target_qubit]
+    for control_qubit_idx, target_qubit_idx in zip(
+        control_qubit_idxs, target_qubit_idxs
+    ):
+        control_qubit = device_properties.qubits[control_qubit_idx]
+        target_qubit = device_properties.qubits[target_qubit_idx]
 
         # Get control channels between control and target qubits
-        control_channels = backend.control_channel((control_props.id, target_props.id))
 
-        c_props = [x for x in coupler_props if x.id == control_channels[0].index]
+        control_channels = backend.control_channel((control_qubit.id, target_qubit.id))
+
+        c_props = [
+            x for x in device_properties.couplers if x.id == control_channels[0].index
+        ]
         c_props = c_props[0] if c_props else None
 
         # TODO: raise error if c_props is none
 
-        f1 = min(target_props.frequency.value, control_props.frequency.value)
-        f0 = max(target_props.frequency.value, control_props.frequency.value)
+        f1 = min(target_qubit.frequency.value, control_qubit.frequency.value)
+        f0 = max(target_qubit.frequency.value, control_qubit.frequency.value)
 
         alpha0 = c_props.anharmonicity.value
 
