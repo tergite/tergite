@@ -10,12 +10,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """tests for the running of qiskit circuits on the tergite backend"""
-import io
 import json
 import uuid
 from collections import Counter
+from typing import List
 
-import h5py
 import numpy as np
 import pytest
 from qiskit import QuantumCircuit, circuit, compiler, pulse
@@ -36,42 +35,26 @@ from tests.conftest import (
     API_TOKEN,
     API_URL,
     BACKENDS_LIST,
-    GOOD_BACKEND,
     INVALID_API_TOKENS,
     NUMBER_OF_SHOTS,
     QUANTUM_COMPUTER_URL,
     TEST_JOB_ID,
     TEST_JOB_RESULTS,
+    GOOD_BACKENDS,
 )
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 from tests.utils.quantum_circuits import remove_idle_qubits
 
-
-_CALIBRATION_REQ = MockRequest(
-    url="https://api.tergite.example/v2/calibrations/Well-formed", method="GET"
-)
-# Create the list of mock requests
-_EXPECTED_MOCK_REQUESTS = [
-    *[_CALIBRATION_REQ for _ in range(6)],
-    MockRequest(
-        url="https://api.tergite.example/jobs?backend=Well-formed", method="POST"
-    ),
-    *[_CALIBRATION_REQ for _ in range(6)],
-    MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
-    MockRequest(
-        url="https://api.tergite.example/jobs/test_job_id", method="GET", has_text=False
-    ),
-    MockRequest(
-        url="https://api.tergite.example/jobs/test_job_id", method="GET", has_text=False
-    ),
-    MockRequest(url="http://loke.tergite.example/test_file.hdf5", method="GET"),
+_INVALID_PARAMS = [
+    (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS
 ]
 
 
-def test_transpile(api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_transpile(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits"""
-    backend = _get_backend()
+    backend = _get_backend(name=backend_name)
     qc = _get_test_qiskit_circuit()
     expected = _get_expected_transpiled_circuit()
 
@@ -88,9 +71,10 @@ def test_transpile(api):
     ), "Transpiled circuit does not match expected result."
 
 
-def test_run(api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_run(api, backend_name):
     """backend.run returns a registered job"""
-    backend = _get_backend()
+    backend = _get_backend(backend_name)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_transpiled_circuit()
     qobj_id = str(uuid.uuid4())
@@ -100,14 +84,16 @@ def test_run(api):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(backend_name)[:14]
 
     assert got == expected
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:14]
+    assert requests_made == expected_requests
 
 
-def test_run_bearer_auth(bearer_auth_api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_run_bearer_auth(bearer_auth_api, backend_name):
     """backend.run returns a registered job for API behind bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_transpiled_circuit()
     qobj_id = str(uuid.uuid4())
@@ -117,15 +103,16 @@ def test_run_bearer_auth(bearer_auth_api):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(backend_name)[:14]
 
     assert got == expected
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[:14]
+    assert requests_made == expected_requests
 
 
-@pytest.mark.parametrize("token", INVALID_API_TOKENS)
-def test_run_invalid_bearer_auth(token, bearer_auth_api):
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """backend.run with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
-    backend = _get_backend(token=token)
+    backend = _get_backend(backend_name, token=token)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_transpiled_circuit()
     qobj_id = str(uuid.uuid4())
@@ -134,12 +121,15 @@ def test_run_invalid_bearer_auth(token, bearer_auth_api):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:7]
+    expected_requests = _get_all_mock_requests(backend_name)[6:7]
+
+    assert requests_made == expected_requests
 
 
-def test_job_result(api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_result(api, backend_name):
     """job.result() returns a successful job's results"""
-    backend = _get_backend()
+    backend = _get_backend(backend_name)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
@@ -147,29 +137,32 @@ def test_job_result(api):
 
     got = job.result()
     requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:16]
 
     assert got.to_dict() == expected.to_dict()
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
+    assert requests_made == expected_requests
 
 
-def test_job_result_bearer_auth(bearer_auth_api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     """job.result() returns a successful job's results for API behind bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     expected = _get_expected_job_result(backend=backend, job=job)
     got = job.result()
     requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:16]
 
     assert got.to_dict() == expected.to_dict()
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
+    assert requests_made == expected_requests
 
 
-@pytest.mark.parametrize("token", INVALID_API_TOKENS)
-def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
@@ -182,39 +175,45 @@ def test_job_result_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.result()
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+
+    assert requests_made == expected_requests
 
 
-def test_job_status(api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_status(api, backend_name):
     """job.status() returns a successful job's status"""
-    backend = _get_backend()
+    backend = _get_backend(backend_name)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
     requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:15]
 
     assert got == JobStatus.DONE
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
+    assert requests_made == expected_requests
 
 
-def test_job_status_bearer_auth(bearer_auth_api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     """job.status() returns a successful job's status for API behind bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
     requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:15]
 
     assert got == JobStatus.DONE
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
+    assert requests_made == expected_requests
 
 
-@pytest.mark.parametrize("token", INVALID_API_TOKENS)
-def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
@@ -227,39 +226,45 @@ def test_job_status_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.status()
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+
+    assert requests_made == expected_requests
 
 
-def test_job_download_url(api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_download_url(api, backend_name):
     """job.download_url returns a successful job's download_url"""
-    backend = _get_backend()
+    backend = _get_backend(backend_name)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
     requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:16]
 
     assert got == TEST_JOB_RESULTS["download_url"]
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
+    assert requests_made == expected_requests
 
 
-def test_job_download_url_bearer_auth(bearer_auth_api):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
     requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:16]
 
     assert got == TEST_JOB_RESULTS["download_url"]
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:16]
+    assert requests_made == expected_requests
 
 
-@pytest.mark.parametrize("token", INVALID_API_TOKENS)
-def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
@@ -272,46 +277,51 @@ def test_job_download_url_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.download_url
 
     requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:15]
 
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
+    assert requests_made == expected_requests
 
 
-def test_job_logfile(api, tmp_results_file):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_logfile(api, backend_name, tmp_results_file):
     """job.logfile downloads a job's data to tmp"""
-    backend = _get_backend()
+    backend = _get_backend(backend_name)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
     requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:17]
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:17]
+    assert requests_made == expected_requests
 
 
-def test_job_logfile_bearer_auth(bearer_auth_api, tmp_results_file):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file):
     """job.logfile downloads a successful job's results for API behind bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
     requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(backend_name)[6:17]
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
 
     assert got == TEST_JOB_RESULTS
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:17]
+    assert requests_made == expected_requests
 
 
-@pytest.mark.parametrize("token", INVALID_API_TOKENS)
-def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
-    backend = _get_backend(token=API_TOKEN)
+    backend = _get_backend(backend_name, token=API_TOKEN)
     tc = _get_expected_transpiled_circuit()
     job = backend.run(tc, meas_level=2)
 
@@ -324,20 +334,23 @@ def test_job_logfile_invalid_bearer_auth(token, bearer_auth_api):
         _ = job.logfile
 
     requests_made = get_request_list(bearer_auth_api)
-    assert requests_made == _EXPECTED_MOCK_REQUESTS[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+
+    assert requests_made == expected_requests
 
 
-def test_provider_job(api_with_logfile, token: str = None):
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_provider_job(api_with_logfile, backend_name, token: str = None):
     """Test that Provider.job returns the correct Job object."""
 
     # create a job the usual way
-    backend = _get_backend()
+    backend = _get_backend(backend_name)
     transpiled_circuit = _get_expected_transpiled_circuit()
     job = backend.run(transpiled_circuit, meas_level=2)
     job_id = job.job_id()
 
     # retrieve job from provider
-    account = ProviderAccount(service_name="test", url=API_URL, token=token)
+    account = ProviderAccount(service_name=f"test", url=API_URL, token=token)
     provider = Tergite.use_provider_account(account)
     retrieved_job = provider.job(job_id)
 
@@ -451,11 +464,54 @@ def _get_expected_transpiled_circuit():
     return qc
 
 
-def _get_backend(token: str = None):
+def _get_backend(name: str, token: str = None):
     """Retrieves the right backend"""
     account = ProviderAccount(service_name="test", url=API_URL, token=token)
     provider = Tergite.use_provider_account(account)
-    expected_json = get_record(BACKENDS_LIST, _filter={"name": GOOD_BACKEND})
+    expected_json = get_record(BACKENDS_LIST, _filter={"name": name})
     return OpenPulseBackend(
         data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
     )
+
+
+def _get_all_mock_requests(backend_name: str) -> List[MockRequest]:
+    """Generates all the possible mock requests for a given backend
+
+    Args:
+        backend_name: the name of the backend
+
+    Returns:
+        The list of all MockRequests for the given backend name
+    """
+    return [
+        *[
+            MockRequest(
+                url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+                method="GET",
+            )
+            for _ in range(6)
+        ],
+        MockRequest(
+            url=f"https://api.tergite.example/jobs?backend={backend_name}",
+            method="POST",
+        ),
+        *[
+            MockRequest(
+                url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+                method="GET",
+            )
+            for _ in range(6)
+        ],
+        MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
+        MockRequest(
+            url="https://api.tergite.example/jobs/test_job_id",
+            method="GET",
+            has_text=False,
+        ),
+        MockRequest(
+            url="https://api.tergite.example/jobs/test_job_id",
+            method="GET",
+            has_text=False,
+        ),
+        MockRequest(url="http://loke.tergite.example/test_file.hdf5", method="GET"),
+    ]

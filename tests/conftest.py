@@ -11,11 +11,16 @@
 # that they have been altered from the originals.
 import json
 import io
+import re
+from typing import Dict, Any
+
 import h5py
 from pathlib import Path
 from tempfile import gettempdir
 
 import pytest
+import requests_mock as rq_mock
+from requests import Request
 
 from tests.utils.fixtures import load_json_fixture
 from tergite.qiskit.providers.serialization import IQXJsonEncoder as PulseQobj_encoder
@@ -35,7 +40,7 @@ _TEST_RESULTS_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
 _TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
-_TEST_CALIBRATION_URL = f"{API_URL}/v2/calibrations/Well-formed"
+_CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/v2/calibrations/([\w-]+)")
 
 TEST_JOB_RESULTS = {
     "status": "DONE",
@@ -47,14 +52,14 @@ TEST_JOB_RESULTS = {
     },
 }
 RAW_TEST_JOB_RESULTS = json.dumps(TEST_JOB_RESULTS).encode("utf-8")
-GOOD_BACKEND = "Well-formed"
+GOOD_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_1q", "qiskit_pulse_2q"]
 MALFORMED_BACKEND = "Malformed"
 INVALID_API_TOKENS = ["foo", "bar", "mayo", "API_USERNAME"]
 
 _TEST_LOGFILE_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_logfile.hdf5"
 TEST_JOB_RESULTS_LOGFILE = {
     "job_id": TEST_JOB_ID,
-    "backend": GOOD_BACKEND,
+    "backend": GOOD_BACKENDS[0],
     "status": "DONE",
     "download_url": _TEST_LOGFILE_DOWNLOAD_PATH,
     "result": {
@@ -63,7 +68,8 @@ TEST_JOB_RESULTS_LOGFILE = {
         ],
     },
 }
-TEST_CALIBRATION_RESULTS = load_json_fixture("calibrations_v2.json")
+_CALIBRATIONS_V2 = load_json_fixture("calibrations_v2.json")
+TEST_CALIBRATIONS_MAP = {item["name"]: {**item} for item in _CALIBRATIONS_V2}
 
 
 @pytest.fixture
@@ -81,7 +87,7 @@ def api(requests_mock):
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH, headers={}, content=RAW_TEST_JOB_RESULTS
     )
-    requests_mock.get(_TEST_CALIBRATION_URL, headers={}, json=TEST_CALIBRATION_RESULTS)
+    requests_mock.get(_CALIBRATIONS_REGEX, headers={}, json=_mock_calibrations_handler)
     yield requests_mock
 
 
@@ -130,9 +136,9 @@ def bearer_auth_api(requests_mock):
 
     # # Add the missing mock for the calibration request
     requests_mock.get(
-        _TEST_CALIBRATION_URL,
+        _CALIBRATIONS_REGEX,
         request_headers=request_headers,
-        json=TEST_CALIBRATION_RESULTS,
+        json=_mock_calibrations_handler,
     )
     yield requests_mock
 
@@ -174,7 +180,7 @@ def api_with_logfile(requests_mock, hdf5_content):
     requests_mock.get(_TEST_LOGFILE_DOWNLOAD_PATH, headers={}, content=hdf5_content)
 
     # # Add the mock for the calibration request
-    requests_mock.get(_TEST_CALIBRATION_URL, json=TEST_CALIBRATION_RESULTS)
+    requests_mock.get(_CALIBRATIONS_REGEX, json=_mock_calibrations_handler)
     yield requests_mock
 
 
@@ -209,3 +215,22 @@ def _without_headers(headers):
         return False
 
     return matcher
+
+
+def _mock_calibrations_handler(request: Request, context: Any) -> Dict[str, Any]:
+    """Mock API handler for v2/calibrations/{name} endpoint
+
+    Args:
+        request: the request caught
+        context: the object with the extra context passed when creating mock e.g. headers
+
+    Returns:
+        the JSON data in dict form to be returned on the given endpoint
+    """
+    matcher = _CALIBRATIONS_REGEX.match(request.url)
+    try:
+        backend_name = matcher.group(1)
+        data = TEST_CALIBRATIONS_MAP[backend_name]
+        return {**data}
+    except (AttributeError, KeyError):
+        raise rq_mock.NoMockAddress(request)

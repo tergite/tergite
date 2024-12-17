@@ -18,11 +18,12 @@
 
 - Bearer token authentication
 - Integration/unit test suite plus CI/CD pipeline configurations
+- Implementation of the CZ gate
 
 ## Adilet Tuleuov
 
-- CZ gate template schedule
+- Implementation of the CZ gate
 
 ## Pontus Vikstål
 
-- CZ gate template schedule
+- Implementation of the CZ gate

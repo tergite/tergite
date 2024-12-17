@@ -2,12 +2,12 @@
   {
     "name": "Well-formed",
     "is_active": true,
-    "number_of_qubits":10,
-    "is_online":true,
-    "basis_gates":[], 
-    "coordinates":[], 
-    "is_simulator":false, 
-    "coupling_dict":{"u0":["q16", "q17"], "u1":["q16", "q18"]},
+    "number_of_qubits": 10,
+    "is_online": true,
+    "basis_gates": [],
+    "coordinates": [],
+    "is_simulator": false,
+    "coupling_dict": { "u0": ["q16", "q17"], "u1": ["q16", "q18"] },
     "characterized": true,
     "open_pulse": true,
     "simulator": false,
@@ -41,39 +41,20 @@
       [[17, 16], 0],
       [[18, 16], 1]
     ],
-    "meas_map": [
-      [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9
-      ]
-    ],
+    "meas_map": [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]],
     "gates": {
       "u": {
-        "qubits": [
-          0
-        ],
+        "qubits": [0],
         "qasm_def": "gate id q { U(0, 0, 0) q; }",
         "parameters": []
       },
       "h": {
-        "qubits": [
-          0
-        ],
+        "qubits": [0],
         "qasm_def": "gate id q { U(0, 0, 0) q; }",
         "parameters": []
       },
       "x": {
-        "qubits": [
-          0
-        ],
+        "qubits": [0],
         "qasm_def": "gate id q { U(0, 0, 0) q; }",
         "parameters": []
       }
@@ -92,96 +73,34 @@
     "timelog": {
       "REGISTERED": "2023-05-23T11:06:05.686Z"
     },
-    "number_of_qubits":10,
-    "is_online":true,
-    "basis_gates":[], 
-    "coordinates":[], 
-    "is_simulator":false, 
-    "coupling_dict":{"u0":["q16", "q17"], "u1":["q17", "q16"]}, 
+    "number_of_qubits": 10,
+    "is_online": true,
+    "basis_gates": [],
+    "coordinates": [],
+    "is_simulator": false,
+    "coupling_dict": { "u0": ["q16", "q17"], "u1": ["q17", "q16"] },
     "num_resonators": 12,
     "dt": 1e-9,
     "dtm": 1e-9,
     "coupling_map": [
-      [
-        0,
-        1
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        1,
-        2
-      ],
-      [
-        2,
-        1
-      ],
-      [
-        2,
-        3
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        3,
-        4
-      ],
-      [
-        4,
-        3
-      ]
+      [0, 1],
+      [1, 0],
+      [1, 2],
+      [2, 1],
+      [2, 3],
+      [3, 2],
+      [3, 4],
+      [4, 3]
     ],
-    "meas_map": [
-      [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11
-      ]
-    ],
-    "qubit_ids": [
-      "q0",
-      "q1"
-    ],
+    "meas_map": [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
+    "qubit_ids": ["q0", "q1"],
     "meas_lo_freq": [
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000,
-      6765250000
+      6765250000, 6765250000, 6765250000, 6765250000, 6765250000, 6765250000,
+      6765250000, 6765250000, 6765250000, 6765250000, 6765250000, 6765250000
     ],
     "qubit_lo_freq": [
-      3828060000,
-      3384090000,
-      3966040000,
-      3332940000,
-      4061610000,
-      3828060000,
-      3384090000,
-      3966040000,
-      3332940000,
-      4061610000,
-      3332940000,
-      4061610000
+      3828060000, 3384090000, 3966040000, 3332940000, 4061610000, 3828060000,
+      3384090000, 3966040000, 3332940000, 4061610000, 3332940000, 4061610000
     ]
   },
   {
@@ -192,18 +111,9 @@
       "REGISTERED": "2023-05-23T11:06:05.686Z"
     },
     "coupling_map": [
-      [
-        0,
-        0
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        0
-      ]
+      [0, 0],
+      [1, 0],
+      [2, 0]
     ],
     "open_pulse": false,
     "characterized": false
@@ -215,38 +125,193 @@
       "REGISTERED": "2023-05-23T11:06:05.686Z"
     },
     "coupling_map": [
-      [
-        0,
-        0
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        0
-      ],
-      [
-        3,
-        0
-      ],
-      [
-        4,
-        0
-      ]
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [4, 0]
     ],
-    "meas_map": [
-      [
-        0,
-        1,
-        2,
-        3,
-        4
-      ]
-    ],
+    "meas_map": [[0, 1, 2, 3, 4]],
     "open_pulse": false,
     "version": "2022.10.25",
     "characterized": false
+  },
+  {
+    "name": "qiskit_pulse_1q",
+    "basis_gates": ["x"],
+    "coordinates": [[0, 0]],
+    "coupling_map": [[0, 0]],
+    "created_at": "2024-09-20T11:46:24.984Z",
+    "is_online": true,
+    "is_simulator": true,
+    "number_of_qubits": 1,
+    "updated_at": "2024-12-16T14:12:29.494Z",
+    "version": "1.0.0",
+    "characterized": true,
+    "coupling_dict": {},
+    "description": "A single transmon Hamiltonian with 4 levels",
+    "dt": 1e-9,
+    "dtm": 1e-9,
+    "gates": {
+      "x": {
+        "qasm_def": "gate x q { U(pi, 0, pi) q; }",
+        "parameters": [],
+        "coupling_map": [[0]]
+      }
+    },
+    "is_active": true,
+    "meas_map": [[0]],
+    "num_couplers": 0,
+    "num_qubits": 1,
+    "num_resonators": 1,
+    "online_date": "2024-09-11T18:07:31",
+    "open_pulse": true,
+    "qubit_ids": ["q0"],
+    "simulator": true,
+    "timelog": {},
+    "qubit_ids_coupler_map": []
+  },
+  {
+    "name": "qiskit_pulse_2q",
+    "basis_gates": ["x"],
+    "characterized": true,
+    "coordinates": [
+      [0, 0],
+      [1, 0]
+    ],
+    "coupling_dict": {
+      "u0": ["q0", "q1"]
+    },
+    "coupling_map": [
+      [0, 1],
+      [1, 0]
+    ],
+    "created_at": "2024-12-10T15:33:32.516Z",
+    "description": "A two-qubit transmon Hamiltonian with 4 levels per qubit",
+    "dt": 1e-11,
+    "dtm": 1e-11,
+    "gates": {
+      "x": {
+        "coupling_map": [
+          [0, 1],
+          [1, 0]
+        ],
+        "qasm_def": "gate x q { U(pi, 0, pi) q; }",
+        "parameters": []
+      }
+    },
+    "is_active": true,
+    "is_online": true,
+    "is_simulator": true,
+    "meas_map": [[0], [1]],
+    "num_couplers": 1,
+    "num_qubits": 2,
+    "num_resonators": 2,
+    "number_of_qubits": 2,
+    "online_date": "2024-10-09T00:00:00",
+    "open_pulse": true,
+    "qubit_ids": ["q0", "q1"],
+    "simulator": true,
+    "timelog": {},
+    "updated_at": "2024-12-16T14:12:55.692Z",
+    "version": "1.0.0",
+    "qubit_ids_coupler_map": [
+      [[0, 1], 0],
+      [[1, 0], 0]
+    ]
+  },
+  {
+    "name": "loke",
+    "basis_gates": ["u", "h", "x"],
+    "coordinates": [
+      [0, 0],
+      [2, 0],
+      [1, 1],
+      [0, 2],
+      [2, 2]
+    ],
+    "coupling_map": [
+      [0, 1],
+      [0, 3],
+      [0, 2],
+      [1, 2],
+      [1, 4],
+      [2, 3],
+      [2, 4],
+      [3, 4],
+      [1, 0],
+      [3, 0],
+      [2, 0],
+      [2, 1],
+      [4, 1],
+      [3, 2],
+      [4, 2],
+      [4, 3]
+    ],
+    "created_at": "2024-09-20T11:37:11.830Z",
+    "is_online": true,
+    "is_simulator": true,
+    "number_of_qubits": 5,
+    "updated_at": "2024-12-16T14:11:56.514Z",
+    "version": "2024.04.0",
+    "characterized": true,
+    "coupling_dict": {
+      "u0": ["q0", "q1"],
+      "u1": ["q0", "q3"],
+      "u2": ["q0", "q2"],
+      "u3": ["q1", "q2"],
+      "u4": ["q1", "q4"],
+      "u5": ["q2", "q3"],
+      "u6": ["q2", "q4"],
+      "u7": ["q3", "q4"]
+    },
+    "description": "Backend for the simulator supporting qiskit-connector parsing for the release 2024.3",
+    "dt": 1e-9,
+    "dtm": 1e-9,
+    "gates": {
+      "u": {
+        "qubits": [0],
+        "qasm_def": "gate id q { U(0, 0, 0) q; }",
+        "parameters": []
+      },
+      "h": {
+        "qubits": [0],
+        "qasm_def": "gate id q { U(0, 0, 0) q; }",
+        "parameters": []
+      },
+      "x": {
+        "qubits": [0],
+        "qasm_def": "gate id q { U(0, 0, 0) q; }",
+        "parameters": []
+      }
+    },
+    "is_active": true,
+    "meas_map": [[0, 1, 2, 3, 4]],
+    "num_couplers": 8,
+    "num_qubits": 5,
+    "num_resonators": 5,
+    "online_date": "2022-04-13T19:50:31",
+    "open_pulse": true,
+    "qubit_ids": ["q0", "q1", "q2", "q3", "q4"],
+    "simulator": true,
+    "timelog": {},
+    "qubit_ids_coupler_map": [
+      [[0, 1], 0],
+      [[0, 3], 1],
+      [[0, 2], 2],
+      [[1, 2], 3],
+      [[1, 4], 4],
+      [[2, 3], 5],
+      [[2, 4], 6],
+      [[3, 4], 7],
+      [[1, 0], 0],
+      [[3, 0], 1],
+      [[2, 0], 2],
+      [[2, 1], 3],
+      [[4, 1], 4],
+      [[3, 2], 5],
+      [[4, 2], 6],
+      [[4, 3], 7]
+    ]
   }
 ]

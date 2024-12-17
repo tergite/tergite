@@ -1,1027 +1,4156 @@
-{
-  "_id": {
-    "$oid": "674876885960b11e2c313ee7"
-  },
-  "name": "Well-formed",
-  "version": "1.0.0",
-  "qubits": [
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 16,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
+[
+  {
+    "_id": {
+      "$oid": "674876885960b11e2c313ee7"
     },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.777917Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.778039Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4225000000,
-        "date": "2024-11-28T13:56:24.777672Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.778163Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.778285Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.778524Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.778406Z",
-        "unit": ""
-      },
-      "id": 17,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 18,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 19,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 20,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 21,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 22,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 23,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 24,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    },
-    {
-      "t1_decoherence": {
-        "value": 0.000034,
-        "date": "2024-11-28T13:56:24.776796Z",
-        "unit": "s"
-      },
-      "t2_decoherence": {
-        "value": 0.000033,
-        "date": "2024-11-28T13:56:24.776922Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 4800000000,
-        "date": "2024-11-28T13:56:24.776505Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": null,
-      "readout_assignment_error": null,
-      "pi_pulse_amplitude": {
-        "value": 0.029,
-        "date": "2024-11-28T13:56:24.777047Z",
-        "unit": ""
-      },
-      "pi_pulse_duration": {
-        "value": 5.6e-8,
-        "date": "2024-11-28T13:56:24.777173Z",
-        "unit": ""
-      },
-      "pulse_type": {
-        "value": "Gaussian",
-        "date": "2024-11-28T13:56:24.777418Z",
-        "unit": ""
-      },
-      "pulse_sigma": {
-        "value": 7e-9,
-        "date": "2024-11-28T13:56:24.777295Z",
-        "unit": ""
-      },
-      "id": 25,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "xy_drive_line": null,
-      "z_drive_line": null
-    }
-  ],
-  "resonators": [
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.778860Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.778984Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7260080000,
-        "date": "2024-11-28T13:56:24.779105Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.1266499392606423,
-        "date": "2024-11-28T13:56:24.779472Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.779227Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.779350Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.779624Z",
-        "unit": ""
-      },
-      "id": 16,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 17,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 18,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 19,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 20,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 21,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 22,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 23,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 24,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    },
-    {
-      "acq_delay": {
-        "value": 5e-8,
-        "date": "2024-11-28T13:56:24.779876Z",
-        "unit": "s"
-      },
-      "acq_integration_time": {
-        "value": 0.000001,
-        "date": "2024-11-28T13:56:24.779998Z",
-        "unit": "s"
-      },
-      "frequency": {
-        "value": 7380000000,
-        "date": "2024-11-28T13:56:24.780120Z",
-        "unit": "Hz"
-      },
-      "pulse_amplitude": {
-        "value": 0.12660078572926436,
-        "date": "2024-11-28T13:56:24.780487Z",
-        "unit": ""
-      },
-      "pulse_delay": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.780241Z",
-        "unit": "s"
-      },
-      "pulse_duration": {
-        "value": 9e-7,
-        "date": "2024-11-28T13:56:24.780364Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "Square",
-        "date": "2024-11-28T13:56:24.780625Z",
-        "unit": ""
-      },
-      "id": 25,
-      "index": null,
-      "x_position": null,
-      "y_position": null,
-      "readout_line": null
-    }
-  ],
-  "couplers": [
-    {
-      "frequency": {
-        "value": 7800000000,
-        "date": "2024-11-28T13:56:24.781635Z",
-        "unit": "Hz"
-      },
-      "frequency_detuning": {
-        "value": -15000000,
-        "date": "2024-11-28T13:56:24.781756Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": {
-        "value": -170000000,
-        "date": "2024-11-28T13:56:24.781879Z",
-        "unit": "Hz"
-      },
-      "coupling_strength_02": {
-        "value": 70000000,
-        "date": "2024-11-28T13:56:24.782000Z",
-        "unit": "Hz"
-      },
-      "coupling_strength_12": {
-        "value": 70000000,
-        "date": "2024-11-28T13:56:24.782120Z",
-        "unit": "Hz"
-      },
-      "cz_pulse_amplitude": {
-        "value": 0.08,
-        "date": "2024-11-28T13:56:24.782241Z",
-        "unit": ""
-      },
-      "cz_pulse_dc_bias": {
-        "value": 0.275,
-        "date": "2024-11-28T13:56:24.782363Z",
-        "unit": ""
-      },
-      "cz_pulse_phase_offset": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.782488Z",
-        "unit": "rad"
-      },
-      "cz_pulse_duration_before": {
-        "value": 8.8e-8,
-        "date": "2024-11-28T13:56:24.782620Z",
-        "unit": "s"
-      },
-      "cz_pulse_duration_rise": {
-        "value": 2.5e-8,
-        "date": "2024-11-28T13:56:24.782738Z",
-        "unit": "s"
-      },
-      "cz_pulse_duration_constant": {
-        "value": 3.7e-7,
-        "date": "2024-11-28T13:56:24.782856Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "wacqt_cz_gate_pulse",
-        "date": "2024-11-28T13:56:24.782971Z",
-        "unit": ""
-      },
-      "id": 0
-    },
-    {
-      "frequency": {
-        "value": 7800000000,
-        "date": "2024-11-28T13:56:24.781635Z",
-        "unit": "Hz"
-      },
-      "frequency_detuning": {
-        "value": -15000000,
-        "date": "2024-11-28T13:56:24.781756Z",
-        "unit": "Hz"
-      },
-      "anharmonicity": {
-        "value": -170000000,
-        "date": "2024-11-28T13:56:24.781879Z",
-        "unit": "Hz"
-      },
-      "coupling_strength_02": {
-        "value": 70000000,
-        "date": "2024-11-28T13:56:24.782000Z",
-        "unit": "Hz"
-      },
-      "coupling_strength_12": {
-        "value": 70000000,
-        "date": "2024-11-28T13:56:24.782120Z",
-        "unit": "Hz"
-      },
-      "cz_pulse_amplitude": {
-        "value": 0.08,
-        "date": "2024-11-28T13:56:24.782241Z",
-        "unit": ""
-      },
-      "cz_pulse_dc_bias": {
-        "value": 0.275,
-        "date": "2024-11-28T13:56:24.782363Z",
-        "unit": ""
-      },
-      "cz_pulse_phase_offset": {
-        "value": 0,
-        "date": "2024-11-28T13:56:24.782488Z",
-        "unit": "rad"
-      },
-      "cz_pulse_duration_before": {
-        "value": 8.8e-8,
-        "date": "2024-11-28T13:56:24.782620Z",
-        "unit": "s"
-      },
-      "cz_pulse_duration_rise": {
-        "value": 2.5e-8,
-        "date": "2024-11-28T13:56:24.782738Z",
-        "unit": "s"
-      },
-      "cz_pulse_duration_constant": {
-        "value": 3.7e-7,
-        "date": "2024-11-28T13:56:24.782856Z",
-        "unit": "s"
-      },
-      "pulse_type": {
-        "value": "wacqt_cz_gate_pulse",
-        "date": "2024-11-28T13:56:24.782971Z",
-        "unit": ""
-      },
-      "id": 1
-    }
-  ],
-  "discriminators": {
-    "lda": {
-      "q0": {
-        "coef_0": -23.07457037298018,
-        "coef_1": 23.86344546794025,
-        "intercept": -0.4766480862205764
-      },
-      "q1": {
-        "coef_0": -23.07457037298018,
-        "coef_1": 23.86344546794025,
-        "intercept": -0.4766480862205764
+    "name": "Well-formed",
+    "version": "1.0.0",
+    "qubits": [
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 16,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.777917Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.778039Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4225000000,
+          "date": "2024-11-28T13:56:24.777672Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.778163Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.778285Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.778524Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.778406Z",
+          "unit": ""
+        },
+        "id": 17,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 18,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 19,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 20,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 21,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 22,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 23,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 24,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-11-28T13:56:24.776796Z",
+          "unit": "s"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-11-28T13:56:24.776922Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-11-28T13:56:24.776505Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-11-28T13:56:24.777418Z",
+          "unit": ""
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-11-28T13:56:24.777295Z",
+          "unit": ""
+        },
+        "id": 25,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
       }
+    ],
+    "resonators": [
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.778860Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.778984Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7260080000,
+          "date": "2024-11-28T13:56:24.779105Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.1266499392606423,
+          "date": "2024-11-28T13:56:24.779472Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.779227Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.779350Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.779624Z",
+          "unit": ""
+        },
+        "id": 16,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 17,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 18,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 19,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 20,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 21,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 22,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 23,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 24,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-11-28T13:56:24.779876Z",
+          "unit": "s"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-11-28T13:56:24.779998Z",
+          "unit": "s"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-11-28T13:56:24.780120Z",
+          "unit": "Hz"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-11-28T13:56:24.780487Z",
+          "unit": ""
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.780241Z",
+          "unit": "s"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-11-28T13:56:24.780364Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-11-28T13:56:24.780625Z",
+          "unit": ""
+        },
+        "id": 25,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      }
+    ],
+    "couplers": [
+      {
+        "frequency": {
+          "value": 7800000000,
+          "date": "2024-11-28T13:56:24.781635Z",
+          "unit": "Hz"
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-11-28T13:56:24.781756Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-11-28T13:56:24.781879Z",
+          "unit": "Hz"
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-11-28T13:56:24.782000Z",
+          "unit": "Hz"
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-11-28T13:56:24.782120Z",
+          "unit": "Hz"
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-11-28T13:56:24.782241Z",
+          "unit": ""
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-11-28T13:56:24.782363Z",
+          "unit": ""
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.782488Z",
+          "unit": "rad"
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-11-28T13:56:24.782620Z",
+          "unit": "s"
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-11-28T13:56:24.782738Z",
+          "unit": "s"
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-11-28T13:56:24.782971Z",
+          "unit": ""
+        },
+        "id": 0
+      },
+      {
+        "frequency": {
+          "value": 7800000000,
+          "date": "2024-11-28T13:56:24.781635Z",
+          "unit": "Hz"
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-11-28T13:56:24.781756Z",
+          "unit": "Hz"
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-11-28T13:56:24.781879Z",
+          "unit": "Hz"
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-11-28T13:56:24.782000Z",
+          "unit": "Hz"
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-11-28T13:56:24.782120Z",
+          "unit": "Hz"
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-11-28T13:56:24.782241Z",
+          "unit": ""
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-11-28T13:56:24.782363Z",
+          "unit": ""
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-11-28T13:56:24.782488Z",
+          "unit": "rad"
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-11-28T13:56:24.782620Z",
+          "unit": "s"
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-11-28T13:56:24.782738Z",
+          "unit": "s"
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "s"
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-11-28T13:56:24.782971Z",
+          "unit": ""
+        },
+        "id": 1
+      }
+    ],
+    "discriminators": {
+      "lda": {
+        "q0": {
+          "coef_0": -23.07457037298018,
+          "coef_1": 23.86344546794025,
+          "intercept": -0.4766480862205764
+        },
+        "q1": {
+          "coef_0": -23.07457037298018,
+          "coef_1": 23.86344546794025,
+          "intercept": -0.4766480862205764
+        }
+      }
+    },
+    "last_calibrated": "2024-11-28T13:56:24.776922Z",
+    "timelog": {
+      "REGISTERED": "2024-11-28T13:56:24.860Z"
     }
   },
-  "last_calibrated": "2024-11-28T13:56:24.776922Z",
-  "timelog": {
-    "REGISTERED": "2024-11-28T13:56:24.860Z"
+  {
+    "_id": {
+      "$oid": "66f2779693cdb81beeba058f"
+    },
+    "name": "loke",
+    "version": "2024.04.0",
+    "qubits": [
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:11:56.220071Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t1_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:11:56.220494Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t2_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "frequency": {
+          "value": 4511480043.556283,
+          "date": "2024-12-16T14:11:56.217682Z",
+          "unit": "Hz",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.17555712637424228,
+          "date": "2024-12-16T14:11:56.218210Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:11:56.218673Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:11:56.219648Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:11:56.219169Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_sigma",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "id": 0,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:11:56.223591Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t1_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:11:56.224015Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t2_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "frequency": {
+          "value": 4677112343.360253,
+          "date": "2024-12-16T14:11:56.221342Z",
+          "unit": "Hz",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.17535338530538067,
+          "date": "2024-12-16T14:11:56.221762Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:11:56.222285Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:11:56.223138Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:11:56.222716Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_sigma",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "id": 1,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:11:56.227122Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t1_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:11:56.227574Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t2_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "frequency": {
+          "value": 5770226599.80365,
+          "date": "2024-12-16T14:11:56.224855Z",
+          "unit": "Hz",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.17873594718151276,
+          "date": "2024-12-16T14:11:56.225281Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:11:56.225699Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:11:56.226556Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:11:56.226140Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_sigma",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "id": 2,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:11:56.230542Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t1_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:11:56.230958Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t2_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "frequency": {
+          "value": 6856217811.995201,
+          "date": "2024-12-16T14:11:56.228443Z",
+          "unit": "Hz",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.17326197853513559,
+          "date": "2024-12-16T14:11:56.228864Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:11:56.229286Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:11:56.230122Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:11:56.229704Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_sigma",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "id": 3,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:11:56.234370Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t1_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:11:56.234872Z",
+          "unit": "s",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "t2_decoherence",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "frequency": {
+          "value": 6701096836.557067,
+          "date": "2024-12-16T14:11:56.231819Z",
+          "unit": "Hz",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.16948867103728774,
+          "date": "2024-12-16T14:11:56.232252Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:11:56.232674Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:11:56.233796Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:11:56.233093Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_sigma",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "id": 4,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      }
+    ],
+    "last_calibrated": "2024-12-16T14:11:56.531Z",
+    "timelog": {
+      "REGISTERED": "2024-09-24T08:25:58.356Z"
+    },
+    "couplers": [
+      {
+        "frequency": {
+          "value": 7800000000,
+          "date": "2024-12-16T14:11:56.263480Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:11:56.263945Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.264397Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.264852Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.265321Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.265775Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.266226Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.266680Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.267200Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.267665Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.268133Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.268588Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "id": 0
+      },
+      {
+        "frequency": {
+          "value": 7400000000,
+          "date": "2024-12-16T14:11:56.269495Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:11:56.269968Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -120000000,
+          "date": "2024-12-16T14:11:56.270423Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.270879Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.271375Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.271835Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.272310Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.272766Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.273224Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.273680Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.274152Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.274609Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "id": 1
+      },
+      {
+        "frequency": {
+          "value": 7900000000,
+          "date": "2024-12-16T14:11:56.275538Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:11:56.275995Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.276449Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.276904Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.277411Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.277866Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.278325Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.278781Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.279263Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.279999Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.280499Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.280954Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "id": 2
+      },
+      {
+        "frequency": {
+          "value": 7600000000,
+          "date": "2024-12-16T14:11:56.281869Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -14000000,
+          "date": "2024-12-16T14:11:56.282330Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.282785Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.283274Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.283732Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.284187Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.284640Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.285094Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.285548Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.286013Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.286475Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.286929Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "id": 3
+      },
+      {
+        "frequency": {
+          "value": 7200000000,
+          "date": "2024-12-16T14:11:56.287862Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:11:56.288316Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.288768Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.289239Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.289693Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.290151Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.290604Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.291057Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.291531Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.291993Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.292466Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.292917Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "id": 4
+      },
+      {
+        "frequency": {
+          "value": 7300000000,
+          "date": "2024-12-16T14:11:56.293825Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:11:56.294279Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.294732Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.295232Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.295700Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.296153Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.296607Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.297059Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.297514Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.297967Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.298477Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.298935Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "id": 5
+      },
+      {
+        "frequency": {
+          "value": 7100000000,
+          "date": "2024-12-16T14:11:56.299951Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:11:56.300406Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.300857Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.301322Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.301774Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.302234Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.302687Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.303141Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.303613Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.304082Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.304538Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.304989Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "id": 6
+      },
+      {
+        "frequency": {
+          "value": 7400000000,
+          "date": "2024-12-16T14:11:56.305892Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "frequency_detuning": {
+          "value": -14000000,
+          "date": "2024-12-16T14:11:56.306343Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency_detuning",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:11:56.306796Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "anharmonicity",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.307292Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_02",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:11:56.307750Z",
+          "unit": "Hz",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "coupling_strength_12",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:11:56.308313Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:11:56.308775Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.309230Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:11:56.309685Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:11:56.310154Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:11:56.310613Z",
+          "unit": "s",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:11:56.311066Z",
+          "unit": "",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "id": 7
+      }
+    ],
+    "discriminators": {
+      "lda": {
+        "q0": {
+          "coef_0": -98953.87504155144,
+          "coef_1": -114154.48696231026,
+          "intercept": -38.4344477840827,
+          "score": 0.985
+        },
+        "q1": {
+          "coef_0": -107941.00358803963,
+          "coef_1": -124239.32054386326,
+          "intercept": -42.05181160328822,
+          "score": 0.987
+        },
+        "q2": {
+          "coef_0": -191087.42493249022,
+          "coef_1": -20803.06874845618,
+          "intercept": -22.684588212281916,
+          "score": 0.9905
+        },
+        "q3": {
+          "coef_0": -29474.17108465108,
+          "coef_1": 78360.1067777809,
+          "intercept": -1.933795064413808,
+          "score": 0.8735
+        },
+        "q4": {
+          "coef_0": -106998.96952984166,
+          "coef_1": 66774.10489889105,
+          "intercept": -6.6282190356967075,
+          "score": 0.96375
+        }
+      }
+    },
+    "resonators": [
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:11:56.236069Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:11:56.236586Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_integration_time",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "frequency": {
+          "value": 7260080000,
+          "date": "2024-12-16T14:11:56.237114Z",
+          "unit": "Hz",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pulse_amplitude": {
+          "value": 0.1266499392606423,
+          "date": "2024-12-16T14:11:56.239047Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.237742Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:11:56.238191Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:11:56.238608Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
+        "id": 0,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:11:56.239902Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:11:56.240322Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_integration_time",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-12-16T14:11:56.240745Z",
+          "unit": "Hz",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-12-16T14:11:56.242480Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.241171Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:11:56.241588Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:11:56.242062Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "id": 1,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:11:56.243355Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:11:56.243819Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_integration_time",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "frequency": {
+          "value": 7502000000,
+          "date": "2024-12-16T14:11:56.244241Z",
+          "unit": "Hz",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pulse_amplitude": {
+          "value": 0.08245560237524203,
+          "date": "2024-12-16T14:11:56.245924Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.244659Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:11:56.245078Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:11:56.245503Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
+        "id": 2,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:11:56.246765Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:11:56.247197Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_integration_time",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "frequency": {
+          "value": 7712000000,
+          "date": "2024-12-16T14:11:56.247618Z",
+          "unit": "Hz",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pulse_amplitude": {
+          "value": 0.04188729430238,
+          "date": "2024-12-16T14:11:56.249353Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.248049Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:11:56.248514Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:11:56.248933Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
+        "id": 3,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:11:56.250193Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:11:56.250618Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "acq_integration_time",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "frequency": {
+          "value": 7871000000,
+          "date": "2024-12-16T14:11:56.251033Z",
+          "unit": "Hz",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "frequency",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pulse_amplitude": {
+          "value": 0.05844291534543274,
+          "date": "2024-12-16T14:11:56.252699Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:11:56.251460Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_delay",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:11:56.251875Z",
+          "unit": "s",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_duration",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:11:56.252288Z",
+          "unit": "",
+          "component": "readout_resonator",
+          "property_type": "device",
+          "notes": null,
+          "name": "pulse_type",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "id": 4,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "66f2790693cdb81beeba0591"
+    },
+    "name": "qiskit_pulse_1q",
+    "version": "1.0.0",
+    "qubits": [
+      {
+        "t1_decoherence": {
+          "value": 0.000071,
+          "date": "2024-12-16T14:12:29.445684Z",
+          "unit": "s",
+          "name": "t1_decoherence",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "t2_decoherence": {
+          "value": 0.000069,
+          "date": "2024-12-16T14:12:29.446166Z",
+          "unit": "s",
+          "name": "t2_decoherence",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "frequency": {
+          "value": 4700000000,
+          "date": "2024-12-16T14:12:29.443171Z",
+          "unit": "Hz",
+          "name": "frequency",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.0284977,
+          "date": "2024-12-16T14:12:29.443722Z",
+          "unit": "",
+          "name": "pi_pulse_amplitude",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:12:29.444224Z",
+          "unit": "",
+          "name": "pi_pulse_duration",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:12:29.445210Z",
+          "unit": "",
+          "name": "pulse_type",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:12:29.444701Z",
+          "unit": "",
+          "name": "pulse_sigma",
+          "component": "qubit",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "id": 0,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      }
+    ],
+    "last_calibrated": "2024-12-16T14:12:29.504Z",
+    "timelog": {
+      "REGISTERED": "2024-09-24T08:32:06.557Z"
+    },
+    "couplers": [],
+    "discriminators": {
+      "lda": {
+        "q0": {
+          "coef_0": -25.89480293346933,
+          "coef_1": 25.67720572277498,
+          "intercept": 0.1806549332282934
+        }
+      }
+    },
+    "resonators": [
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:12:29.447136Z",
+          "unit": "s",
+          "name": "acq_delay",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:12:29.447663Z",
+          "unit": "s",
+          "name": "acq_integration_time",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "frequency": {
+          "value": 7260080000,
+          "date": "2024-12-16T14:12:29.448158Z",
+          "unit": "Hz",
+          "name": "frequency",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pulse_amplitude": {
+          "value": 0.1266499392606423,
+          "date": "2024-12-16T14:12:29.450053Z",
+          "unit": "",
+          "name": "pulse_amplitude",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:12:29.448628Z",
+          "unit": "s",
+          "name": "pulse_delay",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:12:29.449107Z",
+          "unit": "s",
+          "name": "pulse_duration",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:12:29.449574Z",
+          "unit": "",
+          "name": "pulse_type",
+          "component": "readout_resonator",
+          "long_name": null,
+          "notes": null,
+          "component_id": "0",
+          "tags": null,
+          "property_type": "device",
+          "source": null
+        },
+        "id": 0,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "67585f4c71e2d1436a36d626"
+    },
+    "name": "qiskit_pulse_2q",
+    "couplers": [
+      {
+        "frequency": {
+          "value": 7800000000,
+          "date": "2024-12-16T14:12:55.610366Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "frequency",
+          "source": null,
+          "property_type": "device"
+        },
+        "frequency_detuning": {
+          "value": -15000000,
+          "date": "2024-12-16T14:12:55.610829Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "frequency_detuning",
+          "source": null,
+          "property_type": "device"
+        },
+        "anharmonicity": {
+          "value": -170000000,
+          "date": "2024-12-16T14:12:55.611311Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "anharmonicity",
+          "source": null,
+          "property_type": "device"
+        },
+        "coupling_strength_02": {
+          "value": 70000000,
+          "date": "2024-12-16T14:12:55.611784Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "coupling_strength_02",
+          "source": null,
+          "property_type": "device"
+        },
+        "coupling_strength_12": {
+          "value": 70000000,
+          "date": "2024-12-16T14:12:55.612268Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "coupling_strength_12",
+          "source": null,
+          "property_type": "device"
+        },
+        "cz_pulse_amplitude": {
+          "value": 0.08,
+          "date": "2024-12-16T14:12:55.612727Z",
+          "unit": "",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "cz_pulse_amplitude",
+          "source": null,
+          "property_type": "device"
+        },
+        "cz_pulse_dc_bias": {
+          "value": 0.275,
+          "date": "2024-12-16T14:12:55.613188Z",
+          "unit": "",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "cz_pulse_dc_bias",
+          "source": null,
+          "property_type": "device"
+        },
+        "cz_pulse_phase_offset": {
+          "value": 0,
+          "date": "2024-12-16T14:12:55.613648Z",
+          "unit": "rad",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "cz_pulse_phase_offset",
+          "source": null,
+          "property_type": "device"
+        },
+        "cz_pulse_duration_before": {
+          "value": 8.8e-8,
+          "date": "2024-12-16T14:12:55.614115Z",
+          "unit": "s",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "cz_pulse_duration_before",
+          "source": null,
+          "property_type": "device"
+        },
+        "cz_pulse_duration_rise": {
+          "value": 2.5e-8,
+          "date": "2024-12-16T14:12:55.614579Z",
+          "unit": "s",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "cz_pulse_duration_rise",
+          "source": null,
+          "property_type": "device"
+        },
+        "cz_pulse_duration_constant": {
+          "value": 3.7e-7,
+          "date": "2024-12-16T14:12:55.615065Z",
+          "unit": "s",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "cz_pulse_duration_constant",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_type": {
+          "value": "wacqt_cz_gate_pulse",
+          "date": "2024-12-16T14:12:55.615547Z",
+          "unit": "",
+          "tags": null,
+          "component": "coupler",
+          "component_id": "u0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_type",
+          "source": null,
+          "property_type": "device"
+        },
+        "id": 0
+      }
+    ],
+    "discriminators": {
+      "lda": {
+        "q0": {
+          "coef_0": -35.21226497693547,
+          "coef_1": 20.539234101552054,
+          "intercept": 0.09720558486180408
+        },
+        "q1": {
+          "coef_0": -36.48748414673538,
+          "coef_1": 22.613170811282277,
+          "intercept": -0.37694564128136676
+        }
+      }
+    },
+    "last_calibrated": "2024-12-16T14:12:55.705Z",
+    "qubits": [
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:12:55.591438Z",
+          "unit": "s",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "t1_decoherence",
+          "source": null,
+          "property_type": "device"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:12:55.592147Z",
+          "unit": "s",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "t2_decoherence",
+          "source": null,
+          "property_type": "device"
+        },
+        "frequency": {
+          "value": 4800000000,
+          "date": "2024-12-16T14:12:55.590419Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "frequency",
+          "source": null,
+          "property_type": "device"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-12-16T14:12:55.592725Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "source": null,
+          "property_type": "device"
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:12:55.593194Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:12:55.594243Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_type",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:12:55.593754Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_sigma",
+          "source": null,
+          "property_type": "device"
+        },
+        "id": 0,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      },
+      {
+        "t1_decoherence": {
+          "value": 0.000034,
+          "date": "2024-12-16T14:12:55.596126Z",
+          "unit": "s",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "t1_decoherence",
+          "source": null,
+          "property_type": "device"
+        },
+        "t2_decoherence": {
+          "value": 0.000033,
+          "date": "2024-12-16T14:12:55.596643Z",
+          "unit": "s",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "t2_decoherence",
+          "source": null,
+          "property_type": "device"
+        },
+        "frequency": {
+          "value": 4225000000,
+          "date": "2024-12-16T14:12:55.595191Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "frequency",
+          "source": null,
+          "property_type": "device"
+        },
+        "anharmonicity": null,
+        "readout_assignment_error": null,
+        "pi_pulse_amplitude": {
+          "value": 0.029,
+          "date": "2024-12-16T14:12:55.597120Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pi_pulse_amplitude",
+          "source": null,
+          "property_type": "device"
+        },
+        "pi_pulse_duration": {
+          "value": 5.6e-8,
+          "date": "2024-12-16T14:12:55.597585Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pi_pulse_duration",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_type": {
+          "value": "Gaussian",
+          "date": "2024-12-16T14:12:55.598596Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_type",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_sigma": {
+          "value": 7e-9,
+          "date": "2024-12-16T14:12:55.598094Z",
+          "unit": "",
+          "tags": null,
+          "component": "qubit",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_sigma",
+          "source": null,
+          "property_type": "device"
+        },
+        "id": 1,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "xy_drive_line": null,
+        "z_drive_line": null
+      }
+    ],
+    "resonators": [
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:12:55.599642Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "acq_delay",
+          "source": null,
+          "property_type": "device"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:12:55.600122Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "acq_integration_time",
+          "source": null,
+          "property_type": "device"
+        },
+        "frequency": {
+          "value": 7260080000,
+          "date": "2024-12-16T14:12:55.600587Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "frequency",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_amplitude": {
+          "value": 0.1266499392606423,
+          "date": "2024-12-16T14:12:55.601982Z",
+          "unit": "",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_amplitude",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:12:55.601047Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_delay",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:12:55.601513Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_duration",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:12:55.602445Z",
+          "unit": "",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "0",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_type",
+          "source": null,
+          "property_type": "device"
+        },
+        "id": 0,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      },
+      {
+        "acq_delay": {
+          "value": 5e-8,
+          "date": "2024-12-16T14:12:55.603421Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "acq_delay",
+          "source": null,
+          "property_type": "device"
+        },
+        "acq_integration_time": {
+          "value": 0.000001,
+          "date": "2024-12-16T14:12:55.603885Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "acq_integration_time",
+          "source": null,
+          "property_type": "device"
+        },
+        "frequency": {
+          "value": 7380000000,
+          "date": "2024-12-16T14:12:55.604353Z",
+          "unit": "Hz",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "frequency",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_amplitude": {
+          "value": 0.12660078572926436,
+          "date": "2024-12-16T14:12:55.605992Z",
+          "unit": "",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_amplitude",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_delay": {
+          "value": 0,
+          "date": "2024-12-16T14:12:55.604869Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_delay",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_duration": {
+          "value": 9e-7,
+          "date": "2024-12-16T14:12:55.605337Z",
+          "unit": "s",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_duration",
+          "source": null,
+          "property_type": "device"
+        },
+        "pulse_type": {
+          "value": "Square",
+          "date": "2024-12-16T14:12:55.606492Z",
+          "unit": "",
+          "tags": null,
+          "component": "readout_resonator",
+          "component_id": "1",
+          "long_name": null,
+          "notes": null,
+          "name": "pulse_type",
+          "source": null,
+          "property_type": "device"
+        },
+        "id": 1,
+        "index": null,
+        "x_position": null,
+        "y_position": null,
+        "readout_line": null
+      }
+    ],
+    "version": "1.0.0"
   }
-}
+]
