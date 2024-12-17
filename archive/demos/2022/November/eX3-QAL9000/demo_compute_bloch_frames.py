@@ -19,9 +19,10 @@ from pathlib import Path
 from shutil import move
 
 from qiskit.providers.jobstatus import JobStatus
-from tergite.qiskit.providers import Tergite
 from qiskit.visualization import plot_bloch_multivector
 from tqdm.auto import tqdm
+
+from tergite.qiskit.providers import Tergite
 
 folder = Path("demo_bloch_frames").resolve()
 

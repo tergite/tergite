@@ -9,8 +9,9 @@ from uuid import uuid4 as uuid
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
-from tergite.qiskit.providers import Tergite
 from tqdm.auto import tqdm
+
+from tergite.qiskit.providers import Tergite
 
 folder = Path("demo_qmc_frames").resolve()
 

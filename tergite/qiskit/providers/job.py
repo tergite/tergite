@@ -27,11 +27,10 @@ from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from requests import Response
 
+from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
+
 from .config import REST_API_MAP
 from .serialization import IQXJsonEncoder, iqx_rle
-
-
-from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
 
 if TYPE_CHECKING:
     from tergite.qiskit.providers.tergite import Provider

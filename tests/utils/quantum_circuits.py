@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import QuantumRegister, ClassicalRegister
+from qiskit.circuit import ClassicalRegister, QuantumRegister
 
 
 def remove_idle_qubits(circuit: QuantumCircuit) -> str:

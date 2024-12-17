@@ -36,22 +36,23 @@ import re
 import warnings
 from enum import Enum
 from functools import singledispatchmethod
-from typing import Union, List, Iterator, Optional
-import numpy as np
+from typing import Iterator, List, Optional, Union
 
+import numpy as np
 from qiskit.circuit import Parameter, ParameterExpression
 from qiskit.pulse import channels, instructions, library
-from qiskit.pulse.configuration import Kernel, Discriminator
+from qiskit.pulse.configuration import Discriminator, Kernel
 from qiskit.pulse.exceptions import QiskitError
 from qiskit.pulse.parser import parse_string_expr
 from qiskit.pulse.schedule import Schedule
+from qiskit.utils import deprecate_func
+
 from tergite.qiskit.deprecated.qobj import (
-    QobjMeasurementOption,
     PulseLibraryItem,
     PulseQobjInstruction,
+    QobjMeasurementOption,
 )
 from tergite.qiskit.deprecated.qobj.utils import MeasLevel
-from qiskit.utils import deprecate_func
 
 
 class ParametricPulseShapes(Enum):

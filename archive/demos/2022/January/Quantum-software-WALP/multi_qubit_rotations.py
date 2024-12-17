@@ -4,10 +4,9 @@ from qiskit.ignis.verification.tomography import (
     StateTomographyFitter,
     state_tomography_circuits,
 )
+from qiskit.visualization import plot_bloch_multivector
+
 from tergite.qiskit.providers import Tergite
-from qiskit.visualization import (
-    plot_bloch_multivector,
-)
 
 #
 # Note: This code has been used on "Quantum software" PoC hearing

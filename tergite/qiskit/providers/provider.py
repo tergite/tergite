@@ -17,31 +17,29 @@
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-import os
-import tempfile
-from typing import Dict, List, Optional, Union, Any
-
-import shutil
-import h5py
 import json
+import os
+import shutil
+import tempfile
+from typing import Any, Dict, List, Optional, Union
+
+import h5py
 import requests
-from qiskit.providers.providerutils import filter_backends
 from qiskit.providers import JobV1
+from qiskit.providers.exceptions import QiskitBackendNotFoundError
+from qiskit.providers.providerutils import filter_backends
+
+from tergite.qiskit.deprecated.qobj import PulseQobj
 
 from .backend import (
+    DeviceCalibrationV2,
     OpenPulseBackend,
     OpenQASMBackend,
     TergiteBackendConfig,
-    DeviceCalibrationV2,
 )
-
 from .config import REST_API_MAP
-from .provider_account import ProviderAccount
 from .job import Job
-
-from qiskit.providers.exceptions import QiskitBackendNotFoundError
-
-from tergite.qiskit.deprecated.qobj import PulseQobj
+from .provider_account import ProviderAccount
 
 
 class Provider:

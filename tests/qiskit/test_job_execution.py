@@ -12,6 +12,7 @@
 """tests for the running of qiskit circuits on the tergite backend"""
 import json
 import uuid
+import warnings
 from collections import Counter
 from typing import List
 
@@ -22,29 +23,25 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
+# cross compatibility with future qiskit version where deprecated packages are removed
+from tergite.qiskit.deprecated.compiler.assembler import assemble
 from tergite.qiskit.providers import Job, OpenPulseBackend, Tergite
 from tergite.qiskit.providers.backend import TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
-
-import warnings
-
-# cross compatibility with future qiskit version where deprecated packages are removed
-from tergite.qiskit.deprecated.compiler.assembler import assemble
-
 from tests.conftest import (
     API_TOKEN,
     API_URL,
     BACKENDS_LIST,
+    GOOD_BACKENDS,
     INVALID_API_TOKENS,
     NUMBER_OF_SHOTS,
     QUANTUM_COMPUTER_URL,
     TEST_JOB_ID,
     TEST_JOB_RESULTS,
-    GOOD_BACKENDS,
 )
+from tests.utils.quantum_circuits import remove_idle_qubits
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
-from tests.utils.quantum_circuits import remove_idle_qubits
 
 _INVALID_PARAMS = [
     (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS

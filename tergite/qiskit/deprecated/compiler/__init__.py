@@ -44,7 +44,8 @@ Circuit and Pulse Compilation Functions
 
 """
 
-from .assembler import assemble
-from qiskit.compiler.transpiler import transpile
 from qiskit.compiler.scheduler import schedule
 from qiskit.compiler.sequencer import sequence
+from qiskit.compiler.transpiler import transpile
+
+from .assembler import assemble

@@ -33,11 +33,13 @@ from collections import defaultdict
 from typing import Any, Dict, List, Tuple, Union
 
 from qiskit import pulse
+from qiskit.exceptions import QiskitError
+from qiskit.pulse import channels, instructions, library, schedule, transforms
+
 from tergite.qiskit.deprecated import qobj
 from tergite.qiskit.deprecated.assembler.run_config import RunConfig
-from qiskit.exceptions import QiskitError
-from qiskit.pulse import instructions, transforms, library, schedule, channels
-from tergite.qiskit.deprecated.qobj import utils as qobj_utils, converters
+from tergite.qiskit.deprecated.qobj import converters
+from tergite.qiskit.deprecated.qobj import utils as qobj_utils
 from tergite.qiskit.deprecated.qobj.converters.pulse_instruction import (
     ParametricPulseShapes,
 )

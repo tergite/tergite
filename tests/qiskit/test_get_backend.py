@@ -13,17 +13,15 @@
 import pytest
 
 from tergite.qiskit.providers import OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import (
-    TergiteBackendConfig,
-)
+from tergite.qiskit.providers.backend import TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tests.conftest import (
     API_TOKEN,
     API_URL,
     BACKENDS_LIST,
+    GOOD_BACKENDS,
     INVALID_API_TOKENS,
     MALFORMED_BACKEND,
-    GOOD_BACKENDS,
 )
 from tests.utils.records import get_record
 

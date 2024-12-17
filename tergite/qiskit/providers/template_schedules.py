@@ -18,17 +18,15 @@
 from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
-
-from sympy import symbols
 import qiskit.circuit as circuit
 import qiskit.pulse as pulse
 from qiskit.pulse.library import SymbolicPulse
-
+from sympy import symbols
 
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
-    from .backend import OpenPulseBackend, DeviceCalibrationV2
+    from .backend import DeviceCalibrationV2, OpenPulseBackend
 
 
 def rx(

@@ -1,4 +1,5 @@
 from qiskit import *
+
 from tergite.qiskit.providers import Tergite
 
 provider = Tergite.get_provider()

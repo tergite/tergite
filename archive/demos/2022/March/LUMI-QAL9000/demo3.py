@@ -1,6 +1,7 @@
 from qiskit import *
-from tergite.qiskit.providers import Tergite
 from qiskit.visualization import plot_histogram
+
+from tergite.qiskit.providers import Tergite
 
 IBMQ.load_account()
 

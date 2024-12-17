@@ -32,13 +32,15 @@
 import copy
 import pprint
 from types import SimpleNamespace
+
 from qiskit.circuit.parameterexpression import ParameterExpression
-from tergite.qiskit.deprecated.qobj.pulse_qobj import (
-    PulseQobjInstruction,
-    PulseLibraryItem,
-)
-from tergite.qiskit.deprecated.qobj.common import QobjDictField, QobjHeader
 from qiskit.utils import deprecate_func
+
+from tergite.qiskit.deprecated.qobj.common import QobjDictField, QobjHeader
+from tergite.qiskit.deprecated.qobj.pulse_qobj import (
+    PulseLibraryItem,
+    PulseQobjInstruction,
+)
 
 
 class QasmQobjInstruction:

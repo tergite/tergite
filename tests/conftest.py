@@ -9,21 +9,20 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-import json
 import io
+import json
 import re
-from typing import Dict, Any
-
-import h5py
 from pathlib import Path
 from tempfile import gettempdir
+from typing import Any, Dict
 
+import h5py
 import pytest
 import requests_mock as rq_mock
 from requests import Request
 
-from tests.utils.fixtures import load_json_fixture
 from tergite.qiskit.providers.serialization import IQXJsonEncoder as PulseQobj_encoder
+from tests.utils.fixtures import load_json_fixture
 
 API_URL = "https://api.tergite.example"
 QUANTUM_COMPUTER_URL = "http://loke.tergite.example"

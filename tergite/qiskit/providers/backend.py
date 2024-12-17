@@ -19,19 +19,18 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import warnings
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
-from pydantic import BaseModel, Extra
-
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
 import requests
 from numpy import inf as infinity
+from pydantic import BaseModel, Extra
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
-from qiskit_ibm_runtime.models import BackendConfiguration
 from qiskit.pulse.channels import (
     AcquireChannel,
     DriveChannel,
@@ -40,17 +39,14 @@ from qiskit.pulse.channels import (
 )
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
-
-from tergite.qiskit.providers import calibrations
+from qiskit_ibm_runtime.models import BackendConfiguration
 
 from tergite.qiskit.deprecated.compiler.assembler import assemble
 from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
+from tergite.qiskit.providers import calibrations
 
 from .config import REST_API_MAP
 from .job import Job
-
-import warnings
-
 
 if TYPE_CHECKING:
     from .provider import Provider as TergiteProvider
