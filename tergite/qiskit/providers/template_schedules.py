@@ -45,6 +45,7 @@ def rx(
         backend: the backend for which the schedule is to be created.
         qubits: the set of qubits to be affected.
         rx_theta: the theta parameter for the circuit
+        device_properties: the device parameters of the backend
 
     Returns:
         qiskit.pulse.ScheduleBlock: the schedule implementing the rotation
@@ -207,6 +208,7 @@ def measure(
     Args:
         backend: the backend for which the schedule is to be created.
         qubits: the set of qubits to be affected.
+        device_properties: the device parameters of the backend
 
     Returns:
         qiskit.pulse.ScheduleBlock: the schedule implementing the measurement

@@ -299,7 +299,7 @@ class OpenPulseBackend(TergiteBackend):
             calibrations.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data["num_qubits"])),
-                coupled_qubit_idxs=tuple(self.data["coupling_map"]),
+                coupled_qubit_idxs=self.data["coupled_qubit_idxs"],
                 target=gmap,
                 device_properties=device_properties,
             )
@@ -458,6 +458,7 @@ class TergiteBackendConfig:
     dtm: Optional[float] = None
     timelog: Dict[str, Any] = dataclasses.field(default_factory=dict)
     coupling_dict: Dict[str, Tuple[str, str]] = dataclasses.field(default_factory=dict)
+    coupled_qubit_idxs: Tuple[Tuple[int, int], ...] = ()
     qubit_ids_coupler_dict: Dict[Tuple[int, int], int] = dataclasses.field(
         default_factory=dict
     )
@@ -478,6 +479,12 @@ class TergiteBackendConfig:
         self.qubit_ids_coupler_dict = {
             tuple(k): v for (k, v) in self.qubit_ids_coupler_map
         }
+
+        # the coupling_map sometimes has qubits connected to themselves e.g. [0, 0] when there are
+        # no couplers so we need to filter these out to get the qubits that are actually coupled
+        self.coupled_qubit_idxs = tuple(
+            [pair for pair in self.coupling_map if pair[0] != pair[1]]
+        )
 
 
 class CalibrationValue(BaseModel, extra=Extra.allow):
