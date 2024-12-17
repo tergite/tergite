@@ -52,6 +52,7 @@ TEST_JOB_RESULTS = {
 }
 RAW_TEST_JOB_RESULTS = json.dumps(TEST_JOB_RESULTS).encode("utf-8")
 GOOD_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_1q", "qiskit_pulse_2q"]
+TWO_QUBIT_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_2q"]
 MALFORMED_BACKEND = "Malformed"
 INVALID_API_TOKENS = ["foo", "bar", "mayo", "API_USERNAME"]
 
