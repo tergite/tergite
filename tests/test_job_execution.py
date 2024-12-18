@@ -398,28 +398,21 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name, token: str = None):
     """Test that Provider.job returns the correct Job object."""
-
+    # FIXME: the api_with_logfile has a mocked hdf5_content which is hard coded. Change that.
     # create a job the usual way
     backend = _get_backend(backend_name)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     calibrations = _get_calibrations(backend_name)
-    transpiled_circuit = _get_expected_1q_transpiled_circuit(
-        backend=backend, calibrations=calibrations
-    )
-    job = backend.run(transpiled_circuit, meas_level=2)
-    job_id = job.job_id()
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    expected = backend.run(tc, meas_level=2)
+    job_id = expected.job_id()
 
     # retrieve job from provider
     account = ProviderAccount(service_name=f"test", url=API_URL, token=token)
     provider = Tergite.use_provider_account(account)
-    retrieved_job = provider.job(job_id)
+    got = provider.job(job_id)
 
-    retrieved_result = retrieved_job.result()
-    result = job.result()
-
-    assert (
-        retrieved_result.get_counts() == result.get_counts()
-    ), "The retrieved job result does not match the original job result."
+    assert got == expected, "The retrieved job does not match the original job."
 
 
 def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
