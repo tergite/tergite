@@ -40,7 +40,9 @@ from tests.conftest import (
     TEST_CALIBRATIONS_MAP,
     TEST_JOB_ID,
     TEST_JOB_RESULTS,
+    TEST_QOBJ_ID,
     TWO_QUBIT_BACKENDS,
+    TEST_QOBJ_RESULTS_MAP,
 )
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
@@ -398,13 +400,22 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name, token: str = None):
     """Test that Provider.job returns the correct Job object."""
-    # FIXME: the api_with_logfile has a mocked hdf5_content which is hard coded. Change that.
     # create a job the usual way
     backend = _get_backend(backend_name)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     calibrations = _get_calibrations(backend_name)
-    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
-    expected = backend.run(tc, meas_level=2)
+    qobj_id = f"{TEST_QOBJ_ID}-{backend_name}"
+    circuit_name = TEST_QOBJ_RESULTS_MAP[backend_name.lower()]["experiments"][0][
+        "header"
+    ]["name"]
+
+    tc = _get_expected_1q_transpiled_circuit(
+        backend=backend, calibrations=calibrations, circuit_name=circuit_name
+    )
+    expected = backend.run(tc, meas_level=2, qobj_id=qobj_id)
+
+    # overwrite some properties that are expected to change when getting job by job id
+    expected.metadata["upload_url"] = ""
     job_id = expected.job_id()
 
     # retrieve job from provider

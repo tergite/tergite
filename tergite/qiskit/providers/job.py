@@ -14,6 +14,7 @@
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Defines the asynchronous job that executes the experiments."""
 import json
+import logging
 from collections import Counter
 from pathlib import Path
 from tempfile import gettempdir
@@ -244,7 +245,10 @@ class Job(JobV1):
             return False
 
         for k, v in self.__dict__.items():
-            if getattr(other, k, None) != v:
+            other_v = getattr(other, k, None)
+            if other_v != v:
+                diff = {"expected": {k: other_v}, "got": {k: v}}
+                logging.error(f"Job differs: {diff}")
                 return False
 
         return True

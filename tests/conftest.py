@@ -28,8 +28,9 @@ API_URL = "https://api.tergite.example"
 QUANTUM_COMPUTER_URL = "http://loke.tergite.example"
 API_TOKEN = "some-token"
 BACKENDS_LIST = load_json_fixture("many_backends.json")
-QOBJ_EXAMPLE = load_json_fixture("qobj_example.json")
+_QOBJ_RESULTS = load_json_fixture("qobj_results.json")
 TEST_JOB_ID = "test_job_id"
+TEST_QOBJ_ID = "test_qobj_id"
 NUMBER_OF_SHOTS = 100
 
 _BACKENDS_URL = f"{API_URL}/v2/devices"
@@ -40,6 +41,12 @@ _TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
 _CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/v2/calibrations/([\w-]+)")
+_JOBS_REGISTER_URL_REGEX = re.compile(f"^{API_URL}/jobs\?backend=([\w-]+)")
+_QC_URL_REGEX = re.compile(r"^http://([\w-]+)\.tergite\.example")
+_JOBS_RESULTS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\w-]+)")
+_JOBS_LOGFILE_URL_REGEX = re.compile(
+    r"^http://([\w-]+)\.tergite\.example/test_file.hdf5"
+)
 
 TEST_JOB_RESULTS = {
     "status": "DONE",
@@ -56,20 +63,33 @@ TWO_QUBIT_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_2q"]
 MALFORMED_BACKEND = "Malformed"
 INVALID_API_TOKENS = ["foo", "bar", "mayo", "API_USERNAME"]
 
-_TEST_LOGFILE_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_logfile.hdf5"
-TEST_JOB_RESULTS_LOGFILE = {
-    "job_id": TEST_JOB_ID,
-    "backend": GOOD_BACKENDS[0],
-    "status": "DONE",
-    "download_url": _TEST_LOGFILE_DOWNLOAD_PATH,
-    "result": {
-        "memory": [
-            (["0x1"] * _HALF_NUMBER_OF_SHOTS) + (["0x0"] * _HALF_NUMBER_OF_SHOTS)
-        ],
-    },
-}
 _CALIBRATIONS_V2 = load_json_fixture("calibrations_v2.json")
 TEST_CALIBRATIONS_MAP = {item["name"]: {**item} for item in _CALIBRATIONS_V2}
+TEST_QUANTUM_COMPUTER_URL_MAP = {
+    backend: f"http://{backend}.tergite.example" for backend in GOOD_BACKENDS
+}
+TEST_LOGFILE_DOWNLOAD_MAP = {
+    backend: f"http://{backend}.tergite.example/test_file.hdf5"
+    for backend in GOOD_BACKENDS
+}
+TEST_JOBS_MAP = {
+    backend: {
+        "job_id": f"{TEST_JOB_ID}-{backend}",
+        "upload_url": TEST_QUANTUM_COMPUTER_URL_MAP[backend],
+    }
+    for backend in GOOD_BACKENDS
+}
+TEST_JOB_RESULTS_MAP = {
+    f"{TEST_JOB_ID}-{backend}": {
+        **TEST_JOB_RESULTS,
+        "backend": backend,
+        "download_url": TEST_LOGFILE_DOWNLOAD_MAP[backend],
+    }
+    for backend in GOOD_BACKENDS
+}
+TEST_QOBJ_RESULTS_MAP = {
+    item["header"]["backend_name"].lower(): {**item} for item in _QOBJ_RESULTS
+}
 
 
 @pytest.fixture
@@ -164,44 +184,30 @@ def mock_tergiterc() -> Path:
 
 
 @pytest.fixture
-def api_with_logfile(requests_mock, hdf5_content):
+def api_with_logfile(requests_mock):
     """A mock api fixture for tests that need to use TEST_JOB_RESULTS_LOGFILE."""
     requests_mock.get(_BACKENDS_URL, headers={}, json=BACKENDS_LIST)
 
     # Job registration
-    requests_mock.post(_JOBS_URL, headers={}, json=_TEST_JOB)
+    requests_mock.post(
+        _JOBS_REGISTER_URL_REGEX, headers={}, json=_mock_job_registration_handler
+    )
     # Job upload
-    requests_mock.post(QUANTUM_COMPUTER_URL, headers={}, status_code=200)
+    requests_mock.post(_QC_URL_REGEX, headers={}, status_code=200)
 
     # Job results - use TEST_JOB_RESULTS_LOGFILE
-    requests_mock.get(_TEST_JOB_RESULTS_URL, headers={}, json=TEST_JOB_RESULTS_LOGFILE)
+    requests_mock.get(
+        _JOBS_RESULTS_URL_REGEX, headers={}, json=_mock_job_results_handler
+    )
 
     # Download file - use hdf5_content
-    requests_mock.get(_TEST_LOGFILE_DOWNLOAD_PATH, headers={}, content=hdf5_content)
+    requests_mock.get(
+        _JOBS_LOGFILE_URL_REGEX, headers={}, content=_mock_logfile_download_handler
+    )
 
     # # Add the mock for the calibration request
     requests_mock.get(_CALIBRATIONS_REGEX, json=_mock_calibrations_handler)
     yield requests_mock
-
-
-@pytest.fixture
-def hdf5_content():
-    """Create mock hdf5 content."""
-    hdf5_file = io.BytesIO()
-    with h5py.File(hdf5_file, "w") as hdf:
-        header_group = hdf.create_group("header")
-        qobj_metadata_group = header_group.create_group("qobj_metadata")
-        qobj_metadata_group.attrs["shots"] = NUMBER_OF_SHOTS
-        qobj_metadata_group.attrs["qobj_id"] = "test_qobj_id"
-        qobj_metadata_group.attrs["num_experiments"] = 1
-
-        qobj_data_group = header_group.create_group("qobj_data")
-        QOBJ_EXAMPLE["qobj_id"] = "test_qobj_id"
-        experiment_data = json.dumps(QOBJ_EXAMPLE, cls=PulseQobj_encoder, indent="\t")
-        qobj_data_group.attrs["experiment_data"] = experiment_data
-
-    hdf5_file.seek(0)
-    return hdf5_file.read()
 
 
 def _without_headers(headers):
@@ -232,5 +238,76 @@ def _mock_calibrations_handler(request: Request, context: Any) -> Dict[str, Any]
         backend_name = matcher.group(1)
         data = TEST_CALIBRATIONS_MAP[backend_name]
         return {**data}
+    except (AttributeError, KeyError):
+        raise rq_mock.NoMockAddress(request)
+
+
+def _mock_job_registration_handler(request: Request, context: Any) -> Dict[str, Any]:
+    """Mock API handler for POST jobs/ MSS endpoint
+
+    Args:
+        request: the request caught
+        context: the object with the extra context passed when creating mock e.g. headers
+
+    Returns:
+        the JSON data in dict form to be returned on the given endpoint
+    """
+    matcher = _JOBS_REGISTER_URL_REGEX.match(request.url)
+    try:
+        backend_name = matcher.group(1)
+        data = TEST_JOBS_MAP[backend_name]
+        return {**data}
+    except (AttributeError, KeyError):
+        raise rq_mock.NoMockAddress(request)
+
+
+def _mock_job_results_handler(request: Request, context: Any) -> Dict[str, Any]:
+    """Mock API handler for GET jobs/{job_id} MSS endpoint
+
+    Args:
+        request: the request caught
+        context: the object with the extra context passed when creating mock e.g. headers
+
+    Returns:
+        the JSON data in dict form to be returned on the given endpoint
+    """
+    matcher = _JOBS_RESULTS_URL_REGEX.match(request.url)
+    try:
+        job_id = matcher.group(1)
+        data = TEST_JOB_RESULTS_MAP[job_id]
+        return {**data}
+    except (AttributeError, KeyError):
+        raise rq_mock.NoMockAddress(request)
+
+
+def _mock_logfile_download_handler(request: Request, context: Any):
+    """Mock API handler for the logfile download endpoint
+
+    Args:
+        request: the request caught
+        context: the object with the extra context passed when creating mock e.g. headers
+
+    Returns:
+        the JSON data in dict form to be returned on the given endpoint
+    """
+    matcher = _JOBS_LOGFILE_URL_REGEX.match(request.url)
+    try:
+        backend = matcher.group(1)
+        qobj = {**TEST_QOBJ_RESULTS_MAP[backend.lower()]}
+        hdf5_file = io.BytesIO()
+        with h5py.File(hdf5_file, "w") as hdf:
+            header_group = hdf.create_group("header")
+            qobj_metadata_group = header_group.create_group("qobj_metadata")
+
+            qobj_metadata_group.attrs["shots"] = qobj["config"]["shots"]
+            qobj_metadata_group.attrs["qobj_id"] = qobj["qobj_id"]
+            qobj_metadata_group.attrs["num_experiments"] = len(qobj["experiments"])
+
+            qobj_data_group = header_group.create_group("qobj_data")
+            experiment_data = json.dumps(qobj, cls=PulseQobj_encoder, indent="\t")
+            qobj_data_group.attrs["experiment_data"] = experiment_data
+
+        hdf5_file.seek(0)
+        return hdf5_file.read()
     except (AttributeError, KeyError):
         raise rq_mock.NoMockAddress(request)
