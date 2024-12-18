@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tergite"
-version = "2024.12.0"
+version = "2024.12.1"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
     "Miroslav Dobsicek",
