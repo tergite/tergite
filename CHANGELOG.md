@@ -7,6 +7,17 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2024.12.1] - 2024-12-18
+
+### Changed
+
+- Updated tests to run tests against multiple backends
+- Updated `Provider.job()` to return a `Job` instance without an upload_url
+
+### Fixed
+
+- Fixed the error 'Coupling (0, 0) not a coupling map' for backends without couplers
+
 ## [2024.12.0] - 2024-12-13
 
 ### Added
