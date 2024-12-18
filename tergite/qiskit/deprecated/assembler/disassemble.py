@@ -28,19 +28,19 @@
 #
 
 """Disassemble function for a qobj into a list of circuits and its config"""
-from typing import Any, Dict, List, NewType, Tuple, Union
 import collections
 import math
+from typing import Any, Dict, List, NewType, Tuple, Union
 
 from qiskit import pulse
 from qiskit.circuit.classicalregister import ClassicalRegister
 from qiskit.circuit.instruction import Instruction
 from qiskit.circuit.quantumcircuit import QuantumCircuit
 from qiskit.circuit.quantumregister import QuantumRegister
+from qiskit.utils import deprecate_func
 
 from tergite.qiskit.deprecated.qobj import PulseQobjInstruction
 from tergite.qiskit.deprecated.qobj.converters import QobjToInstructionConverter
-from qiskit.utils import deprecate_func
 
 # A ``CircuitModule`` is a representation of a circuit execution on the backend.
 # It is currently a list of quantum circuits to execute, a run Qobj dictionary

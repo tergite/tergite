@@ -17,31 +17,29 @@
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-import os
-import tempfile
-from typing import Dict, List, Optional, Union, Any
-
-import shutil
-import h5py
 import json
+import os
+import shutil
+import tempfile
+from typing import Any, Dict, List, Optional, Union
+
+import h5py
 import requests
-from qiskit.providers.providerutils import filter_backends
 from qiskit.providers import JobV1
+from qiskit.providers.exceptions import QiskitBackendNotFoundError
+from qiskit.providers.providerutils import filter_backends
+
+from tergite.qiskit.deprecated.qobj import PulseQobj
 
 from .backend import (
+    DeviceCalibrationV2,
     OpenPulseBackend,
     OpenQASMBackend,
     TergiteBackendConfig,
-    DeviceCalibrationV2,
 )
-
 from .config import REST_API_MAP
-from .provider_account import ProviderAccount
 from .job import Job
-
-from qiskit.providers.exceptions import QiskitBackendNotFoundError
-
-from tergite.qiskit.deprecated.qobj import PulseQobj
+from .provider_account import ProviderAccount
 
 
 class Provider:
@@ -112,67 +110,44 @@ class Provider:
 
     def job(self, job_id: str) -> JobV1:
         """Retrieve a runtime job."""
-
-        # use provided API_URL to access jobs endpoint
         url = f"{self.provider_account.url}{REST_API_MAP['jobs']}/{job_id}"
         auth_headers = self.get_auth_headers()
         response = requests.get(url, headers=auth_headers)
 
-        if response.ok:
-            job_data = response.json()
-        else:
-            raise RuntimeError(f"Failed to GET memory of job: {self.job_id()}")
+        if not response.ok:
+            raise RuntimeError(f"Failed to GET memory of job: {job_id}")
 
-        # get backend from job_data -> backend_name
-        backend_name: str = job_data["backend"]
-        backend = self.get_backend(name=backend_name)
+        job_data = response.json()
+        backend = self.get_backend(name=job_data["backend"])
+        job = Job(backend=backend, job_id=job_id, upload_url="")
 
-        # get upload url from job_data -> download_url
-        download_url = job_data["download_url"]
-
-        # download the file from the download_url
-        file_response = requests.get(download_url, stream=True)
-
-        # get a cross-platform temp folder
-        tempdir = tempfile.gettempdir()
-        hdf_filepath = os.path.join(tempdir, f"job_data-{job_id}.hdf5")
-
-        if file_response.ok:
-            with open(hdf_filepath, "wb") as f:
-                # Write the downloaded file to a temporary file
-                shutil.copyfileobj(file_response.raw, f)
-        else:
-            raise RuntimeError(f"Failed to download job file for job: {job_id}")
+        try:
+            job_file = _download_job_file(
+                job_data["download_url"], filename=f"job_data-{job_id}.hdf5"
+            )
+        except KeyError:
+            raise RuntimeError(f"Job: {job_id} has no download_url")
 
         # open the HDF5 file using h5py
-        with h5py.File(hdf_filepath, "r") as hdf:
+        with h5py.File(job_file, "r") as hdf:
             # access the 'header' group and list its contents
-            header_group = hdf["header"]
-
-            if "qobj_metadata" in header_group:
-                qobj_group = header_group["qobj_metadata"]
-
-                shots = qobj_group.attrs.get("shots", None)
-                qobj_id = qobj_group.attrs.get("qobj_id", None)
-                num_experiments = qobj_group.attrs.get("num_experiments", None)
-            else:
-                raise RuntimeError(
-                    "Expected 'qobj' dataset not found in 'header' group."
+            try:
+                qobj_metadata = hdf["header"]["qobj_metadata"]
+                # update the job metadata
+                job.metadata["shots"] = qobj_metadata.attrs.get("shots", None)
+                job.metadata["qobj_id"] = qobj_metadata.attrs.get("qobj_id", None)
+                job.metadata["num_experiments"] = qobj_metadata.attrs.get(
+                    "num_experiments", None
                 )
 
-            if "qobj_data" in header_group:
-                qobj_group = header_group["qobj_data"]
-                experiment_data = qobj_group.attrs.get("experiment_data", None)
-
-        job = Job(backend=backend, job_id=job_id, upload_url=download_url)
-
-        # update the job metadata
-        job.metadata["shots"] = shots
-        job.metadata["qobj_id"] = qobj_id
-        job.metadata["num_experiments"] = num_experiments
-
-        # attach a full qobj as a payload
-        job.payload = PulseQobj.from_dict(data=json.loads(experiment_data))
+                qobj_data = hdf["header"]["qobj_data"]
+                # attach a full qobj as a payload
+                experiment_data = qobj_data.attrs.get("experiment_data", None)
+                job.payload = PulseQobj.from_dict(data=json.loads(experiment_data))
+            except KeyError as exp:
+                raise RuntimeError(
+                    f"Expected 'qobj' dataset not found in 'header' group.\n{exp}"
+                )
 
         return job
 
@@ -305,3 +280,28 @@ class Provider:
             raise QiskitBackendNotFoundError("No backend matches the criteria")
 
         return backends[0]
+
+
+def _download_job_file(download_url: str, filename: str) -> str:
+    """Downloads the job file and returns the path to the downloaded file
+
+    Args:
+        download_url: the URL to download from
+
+    Returns:
+        the path to the downloaded job file
+
+    Raises:
+        ValueError: file failed to download
+    """
+    file_response = requests.get(download_url, stream=True)
+    if not file_response.ok:
+        raise ValueError("file failed to download")
+
+    # save the file temporarily
+    tempdir = tempfile.gettempdir()
+    temp_file = os.path.join(tempdir, filename)
+    with open(temp_file, "wb") as file:
+        shutil.copyfileobj(file_response.raw, file)
+
+    return temp_file

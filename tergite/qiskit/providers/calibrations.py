@@ -21,7 +21,7 @@ from qiskit.transpiler import InstructionProperties, Target
 from . import template_schedules as templates
 
 if TYPE_CHECKING:
-    from .backend import OpenPulseBackend, DeviceCalibrationV2
+    from .backend import DeviceCalibrationV2, OpenPulseBackend
 
 
 # TODO: Replace with BCC graph node

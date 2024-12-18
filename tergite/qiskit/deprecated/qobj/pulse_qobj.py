@@ -34,13 +34,16 @@
 
 import copy
 import pprint
-from typing import Union, List
+from typing import List, Union
 
 import numpy
-from tergite.qiskit.deprecated.qobj.common import QobjDictField
-from tergite.qiskit.deprecated.qobj.common import QobjHeader
-from tergite.qiskit.deprecated.qobj.common import QobjExperimentHeader
 from qiskit.utils import deprecate_func
+
+from tergite.qiskit.deprecated.qobj.common import (
+    QobjDictField,
+    QobjExperimentHeader,
+    QobjHeader,
+)
 
 
 class QobjMeasurementOption:

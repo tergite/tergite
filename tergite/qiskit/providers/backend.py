@@ -19,19 +19,18 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import warnings
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
-from pydantic import BaseModel, Extra
-
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
 import requests
 from numpy import inf as infinity
+from pydantic import BaseModel, Extra
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
-from qiskit_ibm_runtime.models import BackendConfiguration
 from qiskit.pulse.channels import (
     AcquireChannel,
     DriveChannel,
@@ -40,17 +39,14 @@ from qiskit.pulse.channels import (
 )
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
-
-from tergite.qiskit.providers import calibrations
+from qiskit_ibm_runtime.models import BackendConfiguration
 
 from tergite.qiskit.deprecated.compiler.assembler import assemble
 from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
+from tergite.qiskit.providers import calibrations
 
 from .config import REST_API_MAP
 from .job import Job
-
-import warnings
-
 
 if TYPE_CHECKING:
     from .provider import Provider as TergiteProvider
@@ -303,7 +299,7 @@ class OpenPulseBackend(TergiteBackend):
             calibrations.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data["num_qubits"])),
-                coupled_qubit_idxs=tuple(self.data["coupling_map"]),
+                coupled_qubit_idxs=self.data["coupled_qubit_idxs"],
                 target=gmap,
                 device_properties=device_properties,
             )
@@ -462,6 +458,7 @@ class TergiteBackendConfig:
     dtm: Optional[float] = None
     timelog: Dict[str, Any] = dataclasses.field(default_factory=dict)
     coupling_dict: Dict[str, Tuple[str, str]] = dataclasses.field(default_factory=dict)
+    coupled_qubit_idxs: Tuple[Tuple[int, int], ...] = ()
     qubit_ids_coupler_dict: Dict[Tuple[int, int], int] = dataclasses.field(
         default_factory=dict
     )
@@ -482,6 +479,12 @@ class TergiteBackendConfig:
         self.qubit_ids_coupler_dict = {
             tuple(k): v for (k, v) in self.qubit_ids_coupler_map
         }
+
+        # the coupling_map sometimes has qubits connected to themselves e.g. [0, 0] when there are
+        # no couplers so we need to filter these out to get the qubits that are actually coupled
+        self.coupled_qubit_idxs = tuple(
+            [pair for pair in self.coupling_map if pair[0] != pair[1]]
+        )
 
 
 class CalibrationValue(BaseModel, extra=Extra.allow):

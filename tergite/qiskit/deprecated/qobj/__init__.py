@@ -72,21 +72,22 @@ Pulse
    PulseLibraryItem
 """
 
-from tergite.qiskit.deprecated.qobj.common import QobjExperimentHeader
-from tergite.qiskit.deprecated.qobj.common import QobjHeader
-
-from tergite.qiskit.deprecated.qobj.pulse_qobj import PulseQobj
-from tergite.qiskit.deprecated.qobj.pulse_qobj import PulseQobjInstruction
-from tergite.qiskit.deprecated.qobj.pulse_qobj import PulseQobjExperimentConfig
-from tergite.qiskit.deprecated.qobj.pulse_qobj import PulseQobjExperiment
-from tergite.qiskit.deprecated.qobj.pulse_qobj import PulseQobjConfig
-from tergite.qiskit.deprecated.qobj.pulse_qobj import QobjMeasurementOption
-from tergite.qiskit.deprecated.qobj.pulse_qobj import PulseLibraryItem
-
-from tergite.qiskit.deprecated.qobj.qasm_qobj import GateCalibration
-from tergite.qiskit.deprecated.qobj.qasm_qobj import QasmExperimentCalibrations
-from tergite.qiskit.deprecated.qobj.qasm_qobj import QasmQobj
-from tergite.qiskit.deprecated.qobj.qasm_qobj import QasmQobjInstruction
-from tergite.qiskit.deprecated.qobj.qasm_qobj import QasmQobjExperiment
-from tergite.qiskit.deprecated.qobj.qasm_qobj import QasmQobjConfig
-from tergite.qiskit.deprecated.qobj.qasm_qobj import QasmQobjExperimentConfig
+from tergite.qiskit.deprecated.qobj.common import QobjExperimentHeader, QobjHeader
+from tergite.qiskit.deprecated.qobj.pulse_qobj import (
+    PulseLibraryItem,
+    PulseQobj,
+    PulseQobjConfig,
+    PulseQobjExperiment,
+    PulseQobjExperimentConfig,
+    PulseQobjInstruction,
+    QobjMeasurementOption,
+)
+from tergite.qiskit.deprecated.qobj.qasm_qobj import (
+    GateCalibration,
+    QasmExperimentCalibrations,
+    QasmQobj,
+    QasmQobjConfig,
+    QasmQobjExperiment,
+    QasmQobjExperimentConfig,
+    QasmQobjInstruction,
+)

@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 import numpy as np
-from sympy import symbols, Piecewise, cos, pi, And, S
+from sympy import And, Piecewise, S, cos, pi, symbols
 
 
 def delta_t_function(t, args):

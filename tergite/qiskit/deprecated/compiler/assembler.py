@@ -36,18 +36,18 @@ from time import time
 from typing import Dict, List, Optional, Union
 
 import numpy as np
-
-from tergite.qiskit.deprecated.assembler import assemble_schedules
-from tergite.qiskit.deprecated.assembler.run_config import RunConfig
 from qiskit.circuit import Parameter, QuantumCircuit, Qubit
 from qiskit.exceptions import QiskitError
 from qiskit.providers.backend import Backend
 from qiskit.pulse import Instruction, LoConfig, Schedule, ScheduleBlock
 from qiskit.pulse.channels import PulseChannel
-from tergite.qiskit.deprecated.qobj import QasmQobj, PulseQobj, QobjHeader
-from tergite.qiskit.deprecated.qobj.utils import MeasLevel, MeasReturnType
 from qiskit.utils import deprecate_func
+
+from tergite.qiskit.deprecated.assembler import assemble_schedules
 from tergite.qiskit.deprecated.assembler.assemble_circuits import _assemble_circuits
+from tergite.qiskit.deprecated.assembler.run_config import RunConfig
+from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj, QobjHeader
+from tergite.qiskit.deprecated.qobj.utils import MeasLevel, MeasReturnType
 
 logger = logging.getLogger(__name__)
 

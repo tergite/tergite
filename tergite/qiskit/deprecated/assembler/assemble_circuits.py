@@ -34,30 +34,30 @@ import warnings
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from tergite.qiskit.deprecated.assembler.run_config import RunConfig
-from tergite.qiskit.deprecated.assembler.assemble_schedules import (
-    _assemble_instructions as _assemble_schedule,
-)
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.classicalregister import Clbit
 from qiskit.exceptions import QiskitError
-from tergite.qiskit.deprecated.qobj import (
-    QasmQobj,
-    QobjExperimentHeader,
-    QasmQobjInstruction,
-    QasmQobjExperimentConfig,
-    QasmQobjExperiment,
-    QasmQobjConfig,
-    QasmExperimentCalibrations,
-    GateCalibration,
-    PulseQobjInstruction,
-    PulseLibraryItem,
-    converters,
-    QobjHeader,
-)
-from qiskit.utils.parallel import parallel_map
 from qiskit.utils import deprecate_func
+from qiskit.utils.parallel import parallel_map
 
+from tergite.qiskit.deprecated.assembler.assemble_schedules import (
+    _assemble_instructions as _assemble_schedule,
+)
+from tergite.qiskit.deprecated.assembler.run_config import RunConfig
+from tergite.qiskit.deprecated.qobj import (
+    GateCalibration,
+    PulseLibraryItem,
+    PulseQobjInstruction,
+    QasmExperimentCalibrations,
+    QasmQobj,
+    QasmQobjConfig,
+    QasmQobjExperiment,
+    QasmQobjExperimentConfig,
+    QasmQobjInstruction,
+    QobjExperimentHeader,
+    QobjHeader,
+    converters,
+)
 
 PulseLibrary = Dict[str, List[complex]]
 
