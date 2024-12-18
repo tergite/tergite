@@ -14,7 +14,7 @@ import json
 import uuid
 import warnings
 from collections import Counter
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pytest
@@ -54,11 +54,14 @@ _INVALID_PARAMS = [
 def test_transpile_1q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 1-qubit ops"""
     backend = _get_backend(name=backend_name)
+    calibrations = _get_calibrations(backend_name)
     qc = _get_test_1q_qiskit_circuit()
-    expected = _get_expected_1q_transpiled_circuit()
 
     # Transpile the circuit
     got = compiler.transpile(qc, backend=backend, initial_layout=qc.qubits)
+    expected = _get_expected_1q_transpiled_circuit(
+        backend=backend, calibrations=calibrations, circuit_name=got.name
+    )
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
@@ -75,7 +78,7 @@ def test_transpile_2q_gates(api, backend_name):
     calibrations = _get_calibrations(backend_name)
     qc = _get_test_2q_qiskit_circuit()
     expected = _get_expected_2q_transpiled_circuit(
-        backend=backend, calibrations=calibrations
+        backend=backend, calibrations=calibrations, circuit_name=qc.name
     )
 
     # Transpile the circuit
@@ -93,8 +96,9 @@ def test_transpile_2q_gates(api, backend_name):
 def test_run_1q_gates(api, backend_name):
     """backend.run returns a registered job for 1-qubit gate operations"""
     backend = _get_backend(backend_name)
+    calibrations = _get_calibrations(backend_name)
     backend.set_options(shots=NUMBER_OF_SHOTS)
-    tc = _get_expected_1q_transpiled_circuit()
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
@@ -104,10 +108,7 @@ def test_run_1q_gates(api, backend_name):
     requests_made = get_request_list(api)
     expected_requests = _get_all_mock_requests(backend_name)[:14]
 
-    got_qobj = backend.make_qobj(got, qobj_id=qobj_id)
-    expected_qobj = backend.make_qobj(expected)
-
-    assert got_qobj == expected_qobj
+    assert got == expected
     assert requests_made == expected_requests
 
 
@@ -127,10 +128,7 @@ def test_run_2q_gates(api, backend_name):
     requests_made = get_request_list(api)
     expected_requests = _get_all_mock_requests(backend_name)[:14]
 
-    got_qobj = backend.make_qobj(got, qobj_id=qobj_id)
-    expected_qobj = backend.make_qobj(expected)
-
-    assert got_qobj == expected_qobj
+    assert got == expected
     assert requests_made == expected_requests
 
 
@@ -138,8 +136,9 @@ def test_run_2q_gates(api, backend_name):
 def test_run_bearer_auth(bearer_auth_api, backend_name):
     """backend.run returns a registered job for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
+    calibrations = _get_calibrations(backend_name)
     backend.set_options(shots=NUMBER_OF_SHOTS)
-    tc = _get_expected_1q_transpiled_circuit()
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
@@ -158,7 +157,8 @@ def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """backend.run with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=token)
     backend.set_options(shots=NUMBER_OF_SHOTS)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
 
     with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
@@ -174,7 +174,8 @@ def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 def test_job_result(api, backend_name):
     """job.result() returns a successful job's results"""
     backend = _get_backend(backend_name)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     expected = _get_expected_job_result(backend=backend, job=job)
@@ -191,7 +192,8 @@ def test_job_result(api, backend_name):
 def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     """job.result() returns a successful job's results for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     expected = _get_expected_job_result(backend=backend, job=job)
@@ -207,7 +209,8 @@ def test_job_result_bearer_auth(bearer_auth_api, backend_name):
 def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
@@ -228,7 +231,8 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 def test_job_status(api, backend_name):
     """job.status() returns a successful job's status"""
     backend = _get_backend(backend_name)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
@@ -243,7 +247,8 @@ def test_job_status(api, backend_name):
 def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     """job.status() returns a successful job's status for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
@@ -258,7 +263,8 @@ def test_job_status_bearer_auth(bearer_auth_api, backend_name):
 def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
@@ -279,7 +285,8 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 def test_job_download_url(api, backend_name):
     """job.download_url returns a successful job's download_url"""
     backend = _get_backend(backend_name)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
@@ -294,7 +301,8 @@ def test_job_download_url(api, backend_name):
 def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
@@ -309,7 +317,8 @@ def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
 def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
@@ -330,7 +339,8 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
 def test_job_logfile(api, backend_name, tmp_results_file):
     """job.logfile downloads a job's data to tmp"""
     backend = _get_backend(backend_name)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
@@ -348,7 +358,8 @@ def test_job_logfile(api, backend_name, tmp_results_file):
 def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file):
     """job.logfile downloads a successful job's results for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
@@ -366,7 +377,8 @@ def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file
 def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
-    tc = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
@@ -390,7 +402,10 @@ def test_provider_job(api_with_logfile, backend_name, token: str = None):
     # create a job the usual way
     backend = _get_backend(backend_name)
     backend.set_options(shots=NUMBER_OF_SHOTS)
-    transpiled_circuit = _get_expected_1q_transpiled_circuit()
+    calibrations = _get_calibrations(backend_name)
+    transpiled_circuit = _get_expected_1q_transpiled_circuit(
+        backend=backend, calibrations=calibrations
+    )
     job = backend.run(transpiled_circuit, meas_level=2)
     job_id = job.job_id()
 
@@ -481,32 +496,53 @@ def _get_test_2q_qiskit_circuit():
     return qc
 
 
-def _get_expected_1q_transpiled_circuit():
-    """Returns a quantum circuit for 1-qubit gates specific to the TEST_BACKEND"""
-    # FIXME: Update this to pick its calibrations from backend static and dynamic properties
+def _get_expected_1q_transpiled_circuit(
+    backend: OpenPulseBackend,
+    calibrations: DeviceCalibrationV2,
+    circuit_name: Optional[str] = None,
+) -> circuit.QuantumCircuit:
+    """Returns a quantum circuit for 1-qubit gates specific to the TEST_BACKEND
+
+    Args:
+        backend: the backend for which the circuit is transpiled
+        calibrations: the device parameters for the given backend
+        circuit_name: the name of the expected circuit
+
+    Returns:
+        The circuit.QuantumCircuit that corresponds to the 1-qubit gate example
+    """
     phase = np.pi / 2
-    qc = circuit.QuantumCircuit(1, global_phase=phase)
+    qc = circuit.QuantumCircuit(1, global_phase=phase, name=circuit_name)
     qc.rz(phase, 0)
     qc.rx(phase, 0)
     qc.rz(phase, 0)
     qc.measure_all()
 
     # initialize calibrations
+    qubit_0 = calibrations.qubits[0]
+
     rz_block = pulse.ScheduleBlock(
         name="RZ(λ, (0,))",
         alignment_context=pulse.transforms.AlignLeft(),
     )
-    rz_block.append(pulse.ShiftPhase(1.5707963268, pulse.DriveChannel(1), name="RZ q0"))
+    rz_block.append(
+        pulse.ShiftPhase(round(phase, 10), pulse.DriveChannel(0), name="RZ q0")
+    )
 
     rx_block = pulse.ScheduleBlock(
         name="RX(θ, (0,))",
         alignment_context=pulse.transforms.AlignLeft(),
     )
-    rx_block.append(pulse.SetFrequency(3932312578.2853203, pulse.DriveChannel(0)))
+    rx_block.append(pulse.SetFrequency(qubit_0.frequency.value, pulse.DriveChannel(0)))
     rx_block.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(duration=52, amp=(0.0290173467), sigma=6, name="RX q0"),
+            pulse.Gaussian(
+                duration=round(qubit_0.pi_pulse_duration.value / backend.dt),
+                amp=round(phase / np.pi * qubit_0.pi_pulse_amplitude.value, 10),
+                sigma=round(qubit_0.pulse_sigma.value / backend.dt),
+                name="RX q0",
+            ),
             pulse.DriveChannel(0),
             name="RX q0",
         )
@@ -521,12 +557,22 @@ def _get_expected_1q_transpiled_circuit():
 
 
 def _get_expected_2q_transpiled_circuit(
-    backend: OpenPulseBackend, calibrations: DeviceCalibrationV2
+    backend: OpenPulseBackend,
+    calibrations: DeviceCalibrationV2,
+    circuit_name: Optional[str] = None,
 ):
-    """Returns a quantum circuit for 2-qubit gates specific to the TEST_BACKEND"""
-    # FIXME: Update this to pick its calibrations from backend static and dynamic properties
+    """Returns a quantum circuit for 2-qubit gates specific to the TEST_BACKEND
+
+    Args:
+        backend: the backend for which the circuit is transpiled
+        calibrations: the device parameters for the given backend
+        circuit_name: the name of the expected circuit
+
+    Returns:
+        The circuit.QuantumCircuit that corresponds to the 2-qubit gate example
+    """
     phase = np.pi / 2
-    qc = circuit.QuantumCircuit(2, global_phase=np.pi)
+    qc = circuit.QuantumCircuit(2, global_phase=np.pi, name=circuit_name)
     qc.rz(phase, 0)
     qc.rx(phase, 0)
     qc.rz(phase, 0)
@@ -539,6 +585,10 @@ def _get_expected_2q_transpiled_circuit(
 
     qc.measure_all()
 
+    ##
+    qubit_0 = calibrations.qubits[0]
+    qubit_1 = calibrations.qubits[1]
+
     # initialize calibrations
     # rz_block_0
     rz_block_0 = pulse.ScheduleBlock(
@@ -546,7 +596,7 @@ def _get_expected_2q_transpiled_circuit(
         alignment_context=pulse.transforms.AlignLeft(),
     )
     rz_block_0.append(
-        pulse.ShiftPhase(1.5707963268, pulse.DriveChannel(0), name="RZ q0")
+        pulse.ShiftPhase(round(phase, 10), pulse.DriveChannel(0), name="RZ q0")
     )
 
     # rz_block_1
@@ -555,7 +605,7 @@ def _get_expected_2q_transpiled_circuit(
         alignment_context=pulse.transforms.AlignLeft(),
     )
     rz_block_1.append(
-        pulse.ShiftPhase(1.5707963268, pulse.DriveChannel(1), name="RZ q1")
+        pulse.ShiftPhase(round(phase, 10), pulse.DriveChannel(1), name="RZ q1")
     )
 
     # rx_block_0
@@ -563,10 +613,18 @@ def _get_expected_2q_transpiled_circuit(
         name="RX(θ, (0,))",
         alignment_context=pulse.transforms.AlignLeft(),
     )
-    rx_block_0.append(pulse.SetFrequency(4800000000, pulse.DriveChannel(0)))
+    rx_block_0.append(
+        pulse.SetFrequency(qubit_0.frequency.value, pulse.DriveChannel(0))
+    )
     rx_block_0.append(
         pulse.Play(
-            pulse.Gaussian(duration=56, amp=0.0145, angle=0.0, sigma=7, name="RX q0"),
+            # amp represents the magnitude of the complex amplitude and can't be complex
+            pulse.Gaussian(
+                duration=round(qubit_0.pi_pulse_duration.value / backend.dt),
+                amp=round(phase / np.pi * qubit_0.pi_pulse_amplitude.value, 10),
+                sigma=round(qubit_0.pulse_sigma.value / backend.dt),
+                name="RX q0",
+            ),
             pulse.DriveChannel(0),
             name="RX q0",
         )
@@ -577,10 +635,18 @@ def _get_expected_2q_transpiled_circuit(
         name="RX(θ, (1,))",
         alignment_context=pulse.transforms.AlignLeft(),
     )
-    rx_block_1.append(pulse.SetFrequency(4225000000, pulse.DriveChannel(1)))
+    rx_block_1.append(
+        pulse.SetFrequency(qubit_1.frequency.value, pulse.DriveChannel(1))
+    )
     rx_block_1.append(
         pulse.Play(
-            pulse.Gaussian(56, sigma=7, amp=0.0145, angle=0.0, name="RX q1"),
+            # amp represents the magnitude of the complex amplitude and can't be complex
+            pulse.Gaussian(
+                duration=round(qubit_1.pi_pulse_duration.value / backend.dt),
+                amp=round(phase / np.pi * qubit_1.pi_pulse_amplitude.value, 10),
+                sigma=round(qubit_1.pulse_sigma.value / backend.dt),
+                name="RX q1",
+            ),
             pulse.DriveChannel(1),
             name="RX q1",
         )
