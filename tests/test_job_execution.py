@@ -108,7 +108,7 @@ def test_run_1q_gates(api, backend_name):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[:14]
+    expected_requests = _get_all_mock_requests(backend_name)[:4]
 
     assert got == expected
     assert requests_made == expected_requests
@@ -128,7 +128,7 @@ def test_run_2q_gates(api, backend_name):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[:14]
+    expected_requests = _get_all_mock_requests(backend_name)[:4]
 
     assert got == expected
     assert requests_made == expected_requests
@@ -148,7 +148,7 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[:14]
+    expected_requests = _get_all_mock_requests(backend_name)[:4]
 
     assert got == expected
     assert requests_made == expected_requests
@@ -167,7 +167,7 @@ def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:7]
+    expected_requests = _get_all_mock_requests(backend_name)[1:2]
 
     assert requests_made == expected_requests
 
@@ -184,7 +184,7 @@ def test_job_result(api, backend_name):
 
     got = job.result()
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:16]
+    expected_requests = _get_all_mock_requests(backend_name)[1:6]
 
     assert got.to_dict() == expected.to_dict()
     assert requests_made == expected_requests
@@ -201,7 +201,7 @@ def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     expected = _get_expected_job_result(backend=backend, job=job)
     got = job.result()
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:16]
+    expected_requests = _get_all_mock_requests(backend_name)[1:6]
 
     assert got.to_dict() == expected.to_dict()
     assert requests_made == expected_requests
@@ -224,7 +224,7 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
         _ = job.result()
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[1:5]
 
     assert requests_made == expected_requests
 
@@ -239,7 +239,7 @@ def test_job_status(api, backend_name):
 
     got = job.status()
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[1:5]
 
     assert got == JobStatus.DONE
     assert requests_made == expected_requests
@@ -255,7 +255,7 @@ def test_job_status_bearer_auth(bearer_auth_api, backend_name):
 
     got = job.status()
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[1:5]
 
     assert got == JobStatus.DONE
     assert requests_made == expected_requests
@@ -278,7 +278,7 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
         _ = job.status()
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[1:5]
 
     assert requests_made == expected_requests
 
@@ -293,7 +293,7 @@ def test_job_download_url(api, backend_name):
 
     got = job.download_url
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:16]
+    expected_requests = _get_all_mock_requests(backend_name)[1:6]
 
     assert got == TEST_JOB_RESULTS["download_url"]
     assert requests_made == expected_requests
@@ -309,7 +309,7 @@ def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
 
     got = job.download_url
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:16]
+    expected_requests = _get_all_mock_requests(backend_name)[1:6]
 
     assert got == TEST_JOB_RESULTS["download_url"]
     assert requests_made == expected_requests
@@ -332,7 +332,7 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
         _ = job.download_url
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[1:5]
 
     assert requests_made == expected_requests
 
@@ -347,7 +347,7 @@ def test_job_logfile(api, backend_name, tmp_results_file):
 
     assert job.logfile == tmp_results_file
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:17]
+    expected_requests = _get_all_mock_requests(backend_name)[1:7]
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
@@ -366,7 +366,7 @@ def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file
 
     assert job.logfile == tmp_results_file
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:17]
+    expected_requests = _get_all_mock_requests(backend_name)[1:7]
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
@@ -392,7 +392,7 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
         _ = job.logfile
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[6:15]
+    expected_requests = _get_all_mock_requests(backend_name)[1:5]
 
     assert requests_made == expected_requests
 
@@ -706,24 +706,18 @@ def _get_all_mock_requests(backend_name: str) -> List[MockRequest]:
         The list of all MockRequests for the given backend name
     """
     return [
-        *[
-            MockRequest(
-                url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
-                method="GET",
-            )
-            for _ in range(6)
-        ],
+        MockRequest(
+            url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+            method="GET",
+        ),
         MockRequest(
             url=f"https://api.tergite.example/jobs?backend={backend_name}",
             method="POST",
         ),
-        *[
-            MockRequest(
-                url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
-                method="GET",
-            )
-            for _ in range(6)
-        ],
+        MockRequest(
+            url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+            method="GET",
+        ),
         MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
         MockRequest(
             url="https://api.tergite.example/jobs/test_job_id",

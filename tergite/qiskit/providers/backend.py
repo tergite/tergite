@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import logging
 import warnings
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
@@ -260,6 +261,17 @@ class OpenPulseBackend(TergiteBackend):
         "wacqt_cz_gate_pulse",
     ]
 
+    def __init__(
+        self,
+        /,
+        *,
+        data: "TergiteBackendConfig",
+        provider: "TergiteProvider",
+        base_url: str,
+    ):
+        self._target: Optional[Target] = None
+        super().__init__(data=data, provider=provider, base_url=base_url)
+
     def configuration(self) -> BackendConfiguration:
         return BackendConfiguration(
             backend_name=self.name,  # From BackendV2.
@@ -292,18 +304,16 @@ class OpenPulseBackend(TergiteBackend):
 
     @property
     def target(self) -> Target:
-        provider: "TergiteProvider" = self.provider
-        device_properties = provider.get_latest_calibration(backend_name=self.name)
-        gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
-        if self.data["characterized"]:
-            calibrations.add_instructions(
-                backend=self,
-                qubits=tuple(q for q in range(self.data["num_qubits"])),
-                coupled_qubit_idxs=self.data["coupled_qubit_idxs"],
-                target=gmap,
-                device_properties=device_properties,
-            )
-        return gmap
+        """A qiskit. transpiler. Target object for the backend.
+
+        This internally makes a call to the calibrations endpoint
+        to get the latest calibration data and compiles a new Target
+        for it.
+        """
+        if self._target is None:
+            self._refresh_target()
+
+        return self._target
 
     @property
     def qubit_lo_freq(self) -> list:
@@ -334,6 +344,9 @@ class OpenPulseBackend(TergiteBackend):
             raise ValueError(f"Coupling {qubits} not in coupling map.")
 
     def make_qobj(self, experiments: object, /, **kwargs) -> PulseQobj:
+        # Ensure that the target is recompiled for the latest calibration data
+        self._refresh_target()
+
         if type(experiments) is not list:
             experiments = [experiments]
 
@@ -359,6 +372,28 @@ class OpenPulseBackend(TergiteBackend):
                 meas_lo_freq=self.meas_lo_freq,
                 **kwargs,
             )
+
+    def _refresh_target(self):
+        """Recompiles the target for this backend
+
+        Internally, a fresh call to the calibrations endpoint is made to the REST API
+        """
+        gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
+        if self.data["characterized"]:
+            provider: "TergiteProvider" = self.provider
+            self._device_properties = provider.get_latest_calibration(
+                backend_name=self.name
+            )
+            calibrations.add_instructions(
+                backend=self,
+                qubits=tuple(q for q in range(self.data["num_qubits"])),
+                coupled_qubit_idxs=self.data["coupled_qubit_idxs"],
+                target=gmap,
+                device_properties=self._device_properties,
+            )
+
+        logging.info(f"Refreshed the target for '{self.name}' backend")
+        self._target = gmap
 
 
 class OpenQASMBackend(TergiteBackend):
