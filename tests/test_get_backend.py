@@ -46,7 +46,7 @@ def test_get_malformed_backend(api):
     """Raises TypeError if a malformed backend is returned"""
     provider = _get_test_provider(url=API_URL)
 
-    err_msg = "__init__\\(\\) missing 1 required positional argument: 'version'"
+    err_msg = "(TergiteBackendConfig.)?__init__\\(\\) missing 1 required positional argument: 'version'"
     with pytest.raises(
         TypeError, match=f"malformed backend '{MALFORMED_BACKEND}', {err_msg}"
     ):
