@@ -12,7 +12,6 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Handles the calibration of the devices of type OpenPulseBackend"""
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import qiskit.circuit as circuit
@@ -22,32 +21,6 @@ from . import template_schedules as templates
 
 if TYPE_CHECKING:
     from .backend import DeviceCalibrationV2, OpenPulseBackend
-
-
-# TODO: Replace with BCC graph node
-@dataclass(frozen=True)
-class Node:
-    """Parsing node for job objects from the API
-
-    Note: the keys in the job objects should be
-    valid Python string identifiers
-
-    This node transforms the keys in the job object
-    into attributes
-
-    Attributes:
-        data: the data to instantiate the node with
-    """
-
-    data: dict
-
-    def __post_init__(self):
-        # subvert frozen restriction, create new frozen fields for key value pairs in data
-        for k, v in self.data.items():
-            object.__setattr__(self, k, v)
-
-    def __repr__(self) -> str:
-        return self.job_id
 
 
 def add_instructions(

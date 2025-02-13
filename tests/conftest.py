@@ -41,7 +41,9 @@ _TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
 _CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/v2/calibrations/([\w-]+)")
-_JOBS_REGISTER_URL_REGEX = re.compile(f"^{API_URL}/jobs\?backend=([\w-]+)")
+_JOBS_REGISTER_URL_REGEX = re.compile(
+    f"^{API_URL}/jobs\?backend=([\w-]+)&calibration_date=(.*)"
+)
 _QC_URL_REGEX = re.compile(r"^http://([\w-]+)\.tergite\.example")
 _JOBS_RESULTS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\w-]+)")
 _JOBS_LOGFILE_URL_REGEX = re.compile(
@@ -117,23 +119,35 @@ def bearer_auth_api(requests_mock):
     request_headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
     no_auth_matcher = _without_headers(request_headers)
+    no_auth_json = {"detail": "Unauthorized"}
     requests_mock.get(
         _BACKENDS_URL, request_headers=request_headers, json=BACKENDS_LIST
     )
     requests_mock.get(
-        _BACKENDS_URL, status_code=401, additional_matcher=no_auth_matcher
+        _BACKENDS_URL,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
     )
 
     # job registration
     requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
-    requests_mock.post(_JOBS_URL, status_code=401, additional_matcher=no_auth_matcher)
+    requests_mock.post(
+        _JOBS_URL,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
+    )
 
     # job upload
     requests_mock.post(
         QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200
     )
     requests_mock.post(
-        QUANTUM_COMPUTER_URL, status_code=401, additional_matcher=no_auth_matcher
+        QUANTUM_COMPUTER_URL,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
     )
 
     # job results
@@ -141,7 +155,10 @@ def bearer_auth_api(requests_mock):
         _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=TEST_JOB_RESULTS
     )
     requests_mock.get(
-        _TEST_JOB_RESULTS_URL, status_code=401, additional_matcher=no_auth_matcher
+        _TEST_JOB_RESULTS_URL,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
     )
 
     # download file
@@ -151,14 +168,23 @@ def bearer_auth_api(requests_mock):
         content=RAW_TEST_JOB_RESULTS,
     )
     requests_mock.get(
-        _TEST_RESULTS_DOWNLOAD_PATH, status_code=401, additional_matcher=no_auth_matcher
+        _TEST_RESULTS_DOWNLOAD_PATH,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
     )
 
-    # # Add the missing mock for the calibration request
+    # calibrations
     requests_mock.get(
         _CALIBRATIONS_REGEX,
         request_headers=request_headers,
         json=_mock_calibrations_handler,
+    )
+    requests_mock.get(
+        _CALIBRATIONS_REGEX,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
     )
     yield requests_mock
 
@@ -205,7 +231,7 @@ def api_with_logfile(requests_mock):
         _JOBS_LOGFILE_URL_REGEX, headers={}, content=_mock_logfile_download_handler
     )
 
-    # # Add the mock for the calibration request
+    # calibration request
     requests_mock.get(_CALIBRATIONS_REGEX, json=_mock_calibrations_handler)
     yield requests_mock
 
@@ -255,8 +281,9 @@ def _mock_job_registration_handler(request: Request, context: Any) -> Dict[str, 
     matcher = _JOBS_REGISTER_URL_REGEX.match(request.url)
     try:
         backend_name = matcher.group(1)
+        calibration_date = matcher.group(2)
         data = TEST_JOBS_MAP[backend_name]
-        return {**data}
+        return {**data, "backend": backend_name, "calibration_date": calibration_date}
     except (AttributeError, KeyError):
         raise rq_mock.NoMockAddress(request)
 

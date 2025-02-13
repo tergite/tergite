@@ -15,6 +15,7 @@ import uuid
 import warnings
 from collections import Counter
 from typing import List, Optional
+from urllib.parse import quote as urlparse
 
 import numpy as np
 import pytest
@@ -25,7 +26,7 @@ from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.qiskit.deprecated.compiler.assembler import assemble
-from tergite.qiskit.providers import Job, OpenPulseBackend, Tergite
+from tergite.qiskit.providers import Job, OpenPulseBackend, Provider, Tergite
 from tergite.qiskit.providers.backend import DeviceCalibrationV2, TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tergite.qiskit.providers.template_schedules import cz
@@ -41,8 +42,8 @@ from tests.conftest import (
     TEST_JOB_ID,
     TEST_JOB_RESULTS,
     TEST_QOBJ_ID,
-    TWO_QUBIT_BACKENDS,
     TEST_QOBJ_RESULTS_MAP,
+    TWO_QUBIT_BACKENDS,
 )
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
@@ -99,6 +100,7 @@ def test_run_1q_gates(api, backend_name):
     """backend.run returns a registered job for 1-qubit gate operations"""
     backend = _get_backend(backend_name)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
@@ -108,7 +110,9 @@ def test_run_1q_gates(api, backend_name):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[:4]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[:4]
 
     assert got == expected
     assert requests_made == expected_requests
@@ -119,6 +123,7 @@ def test_run_2q_gates(api, backend_name):
     """backend.run returns a registered job for 2-qubit gate operations"""
     backend = _get_backend(backend_name)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_2q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
@@ -128,7 +133,9 @@ def test_run_2q_gates(api, backend_name):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[:4]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[:4]
 
     assert got == expected
     assert requests_made == expected_requests
@@ -139,6 +146,7 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
     """backend.run returns a registered job for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     backend.set_options(shots=NUMBER_OF_SHOTS)
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
@@ -148,7 +156,9 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[:4]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[:4]
 
     assert got == expected
     assert requests_made == expected_requests
@@ -160,14 +170,20 @@ def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     backend = _get_backend(backend_name, token=token)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     qobj_id = str(uuid.uuid4())
 
-    with pytest.raises(RuntimeError, match="Unable to register job at the Tergite MSS"):
+    with pytest.raises(
+        RuntimeError,
+        match=f"failed to get device calibrations for '{backend_name}': Unauthorized",
+    ):
         _ = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:2]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:2]
 
     assert requests_made == expected_requests
 
@@ -177,6 +193,7 @@ def test_job_result(api, backend_name):
     """job.result() returns a successful job's results"""
     backend = _get_backend(backend_name)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
@@ -184,7 +201,9 @@ def test_job_result(api, backend_name):
 
     got = job.result()
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:6]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert got.to_dict() == expected.to_dict()
     assert requests_made == expected_requests
@@ -195,13 +214,16 @@ def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     """job.result() returns a successful job's results for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     expected = _get_expected_job_result(backend=backend, job=job)
     got = job.result()
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:6]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert got.to_dict() == expected.to_dict()
     assert requests_made == expected_requests
@@ -212,19 +234,20 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
     backend.provider.provider_account.token = token
 
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
+    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.result()
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:5]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert requests_made == expected_requests
 
@@ -234,12 +257,15 @@ def test_job_status(api, backend_name):
     """job.status() returns a successful job's status"""
     backend = _get_backend(backend_name)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:5]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert got == JobStatus.DONE
     assert requests_made == expected_requests
@@ -250,12 +276,15 @@ def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     """job.status() returns a successful job's status for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.status()
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:5]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert got == JobStatus.DONE
     assert requests_made == expected_requests
@@ -266,19 +295,20 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
     backend.provider.provider_account.token = token
 
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
+    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.status()
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:5]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert requests_made == expected_requests
 
@@ -288,12 +318,15 @@ def test_job_download_url(api, backend_name):
     """job.download_url returns a successful job's download_url"""
     backend = _get_backend(backend_name)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:6]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert got == TEST_JOB_RESULTS["download_url"]
     assert requests_made == expected_requests
@@ -304,12 +337,15 @@ def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     got = job.download_url
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:6]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert got == TEST_JOB_RESULTS["download_url"]
     assert requests_made == expected_requests
@@ -320,19 +356,20 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
     """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
     backend.provider.provider_account.token = token
 
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
+    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.download_url
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:5]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert requests_made == expected_requests
 
@@ -342,12 +379,15 @@ def test_job_logfile(api, backend_name, tmp_results_file):
     """job.logfile downloads a job's data to tmp"""
     backend = _get_backend(backend_name)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
     requests_made = get_request_list(api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:7]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:6]
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
@@ -361,12 +401,15 @@ def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file
     """job.logfile downloads a successful job's results for API behind bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     assert job.logfile == tmp_results_file
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:7]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:6]
 
     with open(tmp_results_file, "rb") as file:
         got = json.load(file)
@@ -380,28 +423,32 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     backend = _get_backend(backend_name, token=API_TOKEN)
     calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
     backend.provider.provider_account.token = token
 
-    with pytest.raises(
-        RuntimeError, match=f"Failed to GET status of job: {TEST_JOB_ID}"
-    ):
+    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.logfile
 
     requests_made = get_request_list(bearer_auth_api)
-    expected_requests = _get_all_mock_requests(backend_name)[1:5]
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:5]
 
     assert requests_made == expected_requests
 
 
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
-def test_provider_job(api_with_logfile, backend_name, token: str = None):
-    """Test that Provider.job returns the correct Job object."""
+def test_provider_job(api_with_logfile, backend_name):
+    """Test that Provider.job() returns the correct Job object."""
+    account = ProviderAccount(service_name="test", url=API_URL)
+    provider = Tergite.use_provider_account(account)
+
     # create a job the usual way
-    backend = _get_backend(backend_name)
+    backend = _get_backend(backend_name, provider=provider)
     backend.set_options(shots=NUMBER_OF_SHOTS)
     calibrations = _get_calibrations(backend_name)
     qobj_id = f"{TEST_QOBJ_ID}-{backend_name}"
@@ -414,13 +461,12 @@ def test_provider_job(api_with_logfile, backend_name, token: str = None):
     )
     expected = backend.run(tc, meas_level=2, qobj_id=qobj_id)
 
+    assert expected.logfile is not None
     # overwrite some properties that are expected to change when getting job by job id
-    expected.metadata["upload_url"] = ""
+    expected.upload_url = expected.metadata["upload_url"] = None
     job_id = expected.job_id()
 
     # retrieve job from provider
-    account = ProviderAccount(service_name=f"test", url=API_URL, token=token)
-    provider = Tergite.use_provider_account(account)
     got = provider.job(job_id)
 
     assert got == expected, "The retrieved job does not match the original job."
@@ -472,12 +518,16 @@ def _get_expected_job(
             **options,
         )
 
-    job = Job(backend=backend, job_id=TEST_JOB_ID, upload_url=QUANTUM_COMPUTER_URL)
+    job = Job(
+        backend=backend,
+        job_id=TEST_JOB_ID,
+        payload=qobj,
+        upload_url=QUANTUM_COMPUTER_URL,
+    )
 
     job.metadata["shots"] = NUMBER_OF_SHOTS
     job.metadata["qobj_id"] = qobj_id
     job.metadata["num_experiments"] = 1
-    job.payload = qobj
 
     return job
 
@@ -673,10 +723,21 @@ def _get_expected_2q_transpiled_circuit(
     return qc
 
 
-def _get_backend(name: str, token: str = None):
-    """Retrieves the right backend"""
-    account = ProviderAccount(service_name="test", url=API_URL, token=token)
-    provider = Tergite.use_provider_account(account)
+def _get_backend(name: str, token: str = None, provider: Optional[Provider] = None):
+    """Retrieves the right backend
+
+    Args:
+        name: the name of the backend
+        token: the API token to use to access the API; defaults to None
+        provider: an optional provider to use; defaults to None
+
+    Returns:
+        An OpenPulseBackend corresponding to the given name
+    """
+    if provider is None:
+        account = ProviderAccount(service_name="test", url=API_URL, token=token)
+        provider = Tergite.use_provider_account(account)
+
     expected_json = get_record(BACKENDS_LIST, _filter={"name": name})
     return OpenPulseBackend(
         data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
@@ -696,7 +757,9 @@ def _get_calibrations(backend_name: str) -> DeviceCalibrationV2:
     return DeviceCalibrationV2(**data)
 
 
-def _get_all_mock_requests(backend_name: str) -> List[MockRequest]:
+def _get_all_mock_requests(
+    backend_name: str, calibration_date: Optional[str] = None
+) -> List[MockRequest]:
     """Generates all the possible mock requests for a given backend
 
     Args:
@@ -705,18 +768,21 @@ def _get_all_mock_requests(backend_name: str) -> List[MockRequest]:
     Returns:
         The list of all MockRequests for the given backend name
     """
+    if calibration_date is not None:
+        calibration_date = urlparse(calibration_date)
+
     return [
         MockRequest(
             url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
             method="GET",
         ),
         MockRequest(
-            url=f"https://api.tergite.example/jobs?backend={backend_name}",
-            method="POST",
-        ),
-        MockRequest(
             url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
             method="GET",
+        ),
+        MockRequest(
+            url=f"https://api.tergite.example/jobs?backend={backend_name}&calibration_date={calibration_date}",
+            method="POST",
         ),
         MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
         MockRequest(
@@ -724,42 +790,5 @@ def _get_all_mock_requests(backend_name: str) -> List[MockRequest]:
             method="GET",
             has_text=False,
         ),
-        MockRequest(
-            url="https://api.tergite.example/jobs/test_job_id",
-            method="GET",
-            has_text=False,
-        ),
         MockRequest(url="http://loke.tergite.example/test_file.hdf5", method="GET"),
     ]
-
-
-# def _test_wacqt_cz_gate(duration, name, numerical_args):
-#     # define the time variable
-#     t = symbols("t", real=True)
-#
-#     # define symbolic variables (can also be passed as parameters)
-#     symbolic_args = {
-#         "t_w": symbols("t_w", real=True),
-#         "t_rf": symbols("t_rf", real=True),
-#         "t_p": symbols("t_p", real=True),
-#         "delta_0": symbols("delta_0", real=True),
-#     }
-#
-#     # create the symbolic expression
-#     envelope_expr = delta_t_function_sympy(t, symbolic_args)
-#
-#     # substitute numerical values into the symbolic expression
-#     if numerical_args:
-#         envelope_expr = envelope_expr.subs(numerical_args)
-#
-#     numerical_args["amp"] = [numerical_args["amp"], 0]
-#     # create the SymbolicPulse instance
-#     instance = SymbolicPulse(
-#         pulse_type="Wacqt_cz_gate_pulse",
-#         duration=duration,
-#         parameters=numerical_args,
-#         envelope=envelope_expr,
-#         name=name,
-#     )
-#
-#     return instance
