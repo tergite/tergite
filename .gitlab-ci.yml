@@ -13,7 +13,7 @@ stages:
 .run_pytests: &run_pytests
   stage: tests
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" 
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG =~ /^v.*$/
   script:
     - *poetry_install
@@ -22,7 +22,7 @@ stages:
 .check_linter: &check_linter
   stage: lint
   rules:
-    - if: $SHOULD_LINT == "true" && $CI_PIPELINE_SOURCE == "merge_request_event" 
+    - if: $SHOULD_LINT == "true" && $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $SHOULD_LINT == "true" && $CI_COMMIT_TAG =~ /^v.*$/
   script:
     - *poetry_install
@@ -36,6 +36,18 @@ lint python3.10:
   <<: *check_linter
   image: python:3.10-slim
 
+lint python3.11:
+  <<: *check_linter
+  image: python:3.11-slim
+
+lint python3.12:
+  <<: *check_linter
+  image: python:3.12-slim
+
+lint python3.13:
+  <<: *check_linter
+  image: python:3.13-slim
+
 test python3.9:
   <<: *run_pytests
   image: python:3.9-slim
@@ -44,6 +56,17 @@ test python3.10:
   <<: *run_pytests
   image: python:3.10-slim
 
+test python3.11:
+  <<: *run_pytests
+  image: python:3.11-slim
+
+test python3.12:
+  <<: *run_pytests
+  image: python:3.12-slim
+
+test python3.13:
+  <<: *run_pytests
+  image: python:3.13-slim
 
 deploy staging:
   stage: release
