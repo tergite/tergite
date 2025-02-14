@@ -259,17 +259,23 @@ class Provider:
         path = Path(tempfile.gettempdir()) / str(uuid4())
 
         try:
-            with path.open("w+") as file:
-                json.dump(job_data, file, cls=IQXJsonEncoder, indent="\t")
+            # dump json to temporary file
+            with path.open("w") as dest:
+                json.dump(job_data, dest, cls=IQXJsonEncoder, indent="\t")
+
+            # Send temporary file to url
+            with path.open("r") as src:
                 response = requests.post(
-                    url, files={"upload_file": file}, headers=self.get_auth_headers()
+                    url, files={"upload_file": src}, headers=self.get_auth_headers()
                 )
+
                 # FIXME: Can the backend update the MSS when a job is queued i.e. after this request?
                 if not response.ok:
                     error_msg = _get_err_text(response)
                     raise RuntimeError(
                         f"Failed to POST job '{job_data['job_id']}': {error_msg}"
                     )
+
         finally:
             # Delete temporary file
             path.unlink()
