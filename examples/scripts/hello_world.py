@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # API token for connecting to tergite
     API_TOKEN = "<your Tergite API key >"
     # The name of the Quantum Computer to use from the available quantum computers
-    BACKEND_NAME = "SimulatorC"
+    BACKEND_NAME = "qiskit_pulse_2q"
     # the name of this service. For your own bookkeeping.
     SERVICE_NAME = "local"
     # the timeout in seconds for how long to keep checking for results

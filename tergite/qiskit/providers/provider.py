@@ -3,6 +3,7 @@
 # (C) Copyright Miroslav Dobsicek 2020, 2021
 # (C) Copyright Axel Andersson 2022
 # (C) Copyright Martin Ahindura 2023
+# (C) Copyright Chalmers Next Labs 2025
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,18 +19,17 @@
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
 import json
-import os
 import shutil
 import tempfile
+from json import JSONDecodeError
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from uuid import uuid4
 
-import h5py
 import requests
-from qiskit.providers import JobV1
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
-
-from tergite.qiskit.deprecated.qobj import PulseQobj
+from requests import Response
 
 from .backend import (
     DeviceCalibrationV2,
@@ -38,8 +38,10 @@ from .backend import (
     TergiteBackendConfig,
 )
 from .config import REST_API_MAP
-from .job import Job
+from .job import STATUS_MAP, Job
+from .logfile import extract_job_metadata, extract_job_qobj
 from .provider_account import ProviderAccount
+from .serialization import IQXJsonEncoder
 
 
 class Provider:
@@ -73,7 +75,7 @@ class Provider:
         """
         available_backends = self.available_backends
         if name in self._malformed_backends:
-            exp = {self._malformed_backends[name]}
+            exp = self._malformed_backends[name]
             raise TypeError(f"malformed backend '{name}', {exp}")
 
         if name:
@@ -102,108 +104,109 @@ class Provider:
 
         return backends
 
-    def get_latest_calibration(self, backend_name=None) -> DeviceCalibrationV2:
-        """Get latest calibration data."""
-        # TODO: Consider making it update_calibration
-        # TODO: get many calibrations and filter lates by date (?)
-        return self._get_backend_calibration(backend_name=backend_name)
+    def job(self, job_id: str) -> Job:
+        """Retrieve a runtime job given a job id
 
-    def job(self, job_id: str) -> JobV1:
-        """Retrieve a runtime job."""
-        url = f"{self.provider_account.url}{REST_API_MAP['jobs']}/{job_id}"
-        auth_headers = self.get_auth_headers()
-        response = requests.get(url, headers=auth_headers)
+        Args:
+            job_id: the ID of the job
 
-        if not response.ok:
-            raise RuntimeError(f"Failed to GET memory of job: {job_id}")
+        Returns:
+            an instance of `Job` corresponding to the given job id
 
-        job_data = response.json()
-        backend = self.get_backend(name=job_data["backend"])
-        job = Job(backend=backend, job_id=job_id, upload_url="")
-
-        try:
-            job_file = _download_job_file(
-                job_data["download_url"], filename=f"job_data-{job_id}.hdf5"
-            )
-        except KeyError:
+        Raises:
+            RuntimeError: Job: {job_id} has no download_url
+        """
+        remote_data = self.get_remote_job_data(job_id)
+        if "download_url" not in remote_data:
             raise RuntimeError(f"Job: {job_id} has no download_url")
 
-        # open the HDF5 file using h5py
-        with h5py.File(job_file, "r") as hdf:
-            # access the 'header' group and list its contents
-            try:
-                qobj_metadata = hdf["header"]["qobj_metadata"]
-                # update the job metadata
-                job.metadata["shots"] = qobj_metadata.attrs.get("shots", None)
-                job.metadata["qobj_id"] = qobj_metadata.attrs.get("qobj_id", None)
-                job.metadata["num_experiments"] = qobj_metadata.attrs.get(
-                    "num_experiments", None
-                )
+        download_url = remote_data["download_url"]
+        backend = self.get_backend(name=remote_data["backend"])
+        logfile = self.download_job_logfile(job_id, url=remote_data["download_url"])
+        raw_status = remote_data.get("status")
+        status = STATUS_MAP.get(raw_status)
+        calibration_date = remote_data.get("calibration_date")
 
-                qobj_data = hdf["header"]["qobj_data"]
-                # attach a full qobj as a payload
-                experiment_data = qobj_data.attrs.get("experiment_data", None)
-                job.payload = PulseQobj.from_dict(data=json.loads(experiment_data))
-            except KeyError as exp:
-                raise RuntimeError(
-                    f"Expected 'qobj' dataset not found in 'header' group.\n{exp}"
-                )
+        metadata = extract_job_metadata(logfile)
+        payload = extract_job_qobj(logfile)
 
-        return job
+        return Job(
+            backend=backend,
+            job_id=job_id,
+            payload=payload,
+            upload_url=None,
+            download_url=download_url,
+            logfile=logfile,
+            status=status,
+            remote_data=remote_data,
+            calibration_date=calibration_date,
+            **metadata,
+        )
 
     def _get_backend_configs(self) -> List[TergiteBackendConfig]:
-        """Retrieves the backend configs from which to construct Backend objects"""
+        """Retrieves the backend configs from the remote API
+
+         These configs are used to construct Backend objects
+
+        Raises:
+            RuntimeError: Error retrieving backends: {detail}
+
+        Returns:
+            list of TergiteBackendConfig got from the remote API
+        """
         parsed_data = []
         url = f"{self.provider_account.url}{REST_API_MAP['devices']}"
 
         # reset malformed backends map
         self._malformed_backends.clear()
 
-        headers = self.get_auth_headers()
-        response = requests.get(url=url, headers=headers)
+        response = requests.get(url=url, headers=self.get_auth_headers())
         if not response.ok:
-            raise RuntimeError(f"GET request for backends timed out. GET {url}")
+            error_msg = _get_err_text(response)
+            raise RuntimeError(f"Error retrieving backends: {error_msg}")
 
         records = response.json()
         for record in records:
             try:
                 parsed_data.append(TergiteBackendConfig(**record))
             except TypeError as exp:
-                self._malformed_backends[record["name"]] = f"{exp}\n{exp.__traceback__}"
+                self._malformed_backends[record["name"]] = f"{exp}"
 
         return parsed_data
 
-    def _get_backend_calibration(self, backend_name: str = None) -> DeviceCalibrationV2:
-        """Retrieves the latest backend calibration data and returns Calibration objects"""
-        # Construct the URL for the calibrations endpoint
-        calibrations_url = (
+    def get_latest_calibration(
+        self, backend_name: Optional[str] = None
+    ) -> DeviceCalibrationV2:
+        """Retrieves the latest backend calibration data and returns Calibration objects
+
+        Args:
+            backend_name: the name of the backend
+
+        Returns:
+            the DeviceCalibrationV2 for the given backend
+
+        Raises:
+            RuntimeError: Failed to get device calibrations for '{backend_name}': {error_msg}
+            ValueError: Error parsing device calibration data for '{backend_name}': {detail}
+        """
+        url = (
             f"{self.provider_account.url}{REST_API_MAP['calibrations']}/{backend_name}"
         )
-
-        # Get authentication headers from the provider
         headers = self.get_auth_headers()
-
-        # Make the GET request to the calibrations endpoint
-        response = requests.get(url=calibrations_url, headers=headers)
+        response = requests.get(url, headers=headers)
 
         if not response.ok:
+            error_msg = _get_err_text(response)
             raise RuntimeError(
-                f"Failed to get device calibrations for '{backend_name}': "
-                f"{response.status_code} {response.text}"
+                f"failed to get device calibrations for '{backend_name}': {error_msg}"
             )
 
-        # Parse the JSON response
-        data = response.json()
-
-        # Create a DeviceCalibrationV2 object from the response data
         try:
-            device_calibration = DeviceCalibrationV2(**data)
+            return DeviceCalibrationV2(**response.json())
         except Exception as e:
             raise ValueError(
                 f"Error parsing device calibration data for '{backend_name}': {e}"
             ) from e
-
-        return device_calibration
 
     def get_auth_headers(self) -> Optional[Dict[str, str]]:
         """Retrieves the auth header for this provider.
@@ -215,6 +218,113 @@ class Provider:
             return {"Authorization": f"Bearer {self.provider_account.token}"}
 
         return None
+
+    def register_job_on_api(
+        self, backend_name: str, calibration_date: Optional[str] = None, **kwargs
+    ) -> Dict[str, Any]:
+        """Registers the job on the remote API
+
+        Args:
+            backend_name: the name of the backend
+            calibration_date: the current last_calibrated timestamp for the given backend
+
+        Returns:
+            a dict with the response from the API
+
+        Raises:
+            RuntimeError: unable to register job at the remote API: {detail}
+        """
+        url = f"{self.provider_account.url}{REST_API_MAP['jobs']}"
+        params = {"backend": backend_name, "calibration_date": calibration_date}
+        response = requests.post(url, headers=self.get_auth_headers(), params=params)
+        if not response.ok:
+            err_msg = _get_err_text(response)
+            raise RuntimeError(f"unable to register job at the remote API: {err_msg}")
+
+        return response.json()
+
+    def send_job_file(self, url: str, job_data: Dict[str, Any]) -> Response:
+        """Sends the job file to the remote server
+
+        Args:
+            url: the URL to send the job file to
+            job_data: the data of the job
+
+        Returns:
+            the response after the submission
+
+        Raises:
+            RuntimeError: Failed to POST job '{job_id}': {detail}
+        """
+        path = Path(tempfile.gettempdir()) / str(uuid4())
+
+        try:
+            # dump json to temporary file
+            with path.open("w") as dest:
+                json.dump(job_data, dest, cls=IQXJsonEncoder, indent="\t")
+
+            # Send temporary file to url
+            with path.open("r") as src:
+                response = requests.post(
+                    url, files={"upload_file": src}, headers=self.get_auth_headers()
+                )
+
+                # FIXME: Can the backend update the MSS when a job is queued i.e. after this request?
+                if not response.ok:
+                    error_msg = _get_err_text(response)
+                    raise RuntimeError(
+                        f"Failed to POST job '{job_data['job_id']}': {error_msg}"
+                    )
+
+        finally:
+            # Delete temporary file
+            path.unlink()
+
+        return response
+
+    def download_job_logfile(self, job_id: str, url: str) -> Path:
+        """Downloads the job logfile and returns the path to the downloaded file
+
+        Args:
+            job_id: the id of the job
+            url: the URL to download from
+
+        Returns:
+            the path to the downloaded job file
+
+        Raises:
+            RuntimeError: Failed to GET logfile of job '{job_id}': {detail}
+        """
+        file_response = requests.get(url, stream=True, headers=self.get_auth_headers())
+        if not file_response.ok:
+            error_msg = _get_err_text(file_response)
+            raise RuntimeError(f"Failed to GET logfile of job '{job_id}': {error_msg}")
+
+        job_logfile = Path(tempfile.gettempdir()) / (job_id + ".hdf5")
+        with open(job_logfile, "wb") as file:
+            shutil.copyfileobj(file_response.raw, file)
+
+        return job_logfile
+
+    def get_remote_job_data(self, job_id: str, /) -> Dict[str, Any]:
+        """Retrieves the job data from the remote API
+
+        Args:
+            job_id: the ID of the job to retrieve
+
+        Returns:
+            the dict representation of the job in the remote API
+
+        Raises:
+            RuntimeError: error retrieving job data: {detail}
+        """
+        url = f"{self.provider_account.url}{REST_API_MAP['jobs']}/{job_id}"
+        response = requests.get(url, headers=self.get_auth_headers())
+        if response.ok:
+            return response.json()
+
+        error_msg = _get_err_text(response)
+        raise RuntimeError(f"error retrieving job data: {error_msg}")
 
     def __str__(self, /):
         return "Tergite: Provider"
@@ -282,26 +392,16 @@ class Provider:
         return backends[0]
 
 
-def _download_job_file(download_url: str, filename: str) -> str:
-    """Downloads the job file and returns the path to the downloaded file
+def _get_err_text(response: Response) -> str:
+    """Returns the error text of the response
 
     Args:
-        download_url: the URL to download from
+        response: the response whose detail is to be returned
 
     Returns:
-        the path to the downloaded job file
-
-    Raises:
-        ValueError: file failed to download
+        the response error detail from the response
     """
-    file_response = requests.get(download_url, stream=True)
-    if not file_response.ok:
-        raise ValueError("file failed to download")
-
-    # save the file temporarily
-    tempdir = tempfile.gettempdir()
-    temp_file = os.path.join(tempdir, filename)
-    with open(temp_file, "wb") as file:
-        shutil.copyfileobj(file_response.raw, file)
-
-    return temp_file
+    try:
+        return response.json()["detail"]
+    except (KeyError, AttributeError, JSONDecodeError):
+        return response.text

@@ -7,6 +7,18 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Refactor: Changed a few error messages to include the original error
+- Refactor: Changed the Job metadata to always be generated on the backend.  
+  It was originally setting them both on the backend and the SDK.
+
+### Added
+
+- Added caching of calibration requests to reduce number of calls to remote API
+- Added caching on Job's `status()`, `result()`, `download_url` to reduce number of calls to remote API
+- Added sending of `calibration_date` (str) query parameter during job registration.
+
 ## [2024.12.1] - 2024-12-18
 
 ### Changed

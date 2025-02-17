@@ -27,7 +27,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
-import requests
 from numpy import inf as infinity
 from pydantic import BaseModel, Extra
 from qiskit.circuit import QuantumCircuit
@@ -46,7 +45,6 @@ from tergite.qiskit.deprecated.compiler.assembler import assemble
 from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
 from tergite.qiskit.providers import calibrations
 
-from .config import REST_API_MAP
 from .job import Job
 
 if TYPE_CHECKING:
@@ -58,6 +56,7 @@ class TergiteBackend(BackendV2):
 
     max_shots = infinity
     max_circuits = infinity
+    provider: "TergiteProvider"
 
     def __init__(
         self,
@@ -91,30 +90,33 @@ class TergiteBackend(BackendV2):
         self.base_url = base_url
         self.data = dataclasses.asdict(data)
 
-    def register_job(self) -> Job:
+    @property
+    @abstractmethod
+    def device_properties(self) -> Optional["DeviceCalibration"]:
+        """The calibrated data for the given device"""
+
+    def register_job(self, payload: Union[PulseQobj, QasmQobj], **metadata) -> Job:
         """Registers a new asynchronous job with the Tergite API.
+
+        Args:
+            payload: the experiments to attach to the given job
+            metadata: the extra properties to add to the metadata of the object
 
         Returns:
              tergite.qiskit.providers.job.Job: An asynchronous
                  job registered in the Tergite API to be executed
         """
-        jobs_url = self.base_url + REST_API_MAP["jobs"]
-        provider: "TergiteProvider" = self.provider
-        auth_headers = provider.get_auth_headers()
-        response = requests.post(
-            jobs_url,
-            headers=auth_headers,
-            params=dict(backend=self.name),
+        calibration_date = metadata.pop("calibration_date", None)
+        resp = self.provider.register_job_on_api(
+            backend_name=self.name, calibration_date=calibration_date
         )
-        if response.ok:
-            job_registration = response.json()
-        else:
-            raise RuntimeError(
-                f"Unable to register job at the Tergite MSS, response: {response}"
-            )
-        job_id = job_registration["job_id"]
-        job_upload_url = job_registration["upload_url"]
-        return Job(backend=self, job_id=job_id, upload_url=job_upload_url)
+        return Job(
+            backend=self,
+            job_id=resp["job_id"],
+            payload=payload,
+            upload_url=resp["upload_url"],
+            **metadata,
+        )
 
     def run(self, experiments, /, **kwargs) -> Job:
         """Run on the Tergite backend.
@@ -140,9 +142,15 @@ class TergiteBackend(BackendV2):
         Returns:
             tergite.qiskit.providers.job.Job: The job object for the run
         """
-        job = self.register_job()
         qobj = self.make_qobj(experiments, **kwargs)
-        response = job.submit(qobj)
+        job = self.register_job(
+            payload=qobj,
+            shots=qobj.config.shots,
+            qobj_id=qobj.qobj_id,
+            num_experiments=len(qobj.experiments),
+            calibration_date=self.last_calibrated,
+        )
+        response = job.submit()
         if response.ok:
             print("Tergite: Job has been successfully submitted")
             return job
@@ -162,7 +170,7 @@ class TergiteBackend(BackendV2):
         ...
 
     @abstractmethod
-    def make_qobj(self, experiments: list, /, **kwargs) -> object:
+    def make_qobj(self, experiments: list, /, **kwargs) -> Union[PulseQobj, QasmQobj]:
         """Constructs a Qobj from a list of user OpenPulse schedules or OpenQASM circuits
 
         Args:
@@ -181,6 +189,14 @@ class TergiteBackend(BackendV2):
     @property
     def meas_map(self) -> list:
         return self.data["meas_map"]
+
+    @property
+    def last_calibrated(self) -> Optional[str]:
+        """The timestamp for when this backed was last calibrated"""
+        try:
+            return self.device_properties.last_calibrated
+        except AttributeError:
+            pass
 
     @functools.cached_property
     def coupling_map(self) -> CouplingMap:
@@ -243,7 +259,7 @@ class TergiteBackend(BackendV2):
 
 class OpenPulseBackend(TergiteBackend):
     open_pulse = True
-
+    provider: "TergiteProvider"
     parametric_pulses = [
         "constant",
         "zero",
@@ -270,6 +286,7 @@ class OpenPulseBackend(TergiteBackend):
         base_url: str,
     ):
         self._target: Optional[Target] = None
+        self._device_properties: Optional[DeviceCalibrationV2] = None
         super().__init__(data=data, provider=provider, base_url=base_url)
 
     def configuration(self) -> BackendConfiguration:
@@ -293,6 +310,12 @@ class OpenPulseBackend(TergiteBackend):
             description=self.description,  # From BackendV2.
             parametric_pulses=OpenPulseBackend.parametric_pulses,  # From type of self
         )
+
+    @property
+    def device_properties(self) -> DeviceCalibrationV2:
+        if self._device_properties is None:
+            self._refresh_device_properties()
+        return self._device_properties
 
     @property
     def dt(self) -> float:
@@ -373,6 +396,17 @@ class OpenPulseBackend(TergiteBackend):
                 **kwargs,
             )
 
+    def _refresh_device_properties(self):
+        """Refreshes the device properties for this backend
+
+        Internally, a fresh call to the calibrations endpoint is made to the REST API
+        """
+        if self.data["characterized"]:
+            self._device_properties = self.provider.get_latest_calibration(
+                backend_name=self.name
+            )
+            logging.info(f"Refreshed the device properties of '{self.name}' backend")
+
     def _refresh_target(self):
         """Recompiles the target for this backend
 
@@ -380,16 +414,13 @@ class OpenPulseBackend(TergiteBackend):
         """
         gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
         if self.data["characterized"]:
-            provider: "TergiteProvider" = self.provider
-            self._device_properties = provider.get_latest_calibration(
-                backend_name=self.name
-            )
+            self._refresh_device_properties()
             calibrations.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data["num_qubits"])),
                 coupled_qubit_idxs=self.data["coupled_qubit_idxs"],
                 target=gmap,
-                device_properties=self._device_properties,
+                device_properties=self.device_properties,
             )
 
         logging.info(f"Refreshed the target for '{self.name}' backend")
@@ -586,13 +617,18 @@ class CouplersCalibration(BaseModel, extra=Extra.allow):
     id: Optional[int] = None
 
 
-class DeviceCalibrationV2(BaseModel):
+class DeviceCalibration(BaseModel):
     """Schema for the calibration data of a given device"""
 
     name: str
+    last_calibrated: str
+
+
+class DeviceCalibrationV2(DeviceCalibration):
+    """Schema for the calibration data of a given device"""
+
     version: str
     qubits: List[QubitCalibration]
     resonators: Optional[List[ResonatorCalibration]] = None
     couplers: Optional[List[CouplersCalibration]] = None
     discriminators: Optional[Dict[str, Any]] = None
-    last_calibrated: str

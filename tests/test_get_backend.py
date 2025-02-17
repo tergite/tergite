@@ -46,7 +46,10 @@ def test_get_malformed_backend(api):
     """Raises TypeError if a malformed backend is returned"""
     provider = _get_test_provider(url=API_URL)
 
-    with pytest.raises(TypeError, match=f"malformed backend '{MALFORMED_BACKEND}'"):
+    err_msg = "(TergiteBackendConfig.)?__init__\\(\\) missing 1 required positional argument: 'version'"
+    with pytest.raises(
+        TypeError, match=f"malformed backend '{MALFORMED_BACKEND}', {err_msg}"
+    ):
         provider.get_backend(MALFORMED_BACKEND)
 
 
@@ -66,7 +69,7 @@ def test_bearer_auth(bearer_auth_api, backend_name):
 def test_invalid_bearer_auth(token, backend, bearer_auth_api):
     """Invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
     provider = _get_test_provider(url=API_URL, token=token)
-    with pytest.raises(RuntimeError, match="GET request for backends timed out."):
+    with pytest.raises(RuntimeError, match="Error retrieving backends: Unauthorized"):
         provider.get_backend(backend)
 
 
