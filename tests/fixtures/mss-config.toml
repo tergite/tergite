@@ -1,0 +1,62 @@
+# mss-config.toml
+
+# general configurations
+[general]
+# the port on which MSS is running
+mss_port = 8002
+# the port on which the websocket is running
+ws_port = 6532
+# environment reflect which environment the app is to run in.
+environment = "development"
+# the host the uvicorn runs on.
+# During testing auth on 127.0.0.1, set this to "127.0.0.1". default: "0.0.0.0"
+mss_host = "127.0.0.1"
+
+[database]
+# configurations for the database
+name = "testing"
+# database URI
+url = "mongodb://tergite-mongo:27017"
+
+[[backends]]
+name = "qiskit_pulse_2q"
+# the URL where this backend is running
+url = "http://qiskit_pulse_2q:8000"
+
+[[backends]]
+name = "qiskit_pulse_1q"
+# the URL where this backend is running
+url = "http://qiskit_pulse_1q:8001"
+
+[auth]
+# turn auth OFF or ON, default=true
+is_enabled = false
+cookie_domain = "127.0.0.1"
+cookie_name = "tergiteauth"
+
+[[auth.clients]]
+name = "github"
+client_id = "some-github-obtained-client-id"
+client_secret = "some-github-obtained-client-secret"
+redirect_url = "http://127.0.0.1:8002/auth/app/github/callback"
+client_type = "github"
+email_regex = "^(john\\.doe|jane|aggrey)@example\\.com$"
+email_domain = "example.com"
+roles = ["admin", "user"]
+
+[[auth.clients]]
+name = "puhuri"
+client_id = "some-puhuri-obtained-client-id"
+client_secret = "some-puhuri-obtained-client-secret"
+redirect_url = "http://127.0.0.1:8002/auth/app/puhuri/callback"
+client_type = "openid"
+email_regex = "^(john\\.doe|jane)@example\\.com$"
+email_domain = "example.com"
+roles = ["user"]
+openid_configuration_endpoint = "https://proxy.acc.puhuri.eduteams.org/.well-known/openid-configuration"
+
+# Puhuri synchronization
+# Puhuri is a resource management platform for HPC systems, that is also to be used for Quantum Computer's
+[puhuri]
+# turn puhuri synchronization OFF or ON, default=true
+is_enabled = false

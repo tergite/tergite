@@ -118,6 +118,22 @@ source $(poetry env info --path)/bin/activate
 pytest tests
 ```
 
+## How to Run End-to-end Tests
+
+- Ensure you have [docker](https://docs.docker.com/engine/install/) and [python](https://www.python.org/downloads/) installed
+- Ensure nothing is running on ports:
+  - 27018
+  - 8000
+  - 8002
+  - 8001
+  - 6378
+
+- Run the tests command
+
+``` shell
+./e2e_test.sh
+```
+
 ## References
 
 This document was adapted from [a gist by Brian A. Danielak](https://gist.github.com/briandk/3d2e8b3ec8daf5a27a62) which was originally adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md)

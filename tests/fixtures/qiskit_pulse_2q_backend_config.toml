@@ -1,0 +1,182 @@
+# backend_config.toml
+[general_config]
+name = "qiskit_pulse_2q"
+is_active = true
+characterized = true
+open_pulse = true
+simulator = true
+version = "1.0.0"
+online_date = "2024-10-09T00:00:00"
+num_qubits = 2
+num_couplers = 1
+num_resonators = 2
+description = "A two-qubit transmon Hamiltonian with 4 levels per qubit"
+dt = 0.01e-9
+dtm = 0.01e-9
+
+[device_config]
+discriminators = [ "lda" ]
+qubit_ids = [ "q0", "q1" ]
+meas_map = [ [ 0 ], [ 1 ] ]
+coordinates = [
+  [0, 0],
+  [1, 0]
+]
+
+qubit_parameters = [
+  "id",
+  "x_position",
+  "y_position",
+  "xy_drive_line",
+  "z_drive_line",
+  "frequency",
+  "pi_pulse_amplitude",
+  "pi_pulse_duration",
+  "pulse_type",
+  "pulse_sigma",
+  "t1_decoherence",
+  "t2_decoherence"
+]
+resonator_parameters = [
+  "id",
+  "x_position",
+  "y_position",
+  "readout_line",
+  "acq_delay",
+  "acq_integration_time",
+  "frequency",
+  "pulse_delay",
+  "pulse_duration",
+  "pulse_type",
+  "pulse_amplitude"
+]
+
+coupler_parameters = [
+  "id",
+  "frequency",
+  "frequency_detuning",
+  "anharmonicity",
+  "coupling_strength_02",
+  "coupling_strength_12",
+  "cz_pulse_amplitude",
+  "cz_pulse_dc_bias",
+  "cz_pulse_phase_offset",
+  "cz_pulse_duration_before",
+  "cz_pulse_duration_rise",
+  "cz_pulse_duration_constant",
+  "pulse_type"
+]
+
+[device_config.discriminator_parameters]
+lda = [
+  "coef_0",
+  "coef_1",
+  "intercept"
+]
+
+[device_config.coupling_dict]
+u0 = ["q0", "q1"]
+
+[gates.x]
+coupling_map = [ [ 0, 1], [1, 0] ]
+qasm_def = "gate x q { U(pi, 0, pi) q; }"
+parameters = [ ]
+
+[simulator_config]
+coupling_strength = 0.02e9
+
+[simulator_config.units.qubit]
+frequency = "Hz"
+t1_decoherence = "s"
+t2_decoherence = "s"
+anharmonicity = "Hz"
+
+[simulator_config.units.readout_resonator]
+acq_delay = "s"
+acq_integration_time = "s"
+frequency = "Hz"
+pulse_delay = "s"
+pulse_duration = "s"
+pulse_amplitude = ""
+pulse_type = ""
+
+[simulator_config.units.coupler]
+frequency = "Hz"
+frequency_detuning = "Hz"
+anharmonicity = "Hz"
+coupling_strength_02 = "Hz"
+coupling_strength_12 = "Hz"
+cz_pulse_amplitude = ""
+cz_pulse_dc_bias = ""
+cz_pulse_phase_offset = "rad"
+cz_pulse_duration_before = "s"
+cz_pulse_duration_rise = "s"
+cz_pulse_duration_constant = "s"
+pulse_type = ""
+
+[[simulator_config.qubit]]
+id = "q0"
+frequency = 4.8e9
+anharmonicity = -0.17e9
+t1_decoherence = 3.4e-5
+t2_decoherence = 3.3e-5
+pi_pulse_amplitude = 0.029
+pi_pulse_duration = 5.6e-8
+pulse_sigma = 7e-9
+pulse_type = "Gaussian"
+
+[[simulator_config.qubit]]
+id = "q1"
+frequency = 4.225e9
+anharmonicity = -0.17e9
+t1_decoherence = 3.4e-5
+t2_decoherence = 3.3e-5
+pi_pulse_amplitude = 0.029
+pi_pulse_duration = 5.6e-8
+pulse_sigma = 7e-9
+pulse_type = "Gaussian"
+
+[[simulator_config.readout_resonator]]
+id = "q0"
+acq_delay = 5e-8
+acq_integration_time = 1e-6
+frequency = 7_260_080_000
+pulse_delay = 0
+pulse_duration = 9e-7
+pulse_amplitude = 0.1266499392606423
+pulse_type = "Square"
+
+[[simulator_config.readout_resonator]]
+id = "q1"
+acq_delay = 5e-8
+acq_integration_time = 1e-6
+frequency = 7_380_000_000
+pulse_delay = 0
+pulse_duration = 9e-7
+pulse_amplitude = 0.12660078572926436
+pulse_type = "Square"
+
+[[simulator_config.coupler]]
+id = "u0"
+frequency = 7.8e9
+frequency_detuning = -0.015e9
+anharmonicity = -0.17e9
+coupling_strength_02 = 0.07e9
+coupling_strength_12 = 0.07e9
+cz_pulse_amplitude = 0.08
+cz_pulse_dc_bias = 0.275
+cz_pulse_phase_offset = 0
+cz_pulse_duration_before = 88e-9
+cz_pulse_duration_rise = 25e-9
+cz_pulse_duration_constant = 370e-9
+pulse_type = "wacqt_cz_gate_pulse"
+
+[simulator_config.discriminators.lda.q0]
+intercept = -38.4344477840827
+coef_0 = -98_953.87504155144
+coef_1 = -114_154.48696231026
+
+[simulator_config.discriminators.lda.q1]
+intercept = -42.05181160328822
+coef_0 = -107_941.00358803963
+coef_1 = -124_239.32054386326

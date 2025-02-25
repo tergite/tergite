@@ -15,7 +15,7 @@ import pytest
 from tergite.qiskit.providers import OpenPulseBackend, Provider, Tergite
 from tergite.qiskit.providers.backend import TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
-from tests.conftest import (
+from .conftest import (
     API_TOKEN,
     API_URL,
     BACKENDS_LIST,
@@ -24,12 +24,14 @@ from tests.conftest import (
     MALFORMED_BACKEND,
 )
 from tests.utils.records import get_record
+from ..utils.env import is_end_to_end
 
 _INVALID_PARAMS = [
     (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS
 ]
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_get_backend(api, backend_name):
     """Retrieves the right backend"""
@@ -42,6 +44,7 @@ def test_get_backend(api, backend_name):
     assert got == expected
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 def test_get_malformed_backend(api):
     """Raises TypeError if a malformed backend is returned"""
     provider = _get_test_provider(url=API_URL)
@@ -53,6 +56,7 @@ def test_get_malformed_backend(api):
         provider.get_backend(MALFORMED_BACKEND)
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_bearer_auth(bearer_auth_api, backend_name):
     """Retrieves the data if backend is shielded with basic auth"""
@@ -65,6 +69,7 @@ def test_bearer_auth(bearer_auth_api, backend_name):
     assert got == expected
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend", _INVALID_PARAMS)
 def test_invalid_bearer_auth(token, backend, bearer_auth_api):
     """Invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""

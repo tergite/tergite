@@ -30,7 +30,7 @@ from tergite.qiskit.providers import Job, OpenPulseBackend, Provider, Tergite
 from tergite.qiskit.providers.backend import DeviceCalibrationV2, TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tergite.qiskit.providers.template_schedules import cz
-from tests.conftest import (
+from .conftest import (
     API_TOKEN,
     API_URL,
     BACKENDS_LIST,
@@ -47,12 +47,14 @@ from tests.conftest import (
 )
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
+from ..utils.env import is_end_to_end
 
 _INVALID_PARAMS = [
     (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS
 ]
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_transpile_1q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 1-qubit ops"""
@@ -74,6 +76,7 @@ def test_transpile_1q_gates(api, backend_name):
     ), "Transpiled circuit does not match expected result."
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", TWO_QUBIT_BACKENDS)
 def test_transpile_2q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 2-qubit gate ops"""
@@ -95,6 +98,7 @@ def test_transpile_2q_gates(api, backend_name):
     ), "Transpiled circuit does not match expected result."
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_run_1q_gates(api, backend_name):
     """backend.run returns a registered job for 1-qubit gate operations"""
@@ -118,6 +122,7 @@ def test_run_1q_gates(api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", TWO_QUBIT_BACKENDS)
 def test_run_2q_gates(api, backend_name):
     """backend.run returns a registered job for 2-qubit gate operations"""
@@ -141,6 +146,7 @@ def test_run_2q_gates(api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_run_bearer_auth(bearer_auth_api, backend_name):
     """backend.run returns a registered job for API behind bearer auth"""
@@ -164,6 +170,7 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """backend.run with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -188,6 +195,7 @@ def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_result(api, backend_name):
     """job.result() returns a successful job's results"""
@@ -209,6 +217,7 @@ def test_job_result(api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     """job.result() returns a successful job's results for API behind bearer auth"""
@@ -229,6 +238,7 @@ def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -252,6 +262,7 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_status(api, backend_name):
     """job.status() returns a successful job's status"""
@@ -271,6 +282,7 @@ def test_job_status(api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     """job.status() returns a successful job's status for API behind bearer auth"""
@@ -290,6 +302,7 @@ def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -313,6 +326,7 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_download_url(api, backend_name):
     """job.download_url returns a successful job's download_url"""
@@ -332,6 +346,7 @@ def test_job_download_url(api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
@@ -351,6 +366,7 @@ def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -374,6 +390,7 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_logfile(api, backend_name, tmp_results_file):
     """job.logfile downloads a job's data to tmp"""
@@ -396,6 +413,7 @@ def test_job_logfile(api, backend_name, tmp_results_file):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file):
     """job.logfile downloads a successful job's results for API behind bearer auth"""
@@ -418,6 +436,7 @@ def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -441,6 +460,7 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name):
     """Test that Provider.job() returns the correct Job object."""

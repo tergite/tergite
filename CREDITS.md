@@ -17,7 +17,8 @@
 ## Martin Ahindura  
 
 - Bearer token authentication
-- Integration/unit test suite plus CI/CD pipeline configurations
+- Integration/unit plus CI/CD pipeline configurations
+- e2e test suite
 - Implementation of the CZ gate
 
 ## Adilet Tuleuov
@@ -27,3 +28,7 @@
 ## Pontus Vikstål
 
 - Implementation of the CZ gate
+
+## Raiyan Yahya
+
+- e2e test suite
