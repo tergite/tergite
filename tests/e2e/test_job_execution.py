@@ -2,7 +2,7 @@
 import pytest
 from qiskit import circuit, compiler
 
-from tergite.qiskit.providers import Provider, Job
+from tergite.qiskit.providers import Job, Provider
 from tests.utils.env import is_end_to_end
 
 

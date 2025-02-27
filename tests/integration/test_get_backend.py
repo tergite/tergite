@@ -15,6 +15,9 @@ import pytest
 from tergite.qiskit.providers import OpenPulseBackend, Provider, Tergite
 from tergite.qiskit.providers.backend import TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
+from tests.utils.records import get_record
+
+from ..utils.env import is_end_to_end
 from .conftest import (
     API_TOKEN,
     API_URL,
@@ -23,8 +26,6 @@ from .conftest import (
     INVALID_API_TOKENS,
     MALFORMED_BACKEND,
 )
-from tests.utils.records import get_record
-from ..utils.env import is_end_to_end
 
 _INVALID_PARAMS = [
     (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS

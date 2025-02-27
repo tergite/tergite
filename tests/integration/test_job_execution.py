@@ -30,6 +30,10 @@ from tergite.qiskit.providers import Job, OpenPulseBackend, Provider, Tergite
 from tergite.qiskit.providers.backend import DeviceCalibrationV2, TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tergite.qiskit.providers.template_schedules import cz
+from tests.utils.records import get_record
+from tests.utils.requests import MockRequest, get_request_list
+
+from ..utils.env import is_end_to_end
 from .conftest import (
     API_TOKEN,
     API_URL,
@@ -45,9 +49,6 @@ from .conftest import (
     TEST_QOBJ_RESULTS_MAP,
     TWO_QUBIT_BACKENDS,
 )
-from tests.utils.records import get_record
-from tests.utils.requests import MockRequest, get_request_list
-from ..utils.env import is_end_to_end
 
 _INVALID_PARAMS = [
     (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS

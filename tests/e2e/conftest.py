@@ -7,7 +7,7 @@ import requests
 import requests_mock
 from urllib3 import HTTPResponse
 
-from tergite.qiskit.providers import Tergite, Provider
+from tergite.qiskit.providers import Provider, Tergite
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tests.utils.env import is_end_to_end
 
