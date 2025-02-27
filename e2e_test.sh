@@ -21,6 +21,8 @@
 #   DEBUG="True" \ # Set 'True' to avoid cleaning up the containers, env, and repos after test, default: ''
 #   ./e2e_test.sh
 
+set -e # exit if any step fails
+
 # Global variables
 TEMP_DIR="temp"
 FRONTEND_REPO="$FRONTEND_REPO"
