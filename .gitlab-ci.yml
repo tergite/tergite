@@ -1,5 +1,4 @@
 stages:
-  - lint
   - tests
   - e2e
   - release
@@ -18,22 +17,9 @@ stages:
             apt install -y libopenblas-dev gfortran; 
         fi
 
-lint:
-  image: python:$VERSION
-  stage: lint
-  rules:
-    - if: $SHOULD_LINT == "true" && $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $SHOULD_LINT == "true" && $CI_COMMIT_TAG =~ /^v.*$/
-  script:
-    - *install_pydev_for_3_13_only
-    - *poetry_install
-    - poetry run black tergite --check
-  parallel:
-    matrix:
-      - VERSION: ['3.9-slim', '3.10-slim', '3.11-slim', '3.12-slim', '3.13-bookworm']
-
 test:
   image: python:$VERSION
+  needs: []
   stage: tests
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -41,17 +27,17 @@ test:
   script:
     - *install_pydev_for_3_13_only
     - *poetry_install
+    - poetry run black tergite --check
     - poetry run pytest tests/
   parallel:
     matrix:
       - VERSION: ['3.9-slim', '3.10-slim', '3.11-slim', '3.12-slim', '3.13-bookworm']
 
 e2e:
-  image: docker:27.4.0
+  needs: []
+  image: docker:latest
   services:
-    - name: docker:27.4.0-dind
-      variables:
-        HEALTHCHECK_TCP_PORT: "2375"
+    - name: docker:dind
   stage: e2e
   when: manual
   manual_confirmation: 'Are you sure you want to run the end-to-end test?'
@@ -60,21 +46,27 @@ e2e:
     BACKEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
     BACKEND_BRANCH: "main"
     FRONTEND_BRANCH: "main"
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375/
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG =~ /^v.*$/
   before_script:
     - docker info
-    - apk update && apk add --no-cache \
-      curl bash build-base libssl1.1 zlib-dev\
-      libffi-dev make git libopenblas-dev gfortran \
-      gfortran openblas-dev
+    - apk update && apk add --no-cache curl bash build-base cmake
+      openssl-dev zlib-dev libffi-dev make git gfortran openblas-dev gnupg
+      tar xz bluez-dev bzip2-dev dpkg-dev dpkg findutils gcc gdbm-dev libc-dev libnsl-dev hdf5-dev
+      libtirpc-dev linux-headers ncurses-dev openssl-dev pax-utils readline-dev sqlite-dev tcl-dev
+      tk tk-dev util-linux-dev xz-dev
     - curl -fsSL https://pyenv.run | bash
+    - export PYENV_ROOT="$HOME/.pyenv"
+    - if [ -d $PYENV_ROOT/bin ]; then export PATH="$PYENV_ROOT/bin:$PATH"; fi
+    - eval "$(pyenv init - sh)"
     - pyenv install ${PYTHON_VERSION}
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   script:
-    - pyenv use ${PYTHON_VERSION}
+    - . "$HOME/.cargo/env"
+    - pyenv local ${PYTHON_VERSION}
     - ./e2e_test.sh
   parallel:
     matrix:
@@ -82,6 +74,9 @@ e2e:
 
 deploy staging:
   stage: release
+  needs:
+    - test
+    - e2e
   environment: staging
   image: python:3.9-slim
   rules:
@@ -94,6 +89,9 @@ deploy staging:
 
 deploy production:
   stage: release
+  needs:
+    - test
+    - e2e
   environment: production
   image: python:3.9-slim
   rules:
