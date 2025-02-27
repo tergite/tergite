@@ -19,7 +19,9 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Added caching of calibration requests to reduce number of calls to remote API
 - Added caching on Job's `status()`, `result()`, `download_url` to reduce number of calls to remote API
 - Added sending of `calibration_date` (str) query parameter during job registration.
-- Added end-to-end tests
+- Added end-to-end tests for `qiskit_pulse_1q` simulator backend
+- Added end-to-end tests for `qiskit_pulse_2q` simulator backend
+- Added Gitlab and Github CI configurations for end-to-end tests
 
 ## [2024.12.1] - 2024-12-18
 
