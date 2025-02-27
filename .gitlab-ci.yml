@@ -47,7 +47,11 @@ test:
       - VERSION: ['3.9-slim', '3.10-slim', '3.11-slim', '3.12-slim', '3.13-bookworm']
 
 e2e:
-  image: python:$VERSION
+  image: docker:27.4.0
+  services:
+    - name: docker:27.4.0-dind
+      variables:
+        HEALTHCHECK_TCP_PORT: "2375"
   stage: e2e
   when: manual
   manual_confirmation: 'Are you sure you want to run the end-to-end test?'
@@ -56,15 +60,25 @@ e2e:
     BACKEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
     BACKEND_BRANCH: "main"
     FRONTEND_BRANCH: "main"
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: tcp://docker:2375
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG =~ /^v.*$/
+  before_script:
+    - docker info
+    - apk update && apk add --no-cache \
+      curl bash build-base libssl1.1 zlib-dev\
+      libffi-dev make git libopenblas-dev gfortran \
+      gfortran openblas-dev
+    - curl -fsSL https://pyenv.run | bash
+    - pyenv install ${PYTHON_VERSION}
   script:
-    - *install_pydev_for_3_13_only
+    - pyenv use ${PYTHON_VERSION}
     - ./e2e_test.sh
   parallel:
     matrix:
-      - VERSION: ['3.9-slim', '3.10-slim', '3.11-slim', '3.12-slim', '3.13-bookworm']
+      - PYTHON_VERSION: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
 deploy staging:
   stage: release
