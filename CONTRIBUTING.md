@@ -131,6 +131,11 @@ pytest tests
 - Run the tests command
 
 ``` shell
+FRONTEND_REPO="https://github.com/tergite/tergite-frontend.git" \
+  BACKEND_REPO="https://github.com/tergite/tergite-backend.git" \
+# BACKEND_BRANCH="main" \ # you can set a different backend branch; default is 'main'
+# FRONTEND_BRANCH="main" \ # you can set a different frontend branch; default is 'main'
+# DEBUG="True" \ # Set 'True' to avoid cleaning up the containers, env, and repos after test, default: ''
 ./e2e_test.sh
 ```
 
