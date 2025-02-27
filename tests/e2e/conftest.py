@@ -1,4 +1,5 @@
 """Fixtures for end-to-end tests"""
+
 import os
 import re
 

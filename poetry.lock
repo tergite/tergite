@@ -4493,4 +4493,4 @@ test = ["pytest", "requests-mock"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "d9abfb1b5d354324f557067876b00e9197ad323d7cfd4a3e879b5e825070036e"
+content-hash = "0f8a424809cd65a2d0caf4189984fb2074b97de67fdb8f7265911c8809207568"
