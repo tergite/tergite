@@ -8,7 +8,7 @@ stages:
   - python -m pip install --user pipx
   - python -m pipx ensurepath
   - source ~/.profile
-  - pipx install poetry==1.5.1
+  - pipx install poetry~=2.1.1
   - poetry install --no-interaction --no-root
 
 .install_pydev_for_3_13_only: &install_pydev_for_3_13_only
