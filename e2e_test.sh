@@ -19,6 +19,7 @@
 #   BACKEND_BRANCH="main" \ # you can set a different backend branch; default is 'main'
 #   FRONTEND_BRANCH="main" \ # you can set a different frontend branch; default is 'main'
 #   DEBUG="True" \ # Set 'True' to avoid cleaning up the containers, env, and repos after test, default: ''
+#   PYTHON_IMAGE="python:3.9-slim" \ # Set the docker image to run the tests. If not provided, it runs on the host machine
 #   ./e2e_test.sh
 
 set -e # exit if any step fails
@@ -33,6 +34,7 @@ APP_TOKEN="pZTccp8F-8RLFvQie1AMM0ptfdkGNnH1wDEB4INUFqw"
 ROOT_PATH="$(pwd)"
 TEMP_DIR_PATH="$ROOT_PATH/$TEMP_DIR"
 FIXTURES_PATH="$ROOT_PATH/tests/fixtures"
+PYTHON_IMAGE="$PYTHON_IMAGE"
 
 # Logging function for errors
 log_error() {
@@ -80,19 +82,34 @@ docker compose \
   -p tergite-e2e \
   up -d
 
-# Starting the tests
-echo "Create virtual environment for tests..."
-rm -rf "$ROOT_PATH/env"
-python -m venv "$ROOT_PATH/env"
-LOCAL_PYTHON="$ROOT_PATH/env/bin/python"
-cd "$ROOT_PATH"
-"$LOCAL_PYTHON" -m pip install ."[test]"
+# Run in python docker file if $PYTHON_IMAGE is set
+# or else run on host machine
 
-echo "Running end-to-end test suite..."
-IS_END_TO_END="True" \
- API_URL="http://127.0.0.1:8002" \
- API_TOKEN="$APP_TOKEN" \
- $LOCAL_PYTHON -m pytest "$ROOT_PATH/tests"
+if [[ -z "$PYTHON_IMAGE" ]]; then
+  # Starting the tests
+  echo "Create virtual environment for tests..."
+  rm -rf "$ROOT_PATH/env"
+  python -m venv "$ROOT_PATH/env"
+  LOCAL_PYTHON="$ROOT_PATH/env/bin/python"
+  cd "$ROOT_PATH"
+  "$LOCAL_PYTHON" -m pip install ."[test]"
+
+  echo "Running end-to-end test suite..."
+  IS_END_TO_END="True" \
+   API_URL="http://127.0.0.1:8002" \
+   API_TOKEN="$APP_TOKEN" \
+   $LOCAL_PYTHON -m pytest "$ROOT_PATH/tests"
+else
+  cd "$ROOT_PATH"
+  cp "$FIXTURES_PATH/e2e-runner.sh" .
+  docker run \
+    --name tergite-e2e-runner \
+    --network=tergite-e2e_tergite-e2e \
+    -v "$PWD":/app -w /app \
+    -e APP_TOKEN="$APP_TOKEN" \
+    -e API_URL="http://mss:8002" \
+    "$PYTHON_IMAGE" bash ./e2e-runner.sh
+fi
 
 # Cleanup
 # In order to debug the containers and the repos,
@@ -100,6 +117,7 @@ IS_END_TO_END="True" \
 if [[ $(echo "${DEBUG}" | tr '[:lower:]' '[:upper:]') != "TRUE" ]]; then
   echo "Cleaning up..."
   docker compose -p tergite-e2e down --rmi all --volumes
+  docker rm tergite-e2e-runner 2>/dev/null
   rm -rf "$TEMP_DIR_PATH"
   rm -rf "$ROOT_PATH/env"
 else

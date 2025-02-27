@@ -48,29 +48,19 @@ e2e:
     FRONTEND_BRANCH: "main"
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
+    PYTHON_IMAGE: python:$VERSION
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG =~ /^v.*$/
   before_script:
     - docker info
-    - apk update && apk add --no-cache curl bash build-base cmake
-      openssl-dev zlib-dev libffi-dev make git gfortran openblas-dev gnupg
-      tar xz bluez-dev bzip2-dev dpkg-dev dpkg findutils gcc gdbm-dev libc-dev libnsl-dev hdf5-dev
-      libtirpc-dev linux-headers ncurses-dev openssl-dev pax-utils readline-dev sqlite-dev tcl-dev
-      tk tk-dev util-linux-dev xz-dev
-    - curl -fsSL https://pyenv.run | bash
-    - export PYENV_ROOT="$HOME/.pyenv"
-    - if [ -d $PYENV_ROOT/bin ]; then export PATH="$PYENV_ROOT/bin:$PATH"; fi
-    - eval "$(pyenv init - sh)"
-    - pyenv install ${PYTHON_VERSION}
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    - apk update && apk add --no-cache curl bash build-base
+      openssl-dev zlib-dev libffi-dev make git
   script:
-    - . "$HOME/.cargo/env"
-    - pyenv local ${PYTHON_VERSION}
     - ./e2e_test.sh
   parallel:
     matrix:
-      - PYTHON_VERSION: ['3.9', '3.10', '3.11', '3.12', '3.13']
+      - VERSION: ['3.9-slim', '3.10-slim', '3.11-slim', '3.12-slim', '3.13-bookworm']
 
 deploy staging:
   stage: release

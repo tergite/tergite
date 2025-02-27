@@ -136,6 +136,7 @@ FRONTEND_REPO="https://github.com/tergite/tergite-frontend.git" \
 # BACKEND_BRANCH="main" \ # you can set a different backend branch; default is 'main'
 # FRONTEND_BRANCH="main" \ # you can set a different frontend branch; default is 'main'
 # DEBUG="True" \ # Set 'True' to avoid cleaning up the containers, env, and repos after test, default: ''
+# PYTHON_IMAGE="python:3.9-slim" \ # Set the docker image to run the tests. If not provided, it runs on the host machine
 ./e2e_test.sh
 ```
 

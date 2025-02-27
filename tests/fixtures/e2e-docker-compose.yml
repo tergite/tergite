@@ -108,4 +108,3 @@ services:
 
 networks:
   tergite-e2e:
-    external: false

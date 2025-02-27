@@ -20,3 +20,12 @@ def is_end_to_end() -> bool:
         True if the environment is in END_TO_END settings, False otherwise
     """
     return os.environ.get("IS_END_TO_END", "False").lower() == "true"
+
+
+def is_in_docker() -> bool:
+    """Checks if this is running in docker
+
+    Returns:
+        True if running in docker container settings, False otherwise
+    """
+    return os.environ.get("IS_IN_DOCKER", "False").lower() == "true"
