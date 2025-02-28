@@ -54,6 +54,12 @@ e2e:
     - if: $CI_COMMIT_TAG =~ /^v.*$/
   before_script:
     - docker info
+    - |
+      if [[ n "$DOCKER_USER" && -n "$DOCKER_TOKEN" ]]; then
+        echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin; 
+      else
+        echo "Skipping docker login: DOCKER_USER or DOCKER_TOKEN not set."
+      fi;
     - apk update && apk add --no-cache curl bash build-base
       openssl-dev zlib-dev libffi-dev make git
   script:
