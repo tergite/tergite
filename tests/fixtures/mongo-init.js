@@ -30,7 +30,7 @@ db.auth_app_tokens.insertMany([
       "lifespan_seconds": 7200000,
       "token": "pZTccp8F-8RLFvQie1AMM0ptfdkGNnH1wDEB4INUFqw",
       "user_id": ObjectId("67bdbfd8b790ddf03785119e"),
-      "created_at": ISODate("2025-02-14T10:51:37.923Z")
+      "created_at": ISODate()
     }
 ])
 
