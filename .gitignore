@@ -158,3 +158,5 @@ demo/
 
 # e2e
 temp/
+e2e-runner.sh
+!tests/fixtures/e2e-runner.sh
