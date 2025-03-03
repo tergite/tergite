@@ -46,7 +46,7 @@ echo "Cleaning up docker artefacts from previous runs"
 docker compose -p tergite-e2e  down --rmi all --volumes 2>/dev/null
 docker rmi -f tergite/tergite-mss 2>/dev/null
 docker rmi -f tergite/tergite-dashboard 2>/dev/null
-docker rmi -f tergite-e2e/tergite-backend:latest 2>/dev/null
+docker rmi -f tergite/tergite-backend-e2e:latest 2>/dev/null
 docker system prune -f
 
 # Create and navigating to temporary directory

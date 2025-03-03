@@ -43,7 +43,7 @@ services:
     depends_on:
       - mss
       - tergite-redis
-    image: "tergite-e2e/tergite-backend:latest"
+    image: "tergite/tergite-backend-e2e:latest"
     build:
       context: ../tergite-backend
       dockerfile: Dockerfile
@@ -71,7 +71,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/docs"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/docs"]
 
   qiskit_pulse_2q:
     restart: always
@@ -79,7 +79,7 @@ services:
       - qiskit_pulse_1q
       - mss
       - tergite-redis
-    image: "tergite-e2e/tergite-backend:latest"
+    image: "tergite/tergite-backend-e2e:latest"
     logging:
       driver: ${LOGGING_DRIVER}
     ports:
@@ -104,7 +104,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/docs"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
 
 networks:
   tergite-e2e:
