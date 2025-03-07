@@ -1,0 +1,110 @@
+---
+services:
+  mss:
+    depends_on:
+      - tergite-mongo
+    networks:
+      - tergite-e2e
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002"]
+
+  dashboard:
+    networks:
+      - tergite-e2e
+
+  tergite-mongo:
+    restart: always
+    image: mongo
+    logging:
+      driver: ${LOGGING_DRIVER}
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - tergite-e2e
+    env_file:
+      - .env
+
+  tergite-redis:
+    restart: always
+    image: redis
+    logging:
+      driver: ${LOGGING_DRIVER}
+    ports:
+      - "6378:6379"
+    networks:
+      - tergite-e2e
+    env_file:
+      - .env
+
+  qiskit_pulse_1q:
+    restart: always
+    depends_on:
+      - mss
+      - tergite-redis
+    image: "tergite/tergite-backend-e2e:latest"
+    build:
+      context: ../tergite-backend
+      dockerfile: Dockerfile
+    logging:
+      driver: ${LOGGING_DRIVER}
+    ports:
+      - "8001:8000"
+    environment:
+      MSS_MACHINE_ROOT_URL: "http://mss:8002"
+      MSS_PORT: 8002
+      BCC_MACHINE_ROOT_URL: "http://localhost:8001"
+      BCC_PORT: 8000
+      EXECUTOR_TYPE: "qiskit_pulse_1q"
+      DEFAULT_PREFIX: "qiskit_pulse_1q"
+      MSS_APP_TOKEN: ${MSS_APP_TOKEN}
+      APP_SETTINGS: "production"
+      IS_AUTH_ENABLED: "True"
+      REDIS_PORT: 6379
+      REDIS_HOST: "tergite-redis"
+    volumes:
+      - ./.env/:/code/.env:ro
+      - ./qiskit_pulse_1q.toml/:/code/backend_config.toml:ro
+    networks:
+      - tergite-e2e
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/docs"]
+
+  qiskit_pulse_2q:
+    restart: always
+    depends_on:
+      - qiskit_pulse_1q
+      - mss
+      - tergite-redis
+    image: "tergite/tergite-backend-e2e:latest"
+    logging:
+      driver: ${LOGGING_DRIVER}
+    ports:
+      - "8000:8000"
+    environment:
+      MSS_MACHINE_ROOT_URL: "http://mss:8002"
+      MSS_PORT: 8002
+      BCC_MACHINE_ROOT_URL: "http://localhost:8000"
+      BCC_PORT: 8000
+      EXECUTOR_TYPE: "qiskit_pulse_2q"
+      DEFAULT_PREFIX: "qiskit_pulse_2q"
+      MSS_APP_TOKEN: ${MSS_APP_TOKEN}
+      APP_SETTINGS: "production"
+      IS_AUTH_ENABLED: "True"
+      REDIS_PORT: 6379
+      REDIS_HOST: "tergite-redis"
+    volumes:
+      - ./.env/:/code/.env:ro
+      - ./qiskit_pulse_2q.toml/:/code/backend_config.toml:ro
+    networks:
+      - tergite-e2e
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+
+networks:
+  tergite-e2e:

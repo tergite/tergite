@@ -375,10 +375,12 @@ class OpenPulseBackend(TergiteBackend):
 
         # convert all non-schedules to schedules
         experiments = [
-            compiler.schedule(experiment, backend=self)
-            if (type(experiment) is not pulse.ScheduleBlock)
-            and (type(experiment) is not pulse.Schedule)
-            else experiment  # already a schedule, so don't convert
+            (
+                compiler.schedule(experiment, backend=self)
+                if (type(experiment) is not pulse.ScheduleBlock)
+                and (type(experiment) is not pulse.Schedule)
+                else experiment
+            )  # already a schedule, so don't convert
             for experiment in experiments
         ]
         # assemble schedules to PulseQobj

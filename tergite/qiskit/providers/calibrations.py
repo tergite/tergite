@@ -29,7 +29,7 @@ def add_instructions(
     qubits: tuple,
     coupled_qubit_idxs: tuple,
     target: Target,
-    device_properties: "DeviceCalibrationV2"
+    device_properties: "DeviceCalibrationV2",
 ):
     """Adds Rx, Rz gates and Delay and Measure instructions for each qubit
     to the transpiler target provided.

@@ -7,7 +7,16 @@ on:
     tags:
       - "v*"
   pull_request:
-
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job to run'
+        required: true
+        default: 'e2e'
+        type: choice
+        options:
+          - e2e
+          - release
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -36,7 +45,7 @@ jobs:
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --no-root --extras "test dev"
       - name: Install project
         run: poetry install --no-interaction
       - name: Lint
@@ -49,10 +58,44 @@ jobs:
           source .venv/bin/activate
           pytest tests/
 
+  e2e:
+    runs-on: ubuntu-latest
+    if: |
+      startsWith(github.ref, 'refs/heads/main') || 
+      startsWith(github.ref, 'refs/tags/') || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'e2e')
+    needs: tests
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install OpenBlas for scipy if no wheels
+        run: sudo apt-get install -y libopenblas-dev
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: 'latest'
+      - name: Run end-to-end-tests
+        env:
+          DEBUG: ${{ vars.DEBUG || 'false' }}
+          FRONTEND_REPO: https://github.com/${{ github.repository_owner }}/tergite-frontend.git
+          BACKEND_REPO: https://github.com/${{ github.repository_owner }}/tergite-backend.git
+          BACKEND_BRANCH: ${{ github.ref_name }}
+          FRONTEND_BRANCH: ${{ github.ref_name }}
+        run: ./e2e_test.sh
+
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: "startsWith(github.ref, 'refs/tags/')"
+    if: |
+      startsWith(github.ref, 'refs/tags/') || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'release')
     needs: tests
     steps:
       - name: Checkout the commit

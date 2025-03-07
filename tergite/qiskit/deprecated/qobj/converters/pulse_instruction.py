@@ -664,7 +664,7 @@ class QobjToInstructionConverter:
 
     @staticmethod
     def disassemble_value(
-        value_expr: Union[float, str]
+        value_expr: Union[float, str],
     ) -> Union[float, ParameterExpression]:
         """A helper function to format instruction operand.
 

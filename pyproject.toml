@@ -1,48 +1,49 @@
-[tool.poetry]
+[project]
 name = "tergite"
 version = "2024.12.1"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
-    "Miroslav Dobsicek",
-    "Axel Andersson",
-    "Martin Ahindura",
-    "Stefan Hill",
-    "Abdullah-al Amin"
+    {name = "Miroslav Dobsicek"},
+    {name = "Axel Andersson"},
+    {name = "Martin Ahindura"},
+    {name = "Stefan Hill"},
+    {name = "Abdullah-al Amin"}
 ]
 maintainers = [
-    "Chalmers Next Labs AB <quantum.nextlabs@chalmers.se>",
+    {name = "Chalmers Next Labs AB", email = "quantum.nextlabs@chalmers.se>"},
 ]
 license = "Apache-2.0"
 readme = "README.md"
+requires-python = ">=3.9,<4.0"
 packages = [{include = "tergite"}]
 keywords = ["quantum-computer", "qiskit", "quantum", "tergite", "sdk"]
 repository = "https://github.com/tergite/tergite"
 homepage = "https://github.com/tergite/tergite"
+dependencies = [
+    "requests>=2.25.1",
+    "qiskit>1,<1.3",
+    "pandas>=1.4.2",
+    "numpy>=1.26.0",
+    "qiskit-ibm-runtime>=0.28.0",
+    "h5py>=3.8.0"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<4.0"
-requests = ">=2.25.1"
-qiskit = "^1,<1.3"
-pandas = ">=1.4.2"
-numpy = ">=1.26.0"
-qiskit-ibm-runtime = ">=0.28.0"
-h5py = ">=3.8.0"
-
-[tool.poetry.group.dev.dependencies]
-jupyter = "^1.0.0"
-python-dateutil = ">=2.8.1"
-python-multipart = ">=0.0.5"
-tqdm = ">=4.64.1"
-more-itertools = ">=8.14.0"
-matplotlib = ">=3.5.3"
-matplotlib-inline = ">=0.1.6"
-black = {extras = ["jupyter"], version = "^23.9.1"}
-isort = "^5.12.0"
-
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.4.2"
-requests-mock = "^1.11.0"
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4.2",
+    "requests-mock>=1.11.0"
+]
+dev = [
+    "jupyter>=1.0.0",
+    "python-dateutil>=2.8.1",
+    "python-multipart>=0.0.5",
+    "tqdm>=4.64.1",
+    "more-itertools>=8.14.0",
+    "matplotlib>=3.5.3",
+    "matplotlib-inline>=0.1.6",
+    "black[jupyter]~=25.1.0",
+    "isort~=6.0.1"
+]
 
 [build-system]
 requires = ["poetry-core"]

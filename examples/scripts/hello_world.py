@@ -59,18 +59,7 @@ if __name__ == "__main__":
 
     # run the circuit
     job: Job = backend.run(tc, meas_level=2, meas_return="single")
-
-    # view the results
-    elapsed_time = 0
-    result = None
-    while result is None:
-        if elapsed_time > POLL_TIMEOUT:
-            raise TimeoutError(
-                f"result polling timeout {POLL_TIMEOUT} seconds exceeded"
-            )
-
-        time.sleep(1)
-        elapsed_time += 1
-        result = job.result()
+    job.wait_for_final_state(timeout=POLL_TIMEOUT)
+    result = job.result()
 
     print(result.get_counts())

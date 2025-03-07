@@ -155,3 +155,8 @@ test_job_examples/
 setup.py
 requirements.txt
 demo/
+
+# e2e
+temp/
+e2e-runner.sh
+!tests/fixtures/e2e-runner.sh
