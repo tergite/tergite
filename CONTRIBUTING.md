@@ -85,7 +85,7 @@ Please note that if your contribution is part of your employment or
 your contribution is the property of your employer,
 you will also most likely need to sign a [corporate CLA](https://tergite.github.io/contributing/ccla.pdf).
 
-All signed CLAs are emails to us at <quantum.nextlabs@chalmers.se>.
+All signed CLAs are emails to us at <contact.quantum@chalmersnextlabs.se>.
 
 ## How to Test
 

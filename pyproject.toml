@@ -1,21 +1,22 @@
 [project]
 name = "tergite"
-version = "2024.12.1"
+version = "2025.03.0"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
-    {name = "Miroslav Dobsicek"},
-    {name = "Axel Andersson"},
-    {name = "Martin Ahindura"},
-    {name = "Stefan Hill"},
-    {name = "Abdullah-al Amin"}
+    { name = "Miroslav Dobsicek" },
+    { name = "Axel Andersson" },
+    { name = "Martin Ahindura" },
+    { name = "Stefan Hill" },
+    { name = "Abdullah-al Amin" },
+    { name = "Adilet Tuleuov" },
 ]
 maintainers = [
-    {name = "Chalmers Next Labs AB", email = "quantum.nextlabs@chalmers.se>"},
+    { name = "Chalmers Next Labs AB", email = "contact.quantum@chalmersnextlabs.se" },
 ]
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.9,<4.0"
-packages = [{include = "tergite"}]
+packages = [{ include = "tergite" }]
 keywords = ["quantum-computer", "qiskit", "quantum", "tergite", "sdk"]
 repository = "https://github.com/tergite/tergite"
 homepage = "https://github.com/tergite/tergite"

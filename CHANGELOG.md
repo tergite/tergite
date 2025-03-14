@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2025.03.0] - 2025-03-14
+
 ### Changed
 
 - Refactor: Changed a few error messages to include the original error
