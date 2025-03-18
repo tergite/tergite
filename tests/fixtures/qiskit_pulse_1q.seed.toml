@@ -1,0 +1,52 @@
+[calibration_config]
+coupling_strength = 0.02e9
+
+# configuration for values that would be calibrated if this were a real device
+# configs for units
+[calibration_config.units.qubit]
+frequency = "Hz"
+t1_decoherence = "s"
+t2_decoherence = "s"
+
+[calibration_config.units.readout_resonator]
+acq_delay = "s"
+acq_integration_time = "s"
+frequency = "Hz"
+pulse_delay = "s"
+pulse_duration = "s"
+
+[calibration_config.units.discriminators]
+coef_0 = ""
+coef_1 = ""
+intercept = ""
+
+# qubits
+[[calibration_config.qubit]]
+frequency = 4_700_000_000
+pi_pulse_amplitude = 0.0284977
+pi_pulse_duration = 56e-9
+pulse_sigma = 7e-9
+pulse_type = "Gaussian"
+t1_decoherence = 0.000071
+t2_decoherence = 0.000069
+id = "q0"
+
+# readout resonators
+[[calibration_config.readout_resonator]]
+acq_delay = 5e-8
+acq_integration_time = 0.000001
+frequency = 7_260_080_000
+pulse_delay = 0
+pulse_duration = 9e-7
+pulse_type = "Square"
+pulse_amplitude = 0.1266499392606423
+id = "q0"
+
+
+# discriminators
+[calibration_config.discriminators.lda.q0]
+intercept = -38.4344477840827
+coef_0 = -98_953.87504155144
+coef_1 = -114_154.48696231026
+
+

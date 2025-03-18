@@ -66,6 +66,7 @@ services:
     volumes:
       - ./.env/:/code/.env:ro
       - ./qiskit_pulse_1q.toml/:/code/backend_config.toml:ro
+      - ./qiskit_pulse_1q.seed.toml/:/code/calibration.seed.toml:ro
     networks:
       - tergite-e2e
     env_file:
@@ -99,6 +100,7 @@ services:
     volumes:
       - ./.env/:/code/.env:ro
       - ./qiskit_pulse_2q.toml/:/code/backend_config.toml:ro
+      - ./qiskit_pulse_2q.seed.toml/:/code/calibration.seed.toml:ro
     networks:
       - tergite-e2e
     env_file:
