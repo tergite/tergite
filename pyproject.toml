@@ -1,6 +1,6 @@
 [project]
 name = "tergite"
-version = "2025.03.0"
+version = "2025.03.1"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
     { name = "Miroslav Dobsicek" },

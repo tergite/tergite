@@ -68,7 +68,9 @@ cd tergite-frontend
 cp "$FIXTURES_PATH/mongo-init.js" .
 cp "$FIXTURES_PATH/e2e-docker-compose.yml" .
 cp "$FIXTURES_PATH/qiskit_pulse_1q.toml" .
+cp "$FIXTURES_PATH/qiskit_pulse_1q.seed.toml" .
 cp "$FIXTURES_PATH/qiskit_pulse_2q.toml" .
+cp "$FIXTURES_PATH/qiskit_pulse_2q.seed.toml" .
 cp "$FIXTURES_PATH/e2e.env" .env
 printf "\nMSS_APP_TOKEN=\"$APP_TOKEN\"" >> .env
 cp "$FIXTURES_PATH/mss-config.toml" .
