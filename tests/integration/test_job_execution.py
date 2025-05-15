@@ -27,7 +27,7 @@ from qiskit.result.models import ExperimentResult, ExperimentResultData
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.qiskit.deprecated.compiler.assembler import assemble
 from tergite.qiskit.providers import Job, OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import DeviceCalibrationV2, TergiteBackendConfig
+from tergite.qiskit.providers.backend import DeviceCalibration, TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tergite.qiskit.providers.template_schedules import cz
 from tests.utils.records import get_record
@@ -112,6 +112,7 @@ def test_run_1q_gates(api, backend_name):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+    expected._calibration_date = calibration_date
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
@@ -136,6 +137,7 @@ def test_run_2q_gates(api, backend_name):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+    expected._calibration_date = calibration_date
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
@@ -160,6 +162,7 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+    expected._calibration_date = calibration_date
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(bearer_auth_api)
@@ -573,7 +576,7 @@ def _get_test_2q_qiskit_circuit():
 
 def _get_expected_1q_transpiled_circuit(
     backend: OpenPulseBackend,
-    calibrations: DeviceCalibrationV2,
+    calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ) -> circuit.QuantumCircuit:
     """Returns a quantum circuit for 1-qubit gates specific to the TEST_BACKEND
@@ -633,7 +636,7 @@ def _get_expected_1q_transpiled_circuit(
 
 def _get_expected_2q_transpiled_circuit(
     backend: OpenPulseBackend,
-    calibrations: DeviceCalibrationV2,
+    calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ):
     """Returns a quantum circuit for 2-qubit gates specific to the TEST_BACKEND
@@ -765,17 +768,17 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
     )
 
 
-def _get_calibrations(backend_name: str) -> DeviceCalibrationV2:
+def _get_calibrations(backend_name: str) -> DeviceCalibration:
     """Retrieves the device calibrations for the given device
 
     Args:
         backend_name: the name of the device
 
     Returns:
-        the DeviceCalibrationV2 of the given device
+        the DeviceCalibration of the given device
     """
     data = TEST_CALIBRATIONS_MAP[backend_name]
-    return DeviceCalibrationV2(**data)
+    return DeviceCalibration(**data)
 
 
 def _get_all_mock_requests(
@@ -789,21 +792,20 @@ def _get_all_mock_requests(
     Returns:
         The list of all MockRequests for the given backend name
     """
-    if calibration_date is not None:
-        calibration_date = urlparse(calibration_date)
-
     return [
         MockRequest(
-            url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+            url=f"https://api.tergite.example/calibrations/{backend_name}",
             method="GET",
         ),
         MockRequest(
-            url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+            url=f"https://api.tergite.example/calibrations/{backend_name}",
             method="GET",
         ),
         MockRequest(
-            url=f"https://api.tergite.example/jobs?backend={backend_name}&calibration_date={calibration_date}",
+            url=f"https://api.tergite.example/jobs/",
             method="POST",
+            json={"device": backend_name, "calibration_date": calibration_date},
+            has_text=True,
         ),
         MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
         MockRequest(

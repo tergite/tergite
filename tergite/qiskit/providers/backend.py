@@ -17,7 +17,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import functools
 import logging
 import warnings
@@ -28,7 +27,7 @@ import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
 from numpy import inf as infinity
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
 from qiskit.pulse.channels import (
@@ -88,7 +87,7 @@ class TergiteBackend(BackendV2):
             backend_version=data.version,
         )
         self.base_url = base_url
-        self.data = dataclasses.asdict(data)
+        self.data = data
 
     @property
     @abstractmethod
@@ -106,7 +105,7 @@ class TergiteBackend(BackendV2):
              tergite.qiskit.providers.job.Job: An asynchronous
                  job registered in the Tergite API to be executed
         """
-        calibration_date = metadata.pop("calibration_date", None)
+        calibration_date = metadata.get("calibration_date", None)
         resp = self.provider.register_job_on_api(
             backend_name=self.name, calibration_date=calibration_date
         )
@@ -188,7 +187,7 @@ class TergiteBackend(BackendV2):
 
     @property
     def meas_map(self) -> list:
-        return self.data["meas_map"]
+        return self.data.meas_map
 
     @property
     def last_calibrated(self) -> Optional[str]:
@@ -205,7 +204,7 @@ class TergiteBackend(BackendV2):
         #
         # Also for some reason the graph has to be connected in Qiskit? Not sure why that is..
         edges = sorted(
-            sorted(self.data["coupling_map"], key=lambda i: i[1]), key=lambda i: i[0]
+            sorted(self.data.coupling_map, key=lambda i: i[1]), key=lambda i: i[0]
         )
         return CouplingMap(couplinglist=list(edges))
 
@@ -230,7 +229,7 @@ class TergiteBackend(BackendV2):
             dict: a dictionary representation of this backend
         """
         obj = self.configuration().to_dict()
-        obj["characterized"] = self.data["characterized"]
+        obj["characterized"] = self.data.characterized
         return obj
 
     def __repr__(self) -> str:
@@ -286,7 +285,7 @@ class OpenPulseBackend(TergiteBackend):
         base_url: str,
     ):
         self._target: Optional[Target] = None
-        self._device_properties: Optional[DeviceCalibrationV2] = None
+        self._device_properties: Optional[DeviceCalibration] = None
         super().__init__(data=data, provider=provider, base_url=base_url)
 
     def configuration(self) -> BackendConfiguration:
@@ -312,18 +311,18 @@ class OpenPulseBackend(TergiteBackend):
         )
 
     @property
-    def device_properties(self) -> DeviceCalibrationV2:
+    def device_properties(self) -> DeviceCalibration:
         if self._device_properties is None:
             self._refresh_device_properties()
         return self._device_properties
 
     @property
     def dt(self) -> float:
-        return self.data["dt"]
+        return self.data.dt
 
     @property
     def dtm(self) -> float:
-        return self.data["dtm"]
+        return self.data.dtm
 
     @property
     def target(self) -> Target:
@@ -340,11 +339,13 @@ class OpenPulseBackend(TergiteBackend):
 
     @property
     def qubit_lo_freq(self) -> list:
-        return [0.0] * self.data["num_qubits"]
+        # FIXME: I think self.data might have a 'qubit_lo_freq' value.
+        return [0.0] * self.data.number_of_qubits
 
     @property
     def meas_lo_freq(self) -> list:
-        return [0.0] * self.data["num_resonators"]
+        # FIXME: I think self.data might have a 'meas_lo_freq' value.
+        return [0.0] * self.data.number_of_resonators
 
     def drive_channel(self, qubit_idx: int) -> DriveChannel:
         return DriveChannel(qubit_idx)
@@ -358,10 +359,10 @@ class OpenPulseBackend(TergiteBackend):
     def memory_slot(self, qubit_idx: int) -> MemorySlot:
         return MemorySlot(qubit_idx)
 
-    def control_channel(self, qubits):
+    def control_channel(self, qubits: Tuple[int, int]):
         """Return the control channel for the given qubits."""
         try:
-            pulse_channel = self.data["qubit_ids_coupler_dict"][qubits]
+            pulse_channel = self.data.qubit_ids_coupler_dict[qubits]
             return [pulse.ControlChannel(pulse_channel)]
         except KeyError:
             raise ValueError(f"Coupling {qubits} not in coupling map.")
@@ -403,7 +404,7 @@ class OpenPulseBackend(TergiteBackend):
 
         Internally, a fresh call to the calibrations endpoint is made to the REST API
         """
-        if self.data["characterized"]:
+        if self.data.characterized:
             self._device_properties = self.provider.get_latest_calibration(
                 backend_name=self.name
             )
@@ -414,13 +415,13 @@ class OpenPulseBackend(TergiteBackend):
 
         Internally, a fresh call to the calibrations endpoint is made to the REST API
         """
-        gmap = Target(num_qubits=self.data["num_qubits"], dt=self.data["dt"])
-        if self.data["characterized"]:
+        gmap = Target(num_qubits=self.data.number_of_qubits, dt=self.data.dt)
+        if self.data.characterized:
             self._refresh_device_properties()
             calibrations.add_instructions(
                 backend=self,
-                qubits=tuple(q for q in range(self.data["num_qubits"])),
-                coupled_qubit_idxs=self.data["coupled_qubit_idxs"],
+                qubits=tuple(q for q in range(self.data.number_of_qubits)),
+                coupled_qubit_idxs=self.data.coupled_qubit_idxs,
                 target=gmap,
                 device_properties=self.device_properties,
             )
@@ -434,7 +435,7 @@ class OpenQASMBackend(TergiteBackend):
 
     @functools.cached_property
     def target(self) -> Target:
-        gmap = Target(num_qubits=self.data["num_qubits"])
+        gmap = Target(num_qubits=self.data.number_of_qubits)
 
         # add rx, rz, delay, measure gate set
         gmap.add_instruction(circuit.library.Reset())
@@ -494,9 +495,10 @@ class OpenQASMBackend(TergiteBackend):
         )
 
 
-@dataclasses.dataclass
-class TergiteBackendConfig:
-    """Version 2 of the TergiteBackendConfig dataclass"""
+class TergiteBackendConfig(BaseModel):
+    """backend configuration got from the remote server"""
+
+    model_config = ConfigDict(extra="allow")
 
     # Fields without default values
     name: str
@@ -512,36 +514,27 @@ class TergiteBackendConfig:
     meas_map: List[List[int]]
 
     # Fields with default values
-    _id: Optional[str] = None
+    id: Optional[str] = None
     last_online: Optional[str] = None
     description: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-    simulator: bool = False
-    num_qubits: int = 0
-    num_couplers: int = 0
-    num_resonators: int = 0
-    online_date: Optional[str] = None
+    number_of_couplers: int = 0
+    number_of_resonators: int = 0
     dt: Optional[float] = None
     dtm: Optional[float] = None
-    timelog: Dict[str, Any] = dataclasses.field(default_factory=dict)
-    coupling_dict: Dict[str, Tuple[str, str]] = dataclasses.field(default_factory=dict)
-    coupled_qubit_idxs: Tuple[Tuple[int, int], ...] = ()
-    qubit_ids_coupler_dict: Dict[Tuple[int, int], int] = dataclasses.field(
-        default_factory=dict
-    )
-    qubit_ids_coupler_map: List[Tuple[Tuple[int, int], int]] = dataclasses.field(
-        default_factory=list
-    )
-    qubit_ids: List[str] = dataclasses.field(default_factory=list)
+    coupling_dict: Dict[str, Tuple[str, str]] = {}
+    coupled_qubit_idxs: Tuple[Tuple[int, int], ...] = []
+    qubit_ids_coupler_dict: Dict[Tuple[int, int], int] = {}
+    qubit_ids_coupler_map: List[Tuple[Tuple[int, int], int]] = []
+    qubit_ids: List[str] = []
     meas_lo_freq: Optional[List[int]] = None
     qubit_lo_freq: Optional[List[int]] = None
     gates: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
-    properties: Optional[Dict[str, Any]] = None
 
-    def __post_init__(self):
-        """Run after initialization of the dataclass"""
+    def model_post_init(self, _context: Any):
+        """Run after initialization of the model"""
         # qubits_coupler_map is a list of key,value tuples for the qubit_ids_coupler_dict
         # It is so because a dict with tuples as keys is not JSON serializable
         self.qubit_ids_coupler_dict = {
@@ -555,16 +548,20 @@ class TergiteBackendConfig:
         )
 
 
-class CalibrationValue(BaseModel, extra=Extra.allow):
+class CalibrationValue(BaseModel):
     """A calibration value"""
+
+    model_config = ConfigDict(extra="allow")
 
     value: Union[float, str, int]
     date: Optional[str] = None
     unit: str = ""
 
 
-class QubitCalibration(BaseModel, extra=Extra.allow):
+class QubitCalibration(BaseModel):
     """Schema for the calibration data of the qubit"""
+
+    model_config = ConfigDict(extra="allow")
 
     t1_decoherence: Optional[CalibrationValue] = None
     t2_decoherence: Optional[CalibrationValue] = None
@@ -584,8 +581,10 @@ class QubitCalibration(BaseModel, extra=Extra.allow):
     z_drive_line: Optional[CalibrationValue] = None
 
 
-class ResonatorCalibration(BaseModel, extra=Extra.allow):
+class ResonatorCalibration(BaseModel):
     """Schema for the calibration data of the resonator"""
+
+    model_config = ConfigDict(extra="allow")
 
     acq_delay: Optional[CalibrationValue] = None
     acq_integration_time: Optional[CalibrationValue] = None
@@ -601,8 +600,10 @@ class ResonatorCalibration(BaseModel, extra=Extra.allow):
     readout_line: Optional[CalibrationValue] = None
 
 
-class CouplersCalibration(BaseModel, extra=Extra.allow):
+class CouplersCalibration(BaseModel):
     """Schema for the calibration data of the coupler"""
+
+    model_config = ConfigDict(extra="allow")
 
     frequency: Optional[CalibrationValue] = None
     frequency_detuning: Optional[CalibrationValue] = None
@@ -622,15 +623,12 @@ class CouplersCalibration(BaseModel, extra=Extra.allow):
 class DeviceCalibration(BaseModel):
     """Schema for the calibration data of a given device"""
 
+    model_config = ConfigDict(extra="allow")
+
     name: str
-    last_calibrated: str
-
-
-class DeviceCalibrationV2(DeviceCalibration):
-    """Schema for the calibration data of a given device"""
-
     version: str
     qubits: List[QubitCalibration]
     resonators: Optional[List[ResonatorCalibration]] = None
     couplers: Optional[List[CouplersCalibration]] = None
     discriminators: Optional[Dict[str, Any]] = None
+    last_calibrated: str

@@ -26,14 +26,14 @@ from sympy import symbols
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
-    from .backend import DeviceCalibrationV2, OpenPulseBackend
+    from .backend import DeviceCalibration, OpenPulseBackend
 
 
 def rx(
     backend: "OpenPulseBackend",
     qubits: Iterable,
     rx_theta: circuit.Parameter,
-    device_properties: "DeviceCalibrationV2",
+    device_properties: "DeviceCalibration",
 ) -> pulse.ScheduleBlock:
     """Creates a rotation around the x-axis on the Bloch sphere for the list of qubits in the backend.
 
@@ -132,7 +132,7 @@ def cz(
     backend: "OpenPulseBackend",
     control_qubit_idxs: Iterable,
     target_qubit_idxs: Iterable,
-    device_properties: "DeviceCalibrationV2",
+    device_properties: "DeviceCalibration",
 ) -> pulse.ScheduleBlock:
     """Two qubit CNOT gate building block. TODO: Add doc comment."""
     # FIXME: Why choose to pass control_qubits and target_qubits as Iterables yet
@@ -198,7 +198,7 @@ def cz(
 def measure(
     backend: "OpenPulseBackend",
     qubits: Iterable,
-    device_properties: "DeviceCalibrationV2",
+    device_properties: "DeviceCalibration",
 ) -> pulse.ScheduleBlock:
     """Creates a measurement on the list of qubits in the given backend.
 

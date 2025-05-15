@@ -34,25 +34,23 @@ TEST_JOB_ID = "test_job_id"
 TEST_QOBJ_ID = "test_qobj_id"
 NUMBER_OF_SHOTS = 100
 
-_BACKENDS_URL = f"{API_URL}/v2/devices"
-_JOBS_URL = f"{API_URL}/jobs"
-_TEST_JOB_RESULTS_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
+_BACKENDS_URL = f"{API_URL}/devices/"
+_JOBS_URL = f"{API_URL}/jobs/"
+_TEST_JOB_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
 _TEST_RESULTS_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
-_TEST_JOB = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
+_TEST_JOB_RESPONSE = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
-_CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/v2/calibrations/([\w-]+)")
-_JOBS_REGISTER_URL_REGEX = re.compile(
-    f"^{API_URL}/jobs\?backend=([\w-]+)&calibration_date=(.*)"
-)
+_CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/calibrations/([\w-]+)")
+_JOBS_REGISTER_URL_REGEX = re.compile(f"^{API_URL}/jobs/")
 _QC_URL_REGEX = re.compile(r"^http://([\w-]+)\.tergite\.example")
-_JOBS_RESULTS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\w-]+)")
+_JOBS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\w-]+)")
 _JOBS_LOGFILE_URL_REGEX = re.compile(
     r"^http://([\w-]+)\.tergite\.example/test_file.hdf5"
 )
 
 TEST_JOB_RESULTS = {
-    "status": "DONE",
+    "status": "successful",
     "download_url": _TEST_RESULTS_DOWNLOAD_PATH,
     "result": {
         "memory": [
@@ -60,14 +58,20 @@ TEST_JOB_RESULTS = {
         ],
     },
 }
+_TEST_JOB = {
+    **_TEST_JOB_RESPONSE,
+    **TEST_JOB_RESULTS,
+    "device": "DUMMY_DEVICE",  # a dummy device that we might be able to replace in mock handler
+    "calibration_date": "DUMMY_CALIB_DATE",  # a dummy date that we might be able to replace in mock handler
+}
 RAW_TEST_JOB_RESULTS = json.dumps(TEST_JOB_RESULTS).encode("utf-8")
 GOOD_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_1q", "qiskit_pulse_2q"]
 TWO_QUBIT_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_2q"]
 MALFORMED_BACKEND = "Malformed"
 INVALID_API_TOKENS = ["foo", "bar", "mayo", "API_USERNAME"]
 
-_CALIBRATIONS_V2 = load_json_fixture("calibrations_v2.json")
-TEST_CALIBRATIONS_MAP = {item["name"]: {**item} for item in _CALIBRATIONS_V2}
+_CALIBRATIONS = load_json_fixture("calibrations.json")
+TEST_CALIBRATIONS_MAP = {item["name"]: {**item} for item in _CALIBRATIONS}
 TEST_QUANTUM_COMPUTER_URL_MAP = {
     backend: f"http://{backend}.tergite.example" for backend in GOOD_BACKENDS
 }
@@ -85,7 +89,8 @@ TEST_JOBS_MAP = {
 TEST_JOB_RESULTS_MAP = {
     f"{TEST_JOB_ID}-{backend}": {
         **TEST_JOB_RESULTS,
-        "backend": backend,
+        "device": backend,
+        "calibration_date": TEST_CALIBRATIONS_MAP[backend]["last_calibrated"],
         "download_url": TEST_LOGFILE_DOWNLOAD_MAP[backend],
     }
     for backend in GOOD_BACKENDS
@@ -99,14 +104,18 @@ TEST_QOBJ_RESULTS_MAP = {
 @pytest.fixture
 def api(requests_mock):
     """The mock api without auth"""
-    requests_mock.get(_BACKENDS_URL, headers={}, json=BACKENDS_LIST)
+    requests_mock.get(
+        _BACKENDS_URL,
+        headers={},
+        json={"data": BACKENDS_LIST, "skip": 0, "limit": None},
+    )
 
     # job registration
-    requests_mock.post(_JOBS_URL, headers={}, json=_TEST_JOB)
+    requests_mock.post(_JOBS_URL, headers={}, json=_TEST_JOB_RESPONSE)
     # job upload
     requests_mock.post(QUANTUM_COMPUTER_URL, headers={}, status_code=200)
-    # job results
-    requests_mock.get(_TEST_JOB_RESULTS_URL, headers={}, json=TEST_JOB_RESULTS)
+    # job details
+    requests_mock.get(_TEST_JOB_URL, headers={}, json=_TEST_JOB)
     # download file
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH, headers={}, content=RAW_TEST_JOB_RESULTS
@@ -124,7 +133,9 @@ def bearer_auth_api(requests_mock):
     no_auth_matcher = _without_headers(request_headers)
     no_auth_json = {"detail": "Unauthorized"}
     requests_mock.get(
-        _BACKENDS_URL, request_headers=request_headers, json=BACKENDS_LIST
+        _BACKENDS_URL,
+        request_headers=request_headers,
+        json={"data": BACKENDS_LIST, "skip": 0, "limit": None},
     )
     requests_mock.get(
         _BACKENDS_URL,
@@ -134,7 +145,9 @@ def bearer_auth_api(requests_mock):
     )
 
     # job registration
-    requests_mock.post(_JOBS_URL, request_headers=request_headers, json=_TEST_JOB)
+    requests_mock.post(
+        _JOBS_URL, request_headers=request_headers, json=_TEST_JOB_RESPONSE
+    )
     requests_mock.post(
         _JOBS_URL,
         status_code=401,
@@ -153,12 +166,10 @@ def bearer_auth_api(requests_mock):
         json=no_auth_json,
     )
 
-    # job results
+    # job details
+    requests_mock.get(_TEST_JOB_URL, request_headers=request_headers, json=_TEST_JOB)
     requests_mock.get(
-        _TEST_JOB_RESULTS_URL, request_headers=request_headers, json=TEST_JOB_RESULTS
-    )
-    requests_mock.get(
-        _TEST_JOB_RESULTS_URL,
+        _TEST_JOB_URL,
         status_code=401,
         additional_matcher=no_auth_matcher,
         json=no_auth_json,
@@ -218,7 +229,11 @@ def mock_tergiterc() -> Path:
 @pytest.fixture
 def api_with_logfile(requests_mock):
     """A mock api fixture for tests that need to use TEST_JOB_RESULTS_LOGFILE."""
-    requests_mock.get(_BACKENDS_URL, headers={}, json=BACKENDS_LIST)
+    requests_mock.get(
+        _BACKENDS_URL,
+        headers={},
+        json={"data": BACKENDS_LIST, "skip": 0, "limit": None},
+    )
 
     # Job registration
     requests_mock.post(
@@ -227,10 +242,8 @@ def api_with_logfile(requests_mock):
     # Job upload
     requests_mock.post(_QC_URL_REGEX, headers={}, status_code=200)
 
-    # Job results - use TEST_JOB_RESULTS_LOGFILE
-    requests_mock.get(
-        _JOBS_RESULTS_URL_REGEX, headers={}, json=_mock_job_results_handler
-    )
+    # Job details - use TEST_JOB_RESULTS_LOGFILE
+    requests_mock.get(_JOBS_URL_REGEX, headers={}, json=_mock_job_details_handler)
 
     # Download file - use hdf5_content
     requests_mock.get(
@@ -284,17 +297,16 @@ def _mock_job_registration_handler(request: Request, context: Any) -> Dict[str, 
     Returns:
         the JSON data in dict form to be returned on the given endpoint
     """
-    matcher = _JOBS_REGISTER_URL_REGEX.match(request.url)
     try:
-        backend_name = matcher.group(1)
-        calibration_date = matcher.group(2)
-        data = TEST_JOBS_MAP[backend_name]
-        return {**data, "backend": backend_name, "calibration_date": calibration_date}
+        payload = request.json()
+        device = payload["device"]
+        data = TEST_JOBS_MAP[device]
+        return {**data, **payload}
     except (AttributeError, KeyError):
         raise rq_mock.NoMockAddress(request)
 
 
-def _mock_job_results_handler(request: Request, context: Any) -> Dict[str, Any]:
+def _mock_job_details_handler(request: Request, context: Any) -> Dict[str, Any]:
     """Mock API handler for GET jobs/{job_id} MSS endpoint
 
     Args:
@@ -304,11 +316,11 @@ def _mock_job_results_handler(request: Request, context: Any) -> Dict[str, Any]:
     Returns:
         the JSON data in dict form to be returned on the given endpoint
     """
-    matcher = _JOBS_RESULTS_URL_REGEX.match(request.url)
+    matcher = _JOBS_URL_REGEX.match(request.url)
     try:
         job_id = matcher.group(1)
         data = TEST_JOB_RESULTS_MAP[job_id]
-        return {**data}
+        return {**data, "job_id": job_id}
     except (AttributeError, KeyError):
         raise rq_mock.NoMockAddress(request)
 

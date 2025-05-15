@@ -26,7 +26,8 @@ dependencies = [
     "pandas>=1.4.2",
     "numpy>=1.26.0",
     "qiskit-ibm-runtime>=0.28.0",
-    "h5py>=3.8.0"
+    "h5py>=3.8.0",
+    "pydantic>=2.5.0"
 ]
 
 [project.optional-dependencies]

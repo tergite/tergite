@@ -13,8 +13,8 @@
     "simulator": false,
     "version": "2023.11.10",
     "num_qubits": 10,
-    "num_couplers": 2,
-    "num_resonators": 10,
+    "number_of_couplers": 2,
+    "number_of_resonators": 10,
     "dt": 1e-9,
     "dtm": 1e-9,
     "qubit_ids": [
@@ -69,7 +69,7 @@
     "characterized": true,
     "open_pulse": true,
     "num_qubits": 12,
-    "num_couplers": 8,
+    "number_of_couplers": 8,
     "timelog": {
       "REGISTERED": "2023-05-23T11:06:05.686Z"
     },
@@ -79,7 +79,7 @@
     "coordinates": [],
     "is_simulator": false,
     "coupling_dict": { "u0": ["q16", "q17"], "u1": ["q17", "q16"] },
-    "num_resonators": 12,
+    "number_of_resonators": 12,
     "dt": 1e-9,
     "dtm": 1e-9,
     "coupling_map": [
@@ -161,14 +161,14 @@
     },
     "is_active": true,
     "meas_map": [[0]],
-    "num_couplers": 0,
+    "number_of_couplers": 0,
     "num_qubits": 1,
-    "num_resonators": 1,
+    "number_of_resonators": 1,
     "online_date": "2024-09-11T18:07:31",
     "open_pulse": true,
     "qubit_ids": ["q0"],
     "simulator": true,
-    "timelog": {},
+    
     "qubit_ids_coupler_map": []
   },
   {
@@ -204,15 +204,15 @@
     "is_online": true,
     "is_simulator": true,
     "meas_map": [[0], [1]],
-    "num_couplers": 1,
+    "number_of_couplers": 1,
     "num_qubits": 2,
-    "num_resonators": 2,
+    "number_of_resonators": 2,
     "number_of_qubits": 2,
     "online_date": "2024-10-09T00:00:00",
     "open_pulse": true,
     "qubit_ids": ["q0", "q1"],
     "simulator": true,
-    "timelog": {},
+    
     "updated_at": "2024-12-16T14:12:55.692Z",
     "version": "1.0.0",
     "qubit_ids_coupler_map": [
@@ -287,14 +287,14 @@
     },
     "is_active": true,
     "meas_map": [[0, 1, 2, 3, 4]],
-    "num_couplers": 8,
+    "number_of_couplers": 8,
     "num_qubits": 5,
-    "num_resonators": 5,
+    "number_of_resonators": 5,
     "online_date": "2022-04-13T19:50:31",
     "open_pulse": true,
     "qubit_ids": ["q0", "q1", "q2", "q3", "q4"],
     "simulator": true,
-    "timelog": {},
+    
     "qubit_ids_coupler_map": [
       [[0, 1], 0],
       [[0, 3], 1],

@@ -1022,9 +1022,7 @@
       }
     },
     "last_calibrated": "2024-11-28T13:56:24.776922Z",
-    "timelog": {
-      "REGISTERED": "2024-11-28T13:56:24.860Z"
-    }
+    "created_at": "2024-11-28T13:56:24.860Z"
   },
   {
     "_id": {
@@ -1540,9 +1538,7 @@
       }
     ],
     "last_calibrated": "2024-12-16T14:11:56.531Z",
-    "timelog": {
-      "REGISTERED": "2024-09-24T08:25:58.356Z"
-    },
+    "created_at": "2024-09-24T08:25:58.356Z",
     "couplers": [
       {
         "frequency": {
@@ -3454,9 +3450,7 @@
       }
     ],
     "last_calibrated": "2024-12-16T14:12:29.504Z",
-    "timelog": {
-      "REGISTERED": "2024-09-24T08:32:06.557Z"
-    },
+    "created_at": "2024-09-24T08:32:06.557Z",
     "couplers": [],
     "discriminators": {
       "lda": {
