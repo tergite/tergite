@@ -9,7 +9,7 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ### Added
 
-- Implemented job cancellation (not tested!)
+- Implemented job cancellation
 
 ### Changed
 

@@ -332,6 +332,74 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 
 @pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_cancel(api, backend_name):
+    """job.cancel() cancels the running job"""
+    backend = _get_backend(backend_name)
+    calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    job.cancel()
+
+    mock_cancel_request = _get_mock_cancel_request(job)
+    requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:4] + [mock_cancel_request]
+
+    assert requests_made == expected_requests
+
+
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_cancel_bearer_auth(bearer_auth_api, backend_name):
+    """job.cancel() calls the cancel endpoint for API behind bearer auth"""
+    backend = _get_backend(backend_name, token=API_TOKEN)
+    calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    job.cancel()
+
+    mock_cancel_request = _get_mock_cancel_request(job)
+    requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:4] + [mock_cancel_request]
+
+    assert requests_made == expected_requests
+
+
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_job_cancel_invalid_bearer_auth(token, backend_name, bearer_auth_api):
+    """job.cancel() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(backend_name, token=API_TOKEN)
+    calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    job_id = job.job_id()
+
+    # change the token to the invalid one
+    backend.provider.provider_account.token = token
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to cancel job '{job_id}': Unauthorized"
+    ):
+        _ = job.cancel()
+
+    mock_cancel_request = _get_mock_cancel_request(job)
+    requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:4] + [mock_cancel_request]
+
+    assert requests_made == expected_requests
+
+
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_download_url(api, backend_name):
     """job.download_url returns a successful job's download_url"""
     backend = _get_backend(backend_name)
@@ -546,7 +614,7 @@ def _get_expected_job(
         backend=backend,
         job_id=TEST_JOB_ID,
         payload=qobj,
-        upload_url=QUANTUM_COMPUTER_URL,
+        upload_url=f"{QUANTUM_COMPUTER_URL}/jobs",
     )
 
     job.metadata["shots"] = NUMBER_OF_SHOTS
@@ -807,7 +875,9 @@ def _get_all_mock_requests(
             json={"device": backend_name, "calibration_date": calibration_date},
             has_text=True,
         ),
-        MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
+        MockRequest(
+            url="http://loke.tergite.example/jobs", method="POST", has_text=True
+        ),
         MockRequest(
             url="https://api.tergite.example/jobs/test_job_id",
             method="GET",
@@ -815,3 +885,20 @@ def _get_all_mock_requests(
         ),
         MockRequest(url="http://loke.tergite.example/test_file.hdf5", method="GET"),
     ]
+
+
+def _get_mock_cancel_request(job: Job) -> MockRequest:
+    """Gets the mock cancel request for the given job
+
+    Args:
+        job: the job to cancel
+
+    Returns:
+        the MockRequest
+    """
+    return MockRequest(
+        url=f"http://loke.tergite.example/jobs/{job.job_id()}/cancel",
+        method="POST",
+        json={},
+        has_text=True,
+    )

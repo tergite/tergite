@@ -37,14 +37,19 @@ NUMBER_OF_SHOTS = 100
 _BACKENDS_URL = f"{API_URL}/devices/"
 _JOBS_URL = f"{API_URL}/jobs/"
 _TEST_JOB_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
+_JOB_UPLOAD_URL = f"{QUANTUM_COMPUTER_URL}/jobs"
+_TEST_JOB_CANCEL_URL = f"{QUANTUM_COMPUTER_URL}/jobs/{TEST_JOB_ID}/cancel"
 _TEST_RESULTS_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
-_TEST_JOB_RESPONSE = {"job_id": TEST_JOB_ID, "upload_url": QUANTUM_COMPUTER_URL}
+_TEST_JOB_RESPONSE = {"job_id": TEST_JOB_ID, "upload_url": _JOB_UPLOAD_URL}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
 _CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/calibrations/([\w-]+)")
 _JOBS_REGISTER_URL_REGEX = re.compile(f"^{API_URL}/jobs/")
-_QC_URL_REGEX = re.compile(r"^http://([\w-]+)\.tergite\.example")
+_JOBS_UPLOAD_URL_REGEX = re.compile(f"^http://([\w-]+)\.tergite\.example/jobs")
 _JOBS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\w-]+)")
+_JOBS_CANCEL_URL_REGEX = re.compile(
+    f"^http://([\w-]+)\.tergite\.example/jobs/([\w-]+)/cancel"
+)
 _JOBS_LOGFILE_URL_REGEX = re.compile(
     r"^http://([\w-]+)\.tergite\.example/test_file.hdf5"
 )
@@ -82,7 +87,7 @@ TEST_LOGFILE_DOWNLOAD_MAP = {
 TEST_JOBS_MAP = {
     backend: {
         "job_id": f"{TEST_JOB_ID}-{backend}",
-        "upload_url": TEST_QUANTUM_COMPUTER_URL_MAP[backend],
+        "upload_url": f"{TEST_QUANTUM_COMPUTER_URL_MAP[backend]}/jobs",
     }
     for backend in GOOD_BACKENDS
 }
@@ -113,9 +118,11 @@ def api(requests_mock):
     # job registration
     requests_mock.post(_JOBS_URL, headers={}, json=_TEST_JOB_RESPONSE)
     # job upload
-    requests_mock.post(QUANTUM_COMPUTER_URL, headers={}, status_code=200)
+    requests_mock.post(_JOB_UPLOAD_URL, headers={}, status_code=200)
     # job details
     requests_mock.get(_TEST_JOB_URL, headers={}, json=_TEST_JOB)
+    # job cancellation
+    requests_mock.post(_TEST_JOB_CANCEL_URL, headers={})
     # download file
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH, headers={}, content=RAW_TEST_JOB_RESULTS
@@ -157,10 +164,10 @@ def bearer_auth_api(requests_mock):
 
     # job upload
     requests_mock.post(
-        QUANTUM_COMPUTER_URL, request_headers=request_headers, status_code=200
+        _JOB_UPLOAD_URL, request_headers=request_headers, status_code=200
     )
     requests_mock.post(
-        QUANTUM_COMPUTER_URL,
+        _JOB_UPLOAD_URL,
         status_code=401,
         additional_matcher=no_auth_matcher,
         json=no_auth_json,
@@ -170,6 +177,15 @@ def bearer_auth_api(requests_mock):
     requests_mock.get(_TEST_JOB_URL, request_headers=request_headers, json=_TEST_JOB)
     requests_mock.get(
         _TEST_JOB_URL,
+        status_code=401,
+        additional_matcher=no_auth_matcher,
+        json=no_auth_json,
+    )
+
+    # job cancellation
+    requests_mock.post(_TEST_JOB_CANCEL_URL, headers=request_headers)
+    requests_mock.post(
+        _TEST_JOB_CANCEL_URL,
         status_code=401,
         additional_matcher=no_auth_matcher,
         json=no_auth_json,
@@ -240,7 +256,7 @@ def api_with_logfile(requests_mock):
         _JOBS_REGISTER_URL_REGEX, headers={}, json=_mock_job_registration_handler
     )
     # Job upload
-    requests_mock.post(_QC_URL_REGEX, headers={}, status_code=200)
+    requests_mock.post(_JOBS_UPLOAD_URL_REGEX, headers={}, status_code=200)
 
     # Job details - use TEST_JOB_RESULTS_LOGFILE
     requests_mock.get(_JOBS_URL_REGEX, headers={}, json=_mock_job_details_handler)
@@ -248,6 +264,11 @@ def api_with_logfile(requests_mock):
     # Download file - use hdf5_content
     requests_mock.get(
         _JOBS_LOGFILE_URL_REGEX, headers={}, content=_mock_logfile_download_handler
+    )
+
+    # job cancellation
+    requests_mock.post(
+        _JOBS_CANCEL_URL_REGEX, headers={}, content=_mock_job_cancellation_handler
     )
 
     # calibration request
@@ -333,7 +354,7 @@ def _mock_logfile_download_handler(request: Request, context: Any):
         context: the object with the extra context passed when creating mock e.g. headers
 
     Returns:
-        the JSON data in dict form to be returned on the given endpoint
+        the data to be returned on the given endpoint
     """
     matcher = _JOBS_LOGFILE_URL_REGEX.match(request.url)
     try:
@@ -354,5 +375,24 @@ def _mock_logfile_download_handler(request: Request, context: Any):
 
         hdf5_file.seek(0)
         return hdf5_file.read()
+    except (AttributeError, KeyError):
+        raise rq_mock.NoMockAddress(request)
+
+
+def _mock_job_cancellation_handler(request: Request, context: Any):
+    """Mock API handler for the job cancellation endpoint
+
+    Args:
+        request: the request caught
+        context: the object with the extra context passed when creating mock e.g. headers
+
+    Returns:
+        the JSON data in dict form to be returned on the given endpoint
+    """
+    matcher = _JOBS_CANCEL_URL_REGEX.match(request.url)
+    try:
+        backend = matcher.group(1)
+        job_id = matcher.group(1)
+        return None
     except (AttributeError, KeyError):
         raise rq_mock.NoMockAddress(request)
