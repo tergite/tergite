@@ -21,6 +21,7 @@ import functools
 import json
 import shutil
 import tempfile
+from dataclasses import dataclass, field, asdict
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -41,7 +42,6 @@ from .backend import (
 from .config import REST_API_MAP
 from .job import STATUS_MAP, CreatedJobResponse, Job, RemoteJob
 from .logfile import extract_job_metadata, extract_job_qobj
-from .provider_account import ProviderAccount
 from .serialization import IQXJsonEncoder
 
 
@@ -429,3 +429,14 @@ def _get_err_text(response: Response) -> str:
         return response.json()["detail"]
     except (KeyError, AttributeError, JSONDecodeError):
         return response.text
+
+
+@dataclass
+class ProviderAccount:
+    service_name: str
+    url: str
+    token: str = None
+    extras: dict = field(default_factory=dict)
+
+    def to_dict(self: object) -> dict:
+        return asdict(self)

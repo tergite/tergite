@@ -40,12 +40,12 @@ pip install tergite
 
 ```python
 from tergite.qiskit.providers import Tergite
-from tergite.qiskit.providers.provider_account import ProviderAccount
+from tergite.qiskit.providers.provider import ProviderAccount
 
-TERGITE_API_URL="https://api.qal9000.se"  # or the URL to your own tergite MSS
+TERGITE_API_URL = "https://api.qal9000.se"  # or the URL to your own tergite MSS
 
 account = ProviderAccount(
-      service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN"
+    service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN"
 )
 provider = Tergite.use_provider_account(account, save=True)
 ```
@@ -87,6 +87,7 @@ To find out how to use the library, please take a look into the notebooks and sc
 
 - [ ] Add docs and doc generation
 - [ ] Separate Client code, from analysis, and from compilation and data transfer object definition
+- [ ] Convert archives into examples, adding proper credits and timestamps
 
 ## Contribution Guidelines
 

@@ -18,7 +18,7 @@ import re
 from configparser import ConfigParser
 from typing import List, Optional
 
-from .provider_account import ProviderAccount
+from .provider import ProviderAccount
 
 TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
 

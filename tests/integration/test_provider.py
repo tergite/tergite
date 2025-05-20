@@ -3,7 +3,8 @@ from datetime import datetime
 
 import pytest
 
-from tergite.qiskit.providers import factory, provider_account
+from tergite.qiskit.providers import factory
+from tergite.qiskit.providers.provider import ProviderAccount
 from tests.utils.env import is_end_to_end
 from tests.utils.fixtures import load_json_fixture
 
@@ -14,7 +15,7 @@ _PROVIDER_ACCOUNTS = load_json_fixture("provider_accounts.json")
 @pytest.mark.parametrize("account_data", _PROVIDER_ACCOUNTS)
 def test_use_provider_account(account_data, mock_tergiterc):
     """use_provider_account without save option returns the given provider account"""
-    account = provider_account.ProviderAccount(**account_data)
+    account = ProviderAccount(**account_data)
     _tergite = factory.Factory(rc_file=mock_tergiterc)
     provider = _tergite.use_provider_account(account)
     assert provider.provider_account == account
@@ -34,7 +35,7 @@ def test_use_provider_account_save(account_data, mock_tergiterc):
     for k, v in extras.items():
         expected_config += f"{k} = {v}\n"
 
-    account = provider_account.ProviderAccount(**account_data)
+    account = ProviderAccount(**account_data)
     _tergite = factory.Factory(rc_file=mock_tergiterc)
     provider = _tergite.use_provider_account(account, save=True)
     with open(mock_tergiterc, "r") as file:
@@ -48,7 +49,7 @@ def test_use_provider_account_save(account_data, mock_tergiterc):
 @pytest.mark.parametrize("account_data", _PROVIDER_ACCOUNTS)
 def test_get_provider(account_data, mock_tergiterc):
     """get_provider returns the provider with the given service name"""
-    account = provider_account.ProviderAccount(**account_data)
+    account = ProviderAccount(**account_data)
     _tergite = factory.Factory(rc_file=mock_tergiterc)
     expected = _tergite.use_provider_account(account, save=True)
     got = _tergite.get_provider(account.service_name)
@@ -59,7 +60,7 @@ def test_get_provider(account_data, mock_tergiterc):
 @pytest.mark.parametrize("account_data", _PROVIDER_ACCOUNTS)
 def test_get_provider_non_existing(account_data, mock_tergiterc):
     """get_provider for non-existing service returns first provider"""
-    account = provider_account.ProviderAccount(**account_data)
+    account = ProviderAccount(**account_data)
     _tergite = factory.Factory(rc_file=mock_tergiterc)
     _tergite.use_provider_account(account, save=True)
     provider = _tergite.get_provider(datetime.now().isoformat())

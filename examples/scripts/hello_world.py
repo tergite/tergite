@@ -20,7 +20,7 @@ import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 
 from tergite.qiskit.providers import Job, Tergite
-from tergite.qiskit.providers.provider_account import ProviderAccount
+from tergite.qiskit.providers.provider import ProviderAccount
 
 if __name__ == "__main__":
     # the Tergite API URL e.g. "https://api.tergite.example"

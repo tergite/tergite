@@ -17,10 +17,10 @@ from collections import OrderedDict
 from typing import TYPE_CHECKING, List, Optional
 
 from .config import TERGITERC_FILE, Tergiterc
-from .provider import Provider
+from .provider import Provider, ProviderAccount
 
 if TYPE_CHECKING:
-    from .provider_account import ProviderAccount
+    pass
 
 
 class Factory:
