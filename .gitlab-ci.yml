@@ -20,9 +20,9 @@ test:
   script:
     - *install_pydev_for_3_13_only
     - pip install ."[test,dev]"
-    - # Check formatting
+    # Check formatting
     - black --check tergite
-    - # Run unit tests
+    # Run unit tests
     - pytest tests/
   parallel:
     matrix:
@@ -77,9 +77,9 @@ deploy staging:
     - python --version
     - pip install .
     - pip install build twine
-    - # build package
+    # build package
     - python -m build
-    - # upload to test pypi
+    # upload to test pypi
     - twine upload --skip-existing -u __token__ -p "$TEST_PYPI_API_TOKEN" r https://test.pypi.org/legacy/ dist/*;
 
 deploy production:
@@ -96,7 +96,7 @@ deploy production:
     - python --version
     - pip install .
     - pip install build twine
-    - # build package
+    # build package
     - python -m build
-    - # upload official pypi
+    # upload official pypi
     - twine upload --skip-existing -u __token__ -p "$PYPI_API_TOKEN" dist/*;
