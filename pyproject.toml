@@ -1,7 +1,9 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "tergite"
-version = "2025.03.1"
-description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 authors = [
     { name = "Miroslav Dobsicek" },
     { name = "Axel Andersson" },
@@ -11,15 +13,18 @@ authors = [
     { name = "Adilet Tuleuov" },
 ]
 maintainers = [
-    { name = "Chalmers Next Labs AB", email = "contact.quantum@chalmersnextlabs.se" },
+    {name = "Chalmers Next Labs AB", email = "contact@quantum.chalmersnextlabs.se"}
 ]
-license = "Apache-2.0"
+version = "2025.03.1"
+description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 readme = "README.md"
-requires-python = ">=3.9,<4.0"
-packages = [{ include = "tergite" }]
+requires-python = ">=3.12"
 keywords = ["quantum-computer", "qiskit", "quantum", "tergite", "sdk"]
-repository = "https://github.com/tergite/tergite"
-homepage = "https://github.com/tergite/tergite"
+license = {file = "LICENSE.txt"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "requests>=2.25.1",
     "qiskit>1,<1.3",
@@ -47,6 +52,18 @@ dev = [
     "isort~=6.0.1"
 ]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[project.urls]
+Homepage = "https://github.com/tergite/tergite"
+Repository = "https://github.com/tergite/tergite"
+Documentation = "https://github.com/tergite/tergite"
+Issues = "https://github.com/tergite/tergite/issues"
+Changelog = "https://github.com/tergite/tergite/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+packages = ["tergite"]
+
+[tool.isort]
+skip_gitignore = true
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"

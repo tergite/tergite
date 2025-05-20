@@ -18,6 +18,7 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - BREAKING: Changed the expected Device info schema to include 'number_of_resonators' and 'number_of_couplers'
 - Added pydantic as an explicit dependency
 - Moved completely from dataclasses to pydantic models
+- Set the minimum permitted python to 3.12
 
 ### Fixed
 
