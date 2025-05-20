@@ -22,7 +22,7 @@
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
@@ -31,7 +31,8 @@ from ..services import api_client
 from ..services.configs import AccountInfo
 from ..utils.job_file import extract_job_metadata, extract_job_qobj
 from .backend import (
-    TergiteBackend,
+    OpenPulseBackend,
+    OpenQASMBackend,
 )
 from .job import STATUS_MAP, Job
 
@@ -53,7 +54,7 @@ class Provider:
 
     def backends(
         self, /, name: str = None, filters: callable = None, **kwargs
-    ) -> List[TergiteBackend]:
+    ) -> List[Union[OpenPulseBackend, OpenQASMBackend]]:
         """Filters the available backends of this provider.
 
         Args:
@@ -62,7 +63,7 @@ class Provider:
             kwargs: kwargs to match the available backends with
 
         Returns:
-            A list of instantiated and available TergiteBackend, or TergiteBackend backends,
+            A list of instantiated and available OpenPulseBackend, or OpenPulseBackend backends,
                 that match the given filter
         """
         available_backends = self.available_backends.values()
@@ -72,16 +73,25 @@ class Provider:
         return filter_backends(available_backends, filters=filters, **kwargs)
 
     @functools.cached_property
-    def available_backends(self, /) -> Dict[str, TergiteBackend]:
+    def available_backends(
+        self, /
+    ) -> Dict[str, Union[OpenPulseBackend, OpenQASMBackend]]:
         """Dictionary of all available backends got from the API"""
+        backends = dict()
         backend_configs = api_client.get_backend_configs(self.account)
-        return {
-            conf.name: TergiteBackend(
-                data=conf, provider=self, base_url=self.account.url
-            )
-            for conf in backend_configs
-            if conf.open_pulse
-        }
+
+        for backend_conf in backend_configs:
+            if backend_conf.open_pulse:
+                obj = OpenPulseBackend(
+                    data=backend_conf, provider=self, base_url=self.account.url
+                )
+            else:
+                obj = OpenQASMBackend(
+                    data=backend_conf, provider=self, base_url=self.account.url
+                )
+            backends[obj.name] = obj
+
+        return backends
 
     def job(self, job_id: str) -> Job:
         """Retrieve a runtime job given a job id
@@ -158,7 +168,9 @@ class Provider:
     # ---------------- ALTERATION NOTICE ---------------- #
     # This code has been derived from the Qiskit abstract ProviderV1 class
 
-    def get_backend(self, name=None, **kwargs) -> TergiteBackend:
+    def get_backend(
+        self, name=None, **kwargs
+    ) -> Union[OpenPulseBackend, OpenQASMBackend]:
         """Return a single backend matching the specified filtering.
 
         Args:

@@ -23,7 +23,7 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from tergite import Job, Provider, Tergite, TergiteBackend
+from tergite import Job, OpenPulseBackend, Provider, Tergite
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
@@ -562,7 +562,7 @@ def test_provider_job(api_with_logfile, backend_name):
     assert got == expected, "The retrieved job does not match the original job."
 
 
-def _get_expected_job_result(backend: TergiteBackend, job: Job) -> Result:
+def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
     """Returns the expected job result"""
     results = [
         ExperimentResult(
@@ -588,7 +588,7 @@ def _get_expected_job_result(backend: TergiteBackend, job: Job) -> Result:
 
 
 def _get_expected_job(
-    backend: TergiteBackend,
+    backend: OpenPulseBackend,
     transpiled_circuit: QuantumCircuit,
     qobj_id: str,
     **options,
@@ -641,7 +641,7 @@ def _get_test_2q_qiskit_circuit():
 
 
 def _get_expected_1q_transpiled_circuit(
-    backend: TergiteBackend,
+    backend: OpenPulseBackend,
     calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ) -> circuit.QuantumCircuit:
@@ -701,7 +701,7 @@ def _get_expected_1q_transpiled_circuit(
 
 
 def _get_expected_2q_transpiled_circuit(
-    backend: TergiteBackend,
+    backend: OpenPulseBackend,
     calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ):
@@ -822,7 +822,7 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
         provider: an optional provider to use; defaults to None
 
     Returns:
-        An TergiteBackend corresponding to the given name
+        An OpenPulseBackend corresponding to the given name
     """
     if provider is None:
         provider = Tergite.use_provider_account(
@@ -830,7 +830,7 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
         )
 
     expected_json = get_record(BACKENDS_LIST, _filter={"name": name})
-    return TergiteBackend(
+    return OpenPulseBackend(
         data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
     )
 

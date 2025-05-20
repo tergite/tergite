@@ -13,9 +13,8 @@
 import pytest
 from qiskit.providers import QiskitBackendNotFoundError
 
-from tergite import Provider, Tergite, TergiteBackend
+from tergite import OpenPulseBackend, Provider, Tergite
 from tergite.services.api_client.dtos import TergiteBackendConfig
-from tergite.services.configs import AccountInfo
 from tests.utils.records import get_record
 
 from ..utils.env import is_end_to_end
@@ -39,7 +38,7 @@ def test_get_backend(api, backend_name):
     """Retrieves the right backend"""
     provider = _get_test_provider(url=API_URL)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": backend_name})
-    expected = TergiteBackend(
+    expected = OpenPulseBackend(
         data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
     )
     got = provider.get_backend(backend_name)
@@ -63,7 +62,7 @@ def test_bearer_auth(bearer_auth_api, backend_name):
     """Retrieves the data if backend is shielded with basic auth"""
     provider = _get_test_provider(url=API_URL, token=API_TOKEN)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": backend_name})
-    expected = TergiteBackend(
+    expected = OpenPulseBackend(
         data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
     )
     got = provider.get_backend(backend_name)
