@@ -28,8 +28,8 @@ from tergite import Job, OpenPulseBackend, Provider, Tergite
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
-from tergite.services.compiler.schedules import cz
 from tergite.services.configs import ProviderAccount
+from tergite.services.device_compiler.schedules import cz
 from tergite.types.backend import DeviceCalibration, TergiteBackendConfig
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list

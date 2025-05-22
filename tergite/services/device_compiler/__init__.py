@@ -15,38 +15,37 @@
 # This code was refactored from the original by:
 #
 # Martin Ahindura, 2023
-"""Handles the calibration of the devices of type OpenPulseBackend"""
+"""Handles the compilation of device properties into qiskit target"""
 from typing import TYPE_CHECKING
 
 import qiskit.circuit as circuit
 from qiskit.transpiler import InstructionProperties, Target
 
-from ..compiler import schedules as templates
+from ..device_compiler import schedules as templates
 
 if TYPE_CHECKING:
     from ...types.backend import DeviceCalibration, OpenPulseBackend
 
 
 def add_instructions(
-    *,
+    target: Target,
     backend: "OpenPulseBackend",
     qubits: tuple,
     coupled_qubit_idxs: tuple,
-    target: Target,
     device_properties: "DeviceCalibration",
-):
+) -> Target:
     """Adds Rx, Rz gates and Delay and Measure instructions for each qubit
     to the transpiler target provided.
 
     Implementations are backend dependent and are based on a specific calibration.
 
     Args:
+        target: the target on which the instruction is to be added
         backend: the instance of
             :class:`~tergite.providers.tergite.backend:TergiteBackend`
             for which to add the instructions
         qubits: a tuple of qubits on which the instruction is to be run
         coupled_qubit_idxs: a tuple of tuples of qubit indexes that are coupled
-        target: the target on which the instruction is to be added
         device_properties: the dynamic device parameters of the device
     """
     # TODO: Fetch error statistics of gates from database
@@ -127,3 +126,5 @@ def add_instructions(
         }
 
         target.add_instruction(circuit.library.CZGate(), cz_props)
+
+    return target

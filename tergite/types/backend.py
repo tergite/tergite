@@ -46,7 +46,8 @@ from qiskit_ibm_runtime.models import BackendConfiguration
 
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
-from ..services.compiler import calibrations
+from ..services import device_compiler
+from ..services.device_compiler import __init__
 from .job import Job
 
 if TYPE_CHECKING:
@@ -421,7 +422,8 @@ class OpenPulseBackend(TergiteBackend):
         gmap = Target(num_qubits=self.data.number_of_qubits, dt=self.data.dt)
         if self.data.characterized:
             self._refresh_device_properties()
-            calibrations.add_instructions(
+
+            device_compiler.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data.number_of_qubits)),
                 coupled_qubit_idxs=self.data.coupled_qubit_idxs,
