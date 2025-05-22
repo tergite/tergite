@@ -12,8 +12,8 @@
 
 
 from .types.backend import OpenPulseBackend, OpenQASMBackend
-from .types.factory import Factory
 from .types.job import Job
 from .types.provider import Provider
+from .types.provider_factory import ProviderFactory
 
-Tergite = Factory()
+Tergite = ProviderFactory()

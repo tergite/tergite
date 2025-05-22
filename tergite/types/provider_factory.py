@@ -15,20 +15,16 @@
 # This code was refactored from the original by:
 #
 # Martin Ahindura, 2023
-"""Defines the Factory class that contains multiple Tergite Providers."""
+"""Defines the ProviderFactory class that contains multiple Tergite Providers."""
 import pathlib
 from collections import OrderedDict
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
-from ..services.configs import TERGITERC_FILE, Tergiterc
-from ..services.configs.dtos import ProviderAccount
+from ..services.configs import TERGITERC_FILE, ProviderAccount, Tergiterc
 from .provider import Provider
 
-if TYPE_CHECKING:
-    pass
 
-
-class Factory:
+class ProviderFactory:
     """Container of multiple Tergite Provider's, retrievable by service name
 
     It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`

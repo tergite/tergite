@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 
 from tergite.services.configs import ProviderAccount
-from tergite.types import factory
+from tergite.types import provider_factory as factory
 from tests.utils.env import is_end_to_end
 from tests.utils.fixtures import load_json_fixture
 
@@ -16,7 +16,7 @@ _PROVIDER_ACCOUNTS = load_json_fixture("provider_accounts.json")
 def test_use_provider_account(account_data, mock_tergiterc):
     """use_provider_account without save option returns the given provider account"""
     account = ProviderAccount(**account_data)
-    _tergite = factory.Factory(rc_file=mock_tergiterc)
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
     provider = _tergite.use_provider_account(account)
     assert provider.provider_account == account
 
@@ -36,7 +36,7 @@ def test_use_provider_account_save(account_data, mock_tergiterc):
         expected_config += f"{k} = {v}\n"
 
     account = ProviderAccount(**account_data)
-    _tergite = factory.Factory(rc_file=mock_tergiterc)
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
     provider = _tergite.use_provider_account(account, save=True)
     with open(mock_tergiterc, "r") as file:
         actual_config = file.read()
@@ -50,7 +50,7 @@ def test_use_provider_account_save(account_data, mock_tergiterc):
 def test_get_provider(account_data, mock_tergiterc):
     """get_provider returns the provider with the given service name"""
     account = ProviderAccount(**account_data)
-    _tergite = factory.Factory(rc_file=mock_tergiterc)
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
     expected = _tergite.use_provider_account(account, save=True)
     got = _tergite.get_provider(account.service_name)
     assert got == expected
@@ -61,7 +61,7 @@ def test_get_provider(account_data, mock_tergiterc):
 def test_get_provider_non_existing(account_data, mock_tergiterc):
     """get_provider for non-existing service returns first provider"""
     account = ProviderAccount(**account_data)
-    _tergite = factory.Factory(rc_file=mock_tergiterc)
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
     _tergite.use_provider_account(account, save=True)
     provider = _tergite.get_provider(datetime.now().isoformat())
 
