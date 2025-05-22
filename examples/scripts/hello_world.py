@@ -19,8 +19,8 @@ import time
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 
-from tergite.qiskit.providers import Job, Tergite
-from tergite.qiskit.providers.provider import ProviderAccount
+from tergite import Job, Tergite
+from tergite.services.configs import ProviderAccount
 
 if __name__ == "__main__":
     # the Tergite API URL e.g. "https://api.tergite.example"

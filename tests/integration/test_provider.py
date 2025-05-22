@@ -3,8 +3,8 @@ from datetime import datetime
 
 import pytest
 
-from tergite.qiskit.providers import factory
-from tergite.qiskit.providers.provider import ProviderAccount
+from tergite.services.configs import ProviderAccount
+from tergite.types import factory
 from tests.utils.env import is_end_to_end
 from tests.utils.fixtures import load_json_fixture
 

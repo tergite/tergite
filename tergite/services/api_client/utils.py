@@ -1,5 +1,6 @@
 # This code is part of Tergite
 #
+# (C) Copyright Axel Andersson 2022
 # (C) Copyright Chalmers Next Labs 2025
 #
 # This code is licensed under the Apache License, Version 2.0. You may
@@ -11,12 +12,13 @@
 # that they have been altered from the originals.
 """Functionality related to the job logfile"""
 import json
+from itertools import groupby
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple, Union
 
 import h5py
 
-from tergite.qiskit.deprecated.qobj import PulseQobj
+from tergite.compat.qiskit.qobj import PulseQobj
 
 
 def extract_job_metadata(logfile: Path) -> Dict[str, Any]:
@@ -75,3 +77,19 @@ def _np_to_py(value: Any) -> Any:
         return value.item()
     except AttributeError:
         return value
+
+
+def iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:
+    """Run-length encodes a sequence.
+
+    Constant subsequences are stored as a single term and count, rather than as the original subsequence.
+    Counts equal to 1 are omitted.
+
+    Args:
+        seq: the sequence to encode
+
+    Returns:
+        A list of tuples that represent the encoding for the sequence
+    """
+    seq = [(k, sum(1 for _ in g)) for k, g in groupby(seq)]
+    return [(c, rep) if rep > 1 else (c,) for c, rep in seq]

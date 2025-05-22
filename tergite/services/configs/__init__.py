@@ -10,18 +10,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
-"""Handles the loading and saving of configuration to tergiterc file"""
+# Alteration Notice
+# -----------------
+# This code was refactored from the original by:
+#
+# Martin Ahindura, 2023
+# Chalmers Next Labs, 2025
+
+"""Entry into the configuration service"""
 import dataclasses
 import pathlib
 import re
 from configparser import ConfigParser
 from typing import List, Optional
 
-from .provider import ProviderAccount
+from .dtos import ProviderAccount
 
 TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
-
 REST_API_MAP = {
     "jobs": "/jobs",
     "result": "/result",
@@ -54,6 +59,7 @@ class Tergiterc:
                 :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
                 as read from the tergiterc file
         """
+
         account_fields = {
             field.name: True for field in dataclasses.fields(ProviderAccount)
         }

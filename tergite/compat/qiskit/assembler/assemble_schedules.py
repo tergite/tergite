@@ -36,13 +36,13 @@ from qiskit import pulse
 from qiskit.exceptions import QiskitError
 from qiskit.pulse import channels, instructions, library, schedule, transforms
 
-from tergite.qiskit.deprecated import qobj
-from tergite.qiskit.deprecated.assembler.run_config import RunConfig
-from tergite.qiskit.deprecated.qobj import converters
-from tergite.qiskit.deprecated.qobj import utils as qobj_utils
-from tergite.qiskit.deprecated.qobj.converters.pulse_instruction import (
+from .. import qobj
+from ..qobj import converters
+from ..qobj import utils as qobj_utils
+from ..qobj.converters.pulse_instruction import (
     ParametricPulseShapes,
 )
+from .run_config import RunConfig
 
 
 def assemble_schedules(

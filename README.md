@@ -39,8 +39,8 @@ pip install tergite
 - With the credentials received from Tergite, create and save a provider account by calling `Tergite.use_provider_account(account, save=True)`.
 
 ```python
-from tergite.qiskit.providers import Tergite
-from tergite.qiskit.providers.provider import ProviderAccount
+from tergite import Tergite
+from tergite.service.configs import ProviderAccount
 
 TERGITE_API_URL = "https://api.qal9000.se"  # or the URL to your own tergite MSS
 

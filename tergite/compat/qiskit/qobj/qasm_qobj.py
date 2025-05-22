@@ -36,8 +36,8 @@ from types import SimpleNamespace
 from qiskit.circuit.parameterexpression import ParameterExpression
 from qiskit.utils import deprecate_func
 
-from tergite.qiskit.deprecated.qobj.common import QobjDictField, QobjHeader
-from tergite.qiskit.deprecated.qobj.pulse_qobj import (
+from .common import QobjDictField, QobjHeader
+from .pulse_qobj import (
     PulseLibraryItem,
     PulseQobjInstruction,
 )

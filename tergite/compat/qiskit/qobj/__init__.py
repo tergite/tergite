@@ -72,8 +72,8 @@ Pulse
    PulseLibraryItem
 """
 
-from tergite.qiskit.deprecated.qobj.common import QobjExperimentHeader, QobjHeader
-from tergite.qiskit.deprecated.qobj.pulse_qobj import (
+from .common import QobjExperimentHeader, QobjHeader
+from .pulse_qobj import (
     PulseLibraryItem,
     PulseQobj,
     PulseQobjConfig,
@@ -82,7 +82,7 @@ from tergite.qiskit.deprecated.qobj.pulse_qobj import (
     PulseQobjInstruction,
     QobjMeasurementOption,
 )
-from tergite.qiskit.deprecated.qobj.qasm_qobj import (
+from .qasm_qobj import (
     GateCalibration,
     QasmExperimentCalibrations,
     QasmQobj,

@@ -39,8 +39,8 @@ from qiskit.circuit.quantumcircuit import QuantumCircuit
 from qiskit.circuit.quantumregister import QuantumRegister
 from qiskit.utils import deprecate_func
 
-from tergite.qiskit.deprecated.qobj import PulseQobjInstruction
-from tergite.qiskit.deprecated.qobj.converters import QobjToInstructionConverter
+from ..qobj import PulseQobjInstruction
+from ..qobj.converters import QobjToInstructionConverter
 
 # A ``CircuitModule`` is a representation of a circuit execution on the backend.
 # It is currently a list of quantum circuits to execute, a run Qobj dictionary

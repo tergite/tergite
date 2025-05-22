@@ -24,12 +24,13 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
+from tergite import Job, OpenPulseBackend, Provider, Tergite
+
 # cross compatibility with future qiskit version where deprecated packages are removed
-from tergite.qiskit.deprecated.compiler.assembler import assemble
-from tergite.qiskit.providers import Job, OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import DeviceCalibration, TergiteBackendConfig
-from tergite.qiskit.providers.provider_account import ProviderAccount
-from tergite.qiskit.providers.template_schedules import cz
+from tergite.compat.qiskit.compiler.assembler import assemble
+from tergite.services.compiler.schedules import cz
+from tergite.services.configs import ProviderAccount
+from tergite.types.backend import DeviceCalibration, TergiteBackendConfig
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 

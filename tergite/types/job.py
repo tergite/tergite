@@ -11,7 +11,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+# Alteration Notice
+# -----------------
+# This code was refactored from the original by:
+#
+# Martin Ahindura, 2023
 """Defines the asynchronous job that executes the experiments."""
 import enum
 import logging
@@ -26,14 +30,12 @@ from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
-
-from .serialization import iqx_rle
+from ..compat.qiskit.qobj import PulseQobj, QasmQobj
+from ..services.api_client.utils import iqx_rle
 
 if TYPE_CHECKING:
-    from tergite.qiskit.providers.provider import Provider
-
     from .backend import TergiteBackend
+    from .provider import Provider
 
 _JOB_FINAL_OR_INITIAL_STATES = (*JOB_FINAL_STATES, JobStatus.INITIALIZING)
 

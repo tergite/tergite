@@ -1,55 +1,7 @@
 # This code is part of Tergite
 #
 # (C) Copyright Axel Andersson 2022
-#
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
-#
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
-"""Handles the serialization of job objects"""
-import json
-from itertools import groupby
-from typing import Any, List, Tuple, Union  # , Dict
-
-from qiskit.circuit.parameterexpression import ParameterExpression
-
-
-def iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:
-    """Run-length encodes a sequence.
-
-    Constant subsequences are stored as a single term and count, rather than as the original subsequence.
-    Counts equal to 1 are omitted.
-
-    Args:
-        seq: the sequence to encode
-
-    Returns:
-        A list of tuples that represent the encoding for the sequence
-    """
-    seq = [(k, sum(1 for _ in g)) for k, g in groupby(seq)]
-    return [(c, rep) if rep > 1 else (c,) for c, rep in seq]
-
-
-# The below code is part of Qiskit.
-#
-# (C) Copyright IBM 2020.
-#
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
-#
-# This code is part of Tergite
-#
-# (C) Copyright Axel Andersson 2022
+# (C) Chalmers Next Labs (2025)
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -63,6 +15,25 @@ def iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:
 # This code has been derived from the Qiskit json encoder in the IBMQ providers github.
 # The reason is to remove IBMQ as a dependency, but still be able to use the functionality.
 # It has not been altered.
+#
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+#
+
+"""Handles the JSON serialization of job objects"""
+import json
+from typing import Any
+
+from qiskit.circuit.parameterexpression import ParameterExpression
 
 
 class IQXJsonEncoder(json.JSONEncoder):

@@ -52,7 +52,7 @@ Classes
    RunConfig
 """
 
-from tergite.qiskit.deprecated.assembler.assemble_circuits import assemble_circuits
-from tergite.qiskit.deprecated.assembler.assemble_schedules import assemble_schedules
-from tergite.qiskit.deprecated.assembler.disassemble import disassemble
-from tergite.qiskit.deprecated.assembler.run_config import RunConfig
+from .assemble_circuits import assemble_circuits
+from .assemble_schedules import assemble_schedules
+from .disassemble import disassemble
+from .run_config import RunConfig

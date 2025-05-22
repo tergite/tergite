@@ -6,7 +6,7 @@ from qiskit.ignis.verification.tomography import (
 )
 from qiskit.visualization import plot_bloch_multivector
 
-from tergite.qiskit.providers import Tergite
+from tergite import Tergite
 
 #
 # Note: This code has been used on "Quantum software" PoC hearing

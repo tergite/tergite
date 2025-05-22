@@ -21,7 +21,7 @@ import pytest
 import requests_mock as rq_mock
 from requests import Request
 
-from tergite.qiskit.providers.serialization import IQXJsonEncoder as PulseQobj_encoder
+from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder as PulseQobj_encoder
 from tests.utils.env import is_end_to_end
 from tests.utils.fixtures import load_json_fixture
 

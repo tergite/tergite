@@ -8,8 +8,8 @@ import requests
 import requests_mock
 from urllib3 import HTTPResponse
 
-from tergite.qiskit.providers import Provider, Tergite
-from tergite.qiskit.providers.provider import ProviderAccount
+from tergite import Provider, Tergite
+from tergite.services.configs import ProviderAccount
 from tests.utils.env import is_end_to_end, is_in_docker
 
 

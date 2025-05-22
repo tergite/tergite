@@ -12,7 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+# Alteration Notice
+# -----------------
+# This code was refactored from the original by:
+#
+# Martin Ahindura, 2023
 """Defines the backend types provided by Tergite."""
 
 from __future__ import annotations
@@ -40,10 +44,9 @@ from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
 from qiskit_ibm_runtime.models import BackendConfiguration
 
-from tergite.qiskit.deprecated.compiler.assembler import assemble
-from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj
-from tergite.qiskit.providers import calibrations
-
+from ..compat.qiskit.compiler.assembler import assemble
+from ..compat.qiskit.qobj import PulseQobj, QasmQobj
+from ..services.compiler import calibrations
 from .job import Job
 
 if TYPE_CHECKING:

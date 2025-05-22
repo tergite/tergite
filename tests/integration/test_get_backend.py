@@ -12,9 +12,9 @@
 """tests for the get_backend method on tergite backend"""
 import pytest
 
-from tergite.qiskit.providers import OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import TergiteBackendConfig
-from tergite.qiskit.providers.provider_account import ProviderAccount
+from tergite import OpenPulseBackend, Provider, Tergite
+from tergite.services.configs import ProviderAccount
+from tergite.types.backend import TergiteBackendConfig
 from tests.utils.records import get_record
 
 from ..utils.env import is_end_to_end

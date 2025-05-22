@@ -13,15 +13,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
-# This code was altered from the original on 25th of Septeber, 2024 by Adilet Tuleuov
+# Alteration Notice
+# -----------------
+# This code was refactored from the original by:
+#
+# Martin Ahindura, 2023
+# Adilet Tuleuov, 2024
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
 import json
 import shutil
 import tempfile
-from dataclasses import dataclass, field, asdict
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -33,22 +36,22 @@ from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
 from requests import Response
 
+from ..compat.qiskit.qobj.encoder import IQXJsonEncoder
+from ..services.api_client.utils import extract_job_metadata, extract_job_qobj
+from ..services.configs import REST_API_MAP
 from .backend import (
     DeviceCalibration,
     OpenPulseBackend,
     OpenQASMBackend,
     TergiteBackendConfig,
 )
-from .config import REST_API_MAP
 from .job import STATUS_MAP, CreatedJobResponse, Job, RemoteJob
-from .logfile import extract_job_metadata, extract_job_qobj
-from .serialization import IQXJsonEncoder
 
 
 class Provider:
     """The Qiskit Provider with which to access the Tergite quantum computers"""
 
-    def __init__(self, /, account: ProviderAccount):
+    def __init__(self, /, account: "ProviderAccount"):
         """Initializes the Provider
 
         Args:
@@ -429,14 +432,3 @@ def _get_err_text(response: Response) -> str:
         return response.json()["detail"]
     except (KeyError, AttributeError, JSONDecodeError):
         return response.text
-
-
-@dataclass
-class ProviderAccount:
-    service_name: str
-    url: str
-    token: str = None
-    extras: dict = field(default_factory=dict)
-
-    def to_dict(self: object) -> dict:
-        return asdict(self)

@@ -47,12 +47,12 @@ from qiskit.pulse.parser import parse_string_expr
 from qiskit.pulse.schedule import Schedule
 from qiskit.utils import deprecate_func
 
-from tergite.qiskit.deprecated.qobj import (
+from .. import (
     PulseLibraryItem,
     PulseQobjInstruction,
     QobjMeasurementOption,
 )
-from tergite.qiskit.deprecated.qobj.utils import MeasLevel
+from ..utils import MeasLevel
 
 
 class ParametricPulseShapes(Enum):

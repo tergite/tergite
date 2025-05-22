@@ -40,11 +40,7 @@ from qiskit.exceptions import QiskitError
 from qiskit.utils import deprecate_func
 from qiskit.utils.parallel import parallel_map
 
-from tergite.qiskit.deprecated.assembler.assemble_schedules import (
-    _assemble_instructions as _assemble_schedule,
-)
-from tergite.qiskit.deprecated.assembler.run_config import RunConfig
-from tergite.qiskit.deprecated.qobj import (
+from ..qobj import (
     GateCalibration,
     PulseLibraryItem,
     PulseQobjInstruction,
@@ -58,6 +54,8 @@ from tergite.qiskit.deprecated.qobj import (
     QobjHeader,
     converters,
 )
+from .assemble_schedules import _assemble_instructions as _assemble_schedule
+from .run_config import RunConfig
 
 PulseLibrary = Dict[str, List[complex]]
 

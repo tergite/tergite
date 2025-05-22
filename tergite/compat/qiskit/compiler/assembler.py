@@ -43,11 +43,11 @@ from qiskit.pulse import Instruction, LoConfig, Schedule, ScheduleBlock
 from qiskit.pulse.channels import PulseChannel
 from qiskit.utils import deprecate_func
 
-from tergite.qiskit.deprecated.assembler import assemble_schedules
-from tergite.qiskit.deprecated.assembler.assemble_circuits import _assemble_circuits
-from tergite.qiskit.deprecated.assembler.run_config import RunConfig
-from tergite.qiskit.deprecated.qobj import PulseQobj, QasmQobj, QobjHeader
-from tergite.qiskit.deprecated.qobj.utils import MeasLevel, MeasReturnType
+from ..assembler import assemble_schedules
+from ..assembler.assemble_circuits import _assemble_circuits
+from ..assembler.run_config import RunConfig
+from ..qobj import PulseQobj, QasmQobj, QobjHeader
+from ..qobj.utils import MeasLevel, MeasReturnType
 
 logger = logging.getLogger(__name__)
 

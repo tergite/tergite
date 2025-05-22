@@ -39,7 +39,7 @@ from typing import List, Union
 import numpy
 from qiskit.utils import deprecate_func
 
-from tergite.qiskit.deprecated.qobj.common import (
+from .common import (
     QobjDictField,
     QobjExperimentHeader,
     QobjHeader,

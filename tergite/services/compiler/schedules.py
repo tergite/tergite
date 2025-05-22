@@ -10,6 +10,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
+# Alteration Notice
+# -----------------
 # This code was modified from the original by:
 #
 # - Martin Ahindura 2023
@@ -26,7 +28,7 @@ from sympy import symbols
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
-    from .backend import DeviceCalibration, OpenPulseBackend
+    from ...types.backend import DeviceCalibration, OpenPulseBackend
 
 
 def rx(

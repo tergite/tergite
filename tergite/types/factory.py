@@ -10,14 +10,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+# Alteration Notice
+# -----------------
+# This code was refactored from the original by:
+#
+# Martin Ahindura, 2023
 """Defines the Factory class that contains multiple Tergite Providers."""
 import pathlib
 from collections import OrderedDict
 from typing import TYPE_CHECKING, List, Optional
 
-from .config import TERGITERC_FILE, Tergiterc
-from .provider import Provider, ProviderAccount
+from ..services.configs import TERGITERC_FILE, Tergiterc
+from ..services.configs.dtos import ProviderAccount
+from .provider import Provider
 
 if TYPE_CHECKING:
     pass

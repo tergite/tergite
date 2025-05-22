@@ -10,17 +10,21 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 #
-# This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
+# Alteration Notice
+# -----------------
+# This code was refactored from the original by:
+#
+# Martin Ahindura, 2023
 """Handles the calibration of the devices of type OpenPulseBackend"""
 from typing import TYPE_CHECKING
 
 import qiskit.circuit as circuit
 from qiskit.transpiler import InstructionProperties, Target
 
-from . import template_schedules as templates
+from ..compiler import schedules as templates
 
 if TYPE_CHECKING:
-    from .backend import DeviceCalibration, OpenPulseBackend
+    from ...types.backend import DeviceCalibration, OpenPulseBackend
 
 
 def add_instructions(
