@@ -19,11 +19,9 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Added pydantic as an explicit dependency
 - Moved completely from dataclasses to pydantic models
 - Set the minimum permitted python to 3.12
-<!--
 - Removed the `tergite.qiskit` package and moved everything to the `tergite` package
 - Removed the `tergite.qiskit.providers` package and moved everything to the parent package
-- Removed support for QASM backends as OpenPulse is sufficient
--->
+- Removed OpenQASM backend definition as OpenPulse is sufficient
 
 ### Fixed
 

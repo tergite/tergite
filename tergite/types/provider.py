@@ -42,7 +42,6 @@ from ..services.configs import REST_API_MAP
 from .backend import (
     DeviceCalibration,
     OpenPulseBackend,
-    OpenQASMBackend,
     TergiteBackendConfig,
 )
 from .job import STATUS_MAP, CreatedJobResponse, Job, RemoteJob
@@ -65,7 +64,7 @@ class Provider:
 
     def backends(
         self, /, name: str = None, filters: callable = None, **kwargs
-    ) -> List[Union[OpenPulseBackend, OpenQASMBackend]]:
+    ) -> List[OpenPulseBackend]:
         """Filters the available backends of this provider.
 
         Args:
@@ -88,25 +87,16 @@ class Provider:
         return filter_backends(available_backends.values(), filters=filters, **kwargs)
 
     @functools.cached_property
-    def available_backends(
-        self, /
-    ) -> Dict[str, Union[OpenPulseBackend, OpenQASMBackend]]:
+    def available_backends(self, /) -> Dict[str, OpenPulseBackend]:
         """Dictionary of all available backends got from the API"""
-        backends = dict()
         backend_configs = self._get_backend_configs()
-
-        for backend_conf in backend_configs:
-            if backend_conf.open_pulse:
-                obj = OpenPulseBackend(
-                    data=backend_conf, provider=self, base_url=self.provider_account.url
-                )
-            else:
-                obj = OpenQASMBackend(
-                    data=backend_conf, provider=self, base_url=self.provider_account.url
-                )
-            backends[obj.name] = obj
-
-        return backends
+        return {
+            conf.name: OpenPulseBackend(
+                data=conf, provider=self, base_url=self.provider_account.url
+            )
+            for conf in backend_configs
+            if conf.open_pulse
+        }
 
     def job(self, job_id: str) -> Job:
         """Retrieve a runtime job given a job id
@@ -386,9 +376,7 @@ class Provider:
     # ---------------- ALTERATION NOTICE ---------------- #
     # This code has been derived from the Qiskit abstract ProviderV1 class
 
-    def get_backend(
-        self, name=None, **kwargs
-    ) -> Union[OpenPulseBackend, OpenQASMBackend]:
+    def get_backend(self, name=None, **kwargs) -> OpenPulseBackend:
         """Return a single backend matching the specified filtering.
 
         Args:

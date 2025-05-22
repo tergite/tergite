@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 
-from .types.backend import OpenPulseBackend, OpenQASMBackend
+from .types.backend import OpenPulseBackend
 from .types.job import Job
 from .types.provider import Provider
 from .types.provider_factory import ProviderFactory
