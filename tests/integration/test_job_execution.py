@@ -27,7 +27,7 @@ from qiskit.result.models import ExperimentResult, ExperimentResultData
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.qiskit.deprecated.compiler.assembler import assemble
 from tergite.qiskit.providers import Job, OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import DeviceCalibrationV2, TergiteBackendConfig
+from tergite.qiskit.providers.backend import DeviceCalibration, TergiteBackendConfig
 from tergite.qiskit.providers.provider_account import ProviderAccount
 from tergite.qiskit.providers.template_schedules import cz
 from tests.utils.records import get_record
@@ -112,6 +112,7 @@ def test_run_1q_gates(api, backend_name):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+    expected._calibration_date = calibration_date
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
@@ -136,6 +137,7 @@ def test_run_2q_gates(api, backend_name):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+    expected._calibration_date = calibration_date
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(api)
@@ -160,6 +162,7 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
     expected = _get_expected_job(
         backend=backend, transpiled_circuit=tc, meas_level=2, qobj_id=qobj_id
     )
+    expected._calibration_date = calibration_date
 
     got = backend.run(tc, meas_level=2, qobj_id=qobj_id)
     requests_made = get_request_list(bearer_auth_api)
@@ -323,6 +326,74 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     expected_requests = _get_all_mock_requests(
         backend_name, calibration_date=calibration_date
     )[1:5]
+
+    assert requests_made == expected_requests
+
+
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_cancel(api, backend_name):
+    """job.cancel() cancels the running job"""
+    backend = _get_backend(backend_name)
+    calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    job.cancel()
+
+    mock_cancel_request = _get_mock_cancel_request(job)
+    requests_made = get_request_list(api)
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:4] + [mock_cancel_request]
+
+    assert requests_made == expected_requests
+
+
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+@pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
+def test_job_cancel_bearer_auth(bearer_auth_api, backend_name):
+    """job.cancel() calls the cancel endpoint for API behind bearer auth"""
+    backend = _get_backend(backend_name, token=API_TOKEN)
+    calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    job.cancel()
+
+    mock_cancel_request = _get_mock_cancel_request(job)
+    requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:4] + [mock_cancel_request]
+
+    assert requests_made == expected_requests
+
+
+@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+@pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
+def test_job_cancel_invalid_bearer_auth(token, backend_name, bearer_auth_api):
+    """job.cancel() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
+    backend = _get_backend(backend_name, token=API_TOKEN)
+    calibrations = _get_calibrations(backend_name)
+    calibration_date = calibrations.last_calibrated
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    job_id = job.job_id()
+
+    # change the token to the invalid one
+    backend.provider.provider_account.token = token
+
+    with pytest.raises(
+        RuntimeError, match=f"Failed to cancel job '{job_id}': Unauthorized"
+    ):
+        _ = job.cancel()
+
+    mock_cancel_request = _get_mock_cancel_request(job)
+    requests_made = get_request_list(bearer_auth_api)
+    expected_requests = _get_all_mock_requests(
+        backend_name, calibration_date=calibration_date
+    )[1:4] + [mock_cancel_request]
 
     assert requests_made == expected_requests
 
@@ -543,7 +614,7 @@ def _get_expected_job(
         backend=backend,
         job_id=TEST_JOB_ID,
         payload=qobj,
-        upload_url=QUANTUM_COMPUTER_URL,
+        upload_url=f"{QUANTUM_COMPUTER_URL}/jobs",
     )
 
     job.metadata["shots"] = NUMBER_OF_SHOTS
@@ -573,7 +644,7 @@ def _get_test_2q_qiskit_circuit():
 
 def _get_expected_1q_transpiled_circuit(
     backend: OpenPulseBackend,
-    calibrations: DeviceCalibrationV2,
+    calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ) -> circuit.QuantumCircuit:
     """Returns a quantum circuit for 1-qubit gates specific to the TEST_BACKEND
@@ -633,7 +704,7 @@ def _get_expected_1q_transpiled_circuit(
 
 def _get_expected_2q_transpiled_circuit(
     backend: OpenPulseBackend,
-    calibrations: DeviceCalibrationV2,
+    calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ):
     """Returns a quantum circuit for 2-qubit gates specific to the TEST_BACKEND
@@ -765,17 +836,17 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
     )
 
 
-def _get_calibrations(backend_name: str) -> DeviceCalibrationV2:
+def _get_calibrations(backend_name: str) -> DeviceCalibration:
     """Retrieves the device calibrations for the given device
 
     Args:
         backend_name: the name of the device
 
     Returns:
-        the DeviceCalibrationV2 of the given device
+        the DeviceCalibration of the given device
     """
     data = TEST_CALIBRATIONS_MAP[backend_name]
-    return DeviceCalibrationV2(**data)
+    return DeviceCalibration(**data)
 
 
 def _get_all_mock_requests(
@@ -789,23 +860,24 @@ def _get_all_mock_requests(
     Returns:
         The list of all MockRequests for the given backend name
     """
-    if calibration_date is not None:
-        calibration_date = urlparse(calibration_date)
-
     return [
         MockRequest(
-            url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+            url=f"https://api.tergite.example/calibrations/{backend_name}",
             method="GET",
         ),
         MockRequest(
-            url=f"https://api.tergite.example/v2/calibrations/{backend_name}",
+            url=f"https://api.tergite.example/calibrations/{backend_name}",
             method="GET",
         ),
         MockRequest(
-            url=f"https://api.tergite.example/jobs?backend={backend_name}&calibration_date={calibration_date}",
+            url=f"https://api.tergite.example/jobs/",
             method="POST",
+            json={"device": backend_name, "calibration_date": calibration_date},
+            has_text=True,
         ),
-        MockRequest(url="http://loke.tergite.example/", method="POST", has_text=True),
+        MockRequest(
+            url="http://loke.tergite.example/jobs", method="POST", has_text=True
+        ),
         MockRequest(
             url="https://api.tergite.example/jobs/test_job_id",
             method="GET",
@@ -813,3 +885,20 @@ def _get_all_mock_requests(
         ),
         MockRequest(url="http://loke.tergite.example/test_file.hdf5", method="GET"),
     ]
+
+
+def _get_mock_cancel_request(job: Job) -> MockRequest:
+    """Gets the mock cancel request for the given job
+
+    Args:
+        job: the job to cancel
+
+    Returns:
+        the MockRequest
+    """
+    return MockRequest(
+        url=f"http://loke.tergite.example/jobs/{job.job_id()}/cancel",
+        method="POST",
+        json={},
+        has_text=True,
+    )

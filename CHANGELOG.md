@@ -7,6 +7,21 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Added
+
+- Implemented job cancellation
+
+### Changed
+
+- BREAKING: Changed the MSS endpoints `/v2/devices` to `/devices`
+- BREAKING: Changed the MSS endpoints `/v2/calibrations` to `/calibrations`
+- BREAKING: Changed the expected Device info schema to include 'number_of_resonators' and 'number_of_couplers'
+- Added pydantic as an explicit dependency
+- Moved completely from dataclasses to pydantic models
+- Set the minimum permitted python to 3.12
+
+### Fixed
+
 ## [2025.03.1] - 2025-03-18
 
 ### Changed

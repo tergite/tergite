@@ -13,12 +13,14 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """Defines the asynchronous job that executes the experiments."""
+import enum
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, TypedDict, Union
 
 import requests
+from pydantic import BaseModel, ConfigDict
 from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
@@ -33,16 +35,6 @@ if TYPE_CHECKING:
 
     from .backend import TergiteBackend
 
-STATUS_MAP = {
-    "REGISTERING": JobStatus.QUEUED,
-    "DONE": JobStatus.DONE,
-    # TODO: unimplemented status codes
-    "INITIALIZING": JobStatus.INITIALIZING,
-    "VALIDATING": JobStatus.VALIDATING,
-    "RUNNING": JobStatus.RUNNING,
-    "CANCELLED": JobStatus.CANCELLED,
-    "ERROR": JobStatus.ERROR,
-}
 _JOB_FINAL_OR_INITIAL_STATES = (*JOB_FINAL_STATES, JobStatus.INITIALIZING)
 
 
@@ -56,7 +48,7 @@ class Job(JobV1):
         job_id: str,
         payload: Optional[Union[QasmQobj, PulseQobj]] = None,
         upload_url: Optional[str] = None,
-        remote_data: Optional[Dict[str, Any]] = None,
+        remote_data: Optional["RemoteJob"] = None,
         logfile: Optional[Path] = None,
         status: JobStatus = JobStatus.INITIALIZING,
         download_url: Optional[str] = None,
@@ -82,13 +74,13 @@ class Job(JobV1):
         )
         self.payload = payload
         self.upload_url = upload_url
-        self._remote_data = remote_data
         self._status = status
         self._logfile = logfile
         self._provider: Provider = backend.provider
         self._download_url = download_url
         self._calibration_date = calibration_date
         self._result: Optional[Result] = None
+        self._remote_data = remote_data
 
     @property
     def _is_in_final_state(self):
@@ -102,7 +94,7 @@ class Job(JobV1):
             return False
 
     @property
-    def remote_data(self) -> Optional[Dict[str, Any]]:
+    def remote_data(self) -> Optional["RemoteJob"]:
         """The representation of the job in the remote API"""
         if not self._is_in_final_state:
             self._remote_data = self._provider.get_remote_job_data(self.job_id())
@@ -112,7 +104,7 @@ class Job(JobV1):
     def status(self) -> JobStatus:
         if not self._is_in_final_state:
             try:
-                self._status = STATUS_MAP[self.remote_data["status"]]
+                self._status = STATUS_MAP[self.remote_data.status]
             except (KeyError, AttributeError):
                 pass
 
@@ -160,7 +152,7 @@ class Job(JobV1):
         """
         if self._download_url is None and self.status() in JOB_FINAL_STATES:
             try:
-                self._download_url = self.remote_data["download_url"]
+                self._download_url = self.remote_data.download_url
             except KeyError:
                 raise RuntimeError(
                     f"Failed to GET download URL of job: {self.job_id()}. Status: {self.status()}"
@@ -180,8 +172,17 @@ class Job(JobV1):
         return self._logfile
 
     def cancel(self):
-        # TODO: This can be implemented server side with stoppable threads.
-        print("Job.cancel() is not implemented.")
+        """Attempt to cancel the job.
+
+        Raises:
+            ValueError: This job is not cancellable. It lacks an upload_url
+            RuntimeError: Failed to cancel job '{job_id}': {detail}
+        """
+        # TODO: Write automated test for this
+        if self.upload_url is None:
+            raise ValueError("This job is not cancellable. It lacks an upload_url")
+
+        self._provider.cancel_job(upload_url=self.upload_url, job_id=self.job_id())
 
     def result(self) -> Optional[Result]:
         """Retrieves the outcome of this job when it is completed.
@@ -205,8 +206,8 @@ class Job(JobV1):
             backend: TergiteBackend = self.backend()
 
             try:
-                memory = self.remote_data["result"]["memory"]
-            except (KeyError, AttributeError):
+                memory = self.remote_data.result.memory
+            except AttributeError:
                 raise RuntimeError(f"failed to GET memory of job: {self.job_id()}")
 
             # Sanity check
@@ -275,3 +276,58 @@ def _compress_qobj_dict(qobj_dict: Dict[str, Any]) -> Dict[str, Any]:
         pulse["samples"] = iqx_rle(pulse["samples"])
 
     return qobj_dict
+
+
+class CreatedJobResponse(TypedDict):
+    """The response when a new job is created"""
+
+    job_id: str
+    upload_url: str
+
+
+class RemoteJobResult(BaseModel):
+    """The results of the job"""
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+
+    memory: List[List[str]] = []
+
+
+class RemoteJobStatus(str, enum.Enum):
+    PENDING = "pending"
+    SUCCESSFUL = "successful"
+    FAILED = "failed"
+    EXECUTING = "executing"
+    CANCELLED = "cancelled"
+
+
+class RemoteJob(BaseModel):
+    """the job schema"""
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+
+    device: str
+    calibration_date: str
+    job_id: str
+    project_id: Optional[str] = None
+    user_id: Optional[str] = None
+    status: RemoteJobStatus
+    failure_reason: Optional[str] = None
+    cancellation_reason: Optional[str] = None
+    download_url: Optional[str] = None
+    result: Optional[RemoteJobResult] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+STATUS_MAP = {
+    RemoteJobStatus.PENDING: JobStatus.QUEUED,
+    RemoteJobStatus.SUCCESSFUL: JobStatus.DONE,
+    RemoteJobStatus.EXECUTING: JobStatus.RUNNING,
+    RemoteJobStatus.CANCELLED: JobStatus.CANCELLED,
+    RemoteJobStatus.FAILED: JobStatus.ERROR,
+}

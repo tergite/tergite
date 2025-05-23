@@ -20,7 +20,7 @@ from qiskit.transpiler import InstructionProperties, Target
 from . import template_schedules as templates
 
 if TYPE_CHECKING:
-    from .backend import DeviceCalibrationV2, OpenPulseBackend
+    from .backend import DeviceCalibration, OpenPulseBackend
 
 
 def add_instructions(
@@ -29,7 +29,7 @@ def add_instructions(
     qubits: tuple,
     coupled_qubit_idxs: tuple,
     target: Target,
-    device_properties: "DeviceCalibrationV2",
+    device_properties: "DeviceCalibration",
 ):
     """Adds Rx, Rz gates and Delay and Measure instructions for each qubit
     to the transpiler target provided.

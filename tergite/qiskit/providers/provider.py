@@ -27,18 +27,19 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 import requests
+from pydantic import ValidationError
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
 from requests import Response
 
 from .backend import (
-    DeviceCalibrationV2,
+    DeviceCalibration,
     OpenPulseBackend,
     OpenQASMBackend,
     TergiteBackendConfig,
 )
 from .config import REST_API_MAP
-from .job import STATUS_MAP, Job
+from .job import STATUS_MAP, CreatedJobResponse, Job, RemoteJob
 from .logfile import extract_job_metadata, extract_job_qobj
 from .provider_account import ProviderAccount
 from .serialization import IQXJsonEncoder
@@ -117,15 +118,15 @@ class Provider:
             RuntimeError: Job: {job_id} has no download_url
         """
         remote_data = self.get_remote_job_data(job_id)
-        if "download_url" not in remote_data:
+        if remote_data.download_url is None:
             raise RuntimeError(f"Job: {job_id} has no download_url")
 
-        download_url = remote_data["download_url"]
-        backend = self.get_backend(name=remote_data["backend"])
-        logfile = self.download_job_logfile(job_id, url=remote_data["download_url"])
-        raw_status = remote_data.get("status")
+        download_url = remote_data.download_url
+        backend = self.get_backend(name=remote_data.device)
+        logfile = self.download_job_logfile(job_id, url=download_url)
+        raw_status = remote_data.status
         status = STATUS_MAP.get(raw_status)
-        calibration_date = remote_data.get("calibration_date")
+        calibration_date = remote_data.calibration_date
 
         metadata = extract_job_metadata(logfile)
         payload = extract_job_qobj(logfile)
@@ -155,7 +156,7 @@ class Provider:
             list of TergiteBackendConfig got from the remote API
         """
         parsed_data = []
-        url = f"{self.provider_account.url}{REST_API_MAP['devices']}"
+        url = f"{self.provider_account.url}{REST_API_MAP['devices']}/"
 
         # reset malformed backends map
         self._malformed_backends.clear()
@@ -165,25 +166,25 @@ class Provider:
             error_msg = _get_err_text(response)
             raise RuntimeError(f"Error retrieving backends: {error_msg}")
 
-        records = response.json()
+        records = response.json()["data"]
         for record in records:
             try:
                 parsed_data.append(TergiteBackendConfig(**record))
-            except TypeError as exp:
+            except ValidationError as exp:
                 self._malformed_backends[record["name"]] = f"{exp}"
 
         return parsed_data
 
     def get_latest_calibration(
         self, backend_name: Optional[str] = None
-    ) -> DeviceCalibrationV2:
+    ) -> DeviceCalibration:
         """Retrieves the latest backend calibration data and returns Calibration objects
 
         Args:
             backend_name: the name of the backend
 
         Returns:
-            the DeviceCalibrationV2 for the given backend
+            the DeviceCalibration for the given backend
 
         Raises:
             RuntimeError: Failed to get device calibrations for '{backend_name}': {error_msg}
@@ -202,7 +203,7 @@ class Provider:
             )
 
         try:
-            return DeviceCalibrationV2(**response.json())
+            return DeviceCalibration(**response.json())
         except Exception as e:
             raise ValueError(
                 f"Error parsing device calibration data for '{backend_name}': {e}"
@@ -221,7 +222,7 @@ class Provider:
 
     def register_job_on_api(
         self, backend_name: str, calibration_date: Optional[str] = None, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> CreatedJobResponse:
         """Registers the job on the remote API
 
         Args:
@@ -234,9 +235,9 @@ class Provider:
         Raises:
             RuntimeError: unable to register job at the remote API: {detail}
         """
-        url = f"{self.provider_account.url}{REST_API_MAP['jobs']}"
-        params = {"backend": backend_name, "calibration_date": calibration_date}
-        response = requests.post(url, headers=self.get_auth_headers(), params=params)
+        url = f"{self.provider_account.url}{REST_API_MAP['jobs']}/"
+        payload = {"device": backend_name, "calibration_date": calibration_date}
+        response = requests.post(url, headers=self.get_auth_headers(), json=payload)
         if not response.ok:
             err_msg = _get_err_text(response)
             raise RuntimeError(f"unable to register job at the remote API: {err_msg}")
@@ -282,6 +283,27 @@ class Provider:
 
         return response
 
+    def cancel_job(self, upload_url: str, job_id: str) -> Response:
+        """Cancels the job on the remote server
+
+        Args:
+            upload_url: the URL where the job file was sent to
+            job_id: the unique identifier of the job
+
+        Returns:
+            the response after the submission
+
+        Raises:
+            RuntimeError: Failed to cancel job '{job_id}': {detail}
+        """
+        url = f"{upload_url}/{job_id}/cancel"
+        resp = requests.post(url, json={}, headers=self.get_auth_headers())
+        if not resp.ok:
+            error_msg = _get_err_text(resp)
+            raise RuntimeError(f"Failed to cancel job '{job_id}': {error_msg}")
+
+        return resp
+
     def download_job_logfile(self, job_id: str, url: str) -> Path:
         """Downloads the job logfile and returns the path to the downloaded file
 
@@ -306,7 +328,7 @@ class Provider:
 
         return job_logfile
 
-    def get_remote_job_data(self, job_id: str, /) -> Dict[str, Any]:
+    def get_remote_job_data(self, job_id: str, /) -> RemoteJob:
         """Retrieves the job data from the remote API
 
         Args:
@@ -317,11 +339,13 @@ class Provider:
 
         Raises:
             RuntimeError: error retrieving job data: {detail}
+            ValidationError: response is not a valid RemoteJob instance
         """
         url = f"{self.provider_account.url}{REST_API_MAP['jobs']}/{job_id}"
         response = requests.get(url, headers=self.get_auth_headers())
         if response.ok:
-            return response.json()
+            raw_data = response.json()
+            return RemoteJob.model_validate(raw_data)
 
         error_msg = _get_err_text(response)
         raise RuntimeError(f"error retrieving job data: {error_msg}")
