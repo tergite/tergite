@@ -26,13 +26,13 @@ pip install tergite
 
 ## Dependencies
 
-- [Python 3.9, 3.10](https://www.python.org/)
+- [Python 3.12, 3.13](https://www.python.org/)
 - [Qiskit +v1.0](https://github.com/Qiskit/qiskit)
 - [Tergite Frontend](https://github.com/tergite/tergite-frontend)
 
 ## Provider Setup
 
-- Ensure you have [Python +3.9](https://www.python.org/) installed.
+- Ensure you have [Python +3.12](https://www.python.org/) installed.
 
 - Create an account with [QAL 9000](https://www.qal9000.se/) if you haven't already. (Or you can have your own [tergite Frontend](https://github.com/tergite/tergite-frontend) running)
 
@@ -86,6 +86,7 @@ To find out how to use the library, please take a look into the notebooks and sc
 ## ToDo
 
 - [ ] Add docs and doc generation
+- [ ] Separate Client code, from analysis, and from compilation and data transfer object definition
 
 ## Contribution Guidelines
 

@@ -89,9 +89,7 @@ All signed CLAs are emails to us at <contact.quantum@chalmersnextlabs.se>.
 
 ## How to Test
 
--   Make sure you have [python](https://www.python.org/) installed.
-
--   Make sure you have [poetry](https://python-poetry.org/) installed.
+-   Make sure you have [python +3.12](https://www.python.org/) installed (or you could use [conda](https://www.anaconda.com/docs/getting-started/miniconda/install) or [pyenv](https://github.com/pyenv/pyenv) to install python +3.12).
 
 -   Clone the repo and enter its root folder
 
@@ -100,16 +98,26 @@ git clone git@github.com:tergite/tergite.git
 cd tergite
 ```
 
+- Create and activate a virtual environment
+
+Using conda:
+
+```shell
+conda create -n tergite-sdk python=3.12
+conda activate tergite-sdk
+```
+
+Using installed python:
+
+```shell
+python3.12 -m venv env 
+source env/bin/activate
+```
+
 -   Install the dependencies
 
 ``` shell
-poetry install
-```
-
--   Activate the environment
-
-``` shell
-source $(poetry env info --path)/bin/activate
+pip install ."[test]"
 ```
 
 -   Run the tests command
