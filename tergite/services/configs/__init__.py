@@ -72,15 +72,7 @@ class Tergiterc:
                 section_items = dict(parser.items(section))
                 service_name = section.split(" ", 1)[1].strip()
 
-                # extract the extras (since on saving to file, they are flattened)
-                account_options = {"extras": {}}
-                for k, v in section_items.items():
-                    if k in account_fields:
-                        account_options[k] = v
-                    else:
-                        account_options["extras"][k] = v
-
-                new_account = AccountInfo(service_name, **account_options)
+                new_account = AccountInfo(service_name, **section_items)
                 accounts.append(new_account)
 
         return accounts
@@ -109,7 +101,6 @@ class Tergiterc:
 
             # account configuration
             config = account.to_dict()
-            config.update(config.pop("extras"))  # flatten on 'extras'
             config.pop("service_name")  # remove 'service_name'
 
             for key, value in config.items():

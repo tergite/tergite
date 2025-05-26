@@ -10,7 +10,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -18,7 +18,6 @@ class AccountInfo:
     service_name: str
     url: str
     token: str = None
-    extras: dict = field(default_factory=dict)
 
     def to_dict(self: object) -> dict:
         return asdict(self)

@@ -46,14 +46,18 @@ class ProviderFactory:
             self._providers[account.service_name] = Provider(account)
 
     def use_provider_account(
-        self, account: "AccountInfo", save: bool = False
+        self,
+        service_name: str,
+        url: str,
+        token: Optional[str] = None,
+        save: bool = False,
     ) -> Provider:
-        """Intializes a new Provider basing on the account passed and returns it.
+        """Initializes a new Provider basing on the account passed and returns it.
 
         Args:
-            account: the instance of the
-                :class:`~tergite.providers.tergite.account.AccountInfo`
-                for which the provider is to be initialized
+            service_name: the name of the service
+            url: the API URL for the given service
+            token: the API token to be used to connect to the service
             save: whether the account should be persisted to the tergiterc file
 
         Returns:
@@ -61,6 +65,7 @@ class ProviderFactory:
                 :class:`~tergite.providers.tergite.provider.Provider`
                 for the given account
         """
+        account = AccountInfo(service_name=service_name, url=url, token=token)
         if save:
             self._tergiterc.save_accounts([account])
 

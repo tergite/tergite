@@ -30,8 +30,9 @@ def backend_provider(mock_backend_servers) -> Provider:
     """A provider that is authenticated using API token"""
     api_url = os.environ.get("API_URL")
     api_token = os.environ.get("API_TOKEN")
-    account = AccountInfo(service_name="test", url=api_url, token=api_token)
-    return Tergite.use_provider_account(account)
+    return Tergite.use_provider_account(
+        service_name="test", url=api_url, token=api_token
+    )
 
 
 def proxy_request(request: requests.Request, context) -> HTTPResponse:

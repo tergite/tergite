@@ -23,6 +23,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Removed the `tergite.qiskit.providers` package and moved everything to the parent package
 - Removed OpenQASM backend definition as OpenPulse is sufficient
 - Raise `QiskitBackendNotFoundError` when malformed backend is returned in data instead of `TypeError`
+- BREAKING: Remove `extras` from `AccountInfo`
+- BREAKING: Change signature of `Tergite.use_provider_account(account, save)` to `Tergite.use_provider_account(service_name, url, token, save)` 
 
 ### Fixed
 

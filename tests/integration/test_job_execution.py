@@ -28,7 +28,6 @@ from tergite import Job, Provider, Tergite, TergiteBackend
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
 from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
-from tergite.services.configs import AccountInfo
 from tergite.services.device_compiler.schedules import cz
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
@@ -536,8 +535,7 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name):
     """Test that Provider.job() returns the correct Job object."""
-    account = AccountInfo(service_name="test", url=API_URL)
-    provider = Tergite.use_provider_account(account)
+    provider = Tergite.use_provider_account(service_name="test", url=API_URL)
 
     # create a job the usual way
     backend = _get_backend(backend_name, provider=provider)
@@ -827,8 +825,9 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
         An TergiteBackend corresponding to the given name
     """
     if provider is None:
-        account = AccountInfo(service_name="test", url=API_URL, token=token)
-        provider = Tergite.use_provider_account(account)
+        provider = Tergite.use_provider_account(
+            service_name="test", url=API_URL, token=token
+        )
 
     expected_json = get_record(BACKENDS_LIST, _filter={"name": name})
     return TergiteBackend(

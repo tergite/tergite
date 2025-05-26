@@ -81,5 +81,4 @@ def test_invalid_bearer_auth(token, backend, bearer_auth_api):
 
 def _get_test_provider(url: str, token: str = None) -> Provider:
     """Retrieves a provider to be used for testing given the optional token"""
-    account = AccountInfo(service_name="test", url=url, token=token)
-    return Tergite.use_provider_account(account)
+    return Tergite.use_provider_account(service_name="test", url=url, token=token)
