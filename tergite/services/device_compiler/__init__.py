@@ -24,7 +24,8 @@ from qiskit.transpiler import InstructionProperties, Target
 from ..device_compiler import schedules as templates
 
 if TYPE_CHECKING:
-    from ...types.backend import DeviceCalibration, OpenPulseBackend
+    from ...types.backend import OpenPulseBackend
+    from ..api_client.dtos import DeviceCalibration
 
 
 def add_instructions(

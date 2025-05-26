@@ -20,7 +20,7 @@ import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 
 from tergite import Job, Tergite
-from tergite.services.configs import ProviderAccount
+from tergite.services.configs import AccountInfo
 
 if __name__ == "__main__":
     # the Tergite API URL e.g. "https://api.tergite.example"
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # provider account creation can be skipped in case you already saved
     # your provider account to the `~/.qiskit/tergiterc` file.
     # See below how that is done.
-    account = ProviderAccount(service_name=SERVICE_NAME, url=API_URL, token=API_TOKEN)
+    account = AccountInfo(service_name=SERVICE_NAME, url=API_URL, token=API_TOKEN)
     provider = Tergite.use_provider_account(account)
     # to save this account to the `~/.qiskit/tergiterc` file, add the `save=True`
     # provider = Tergite.use_provider_account(account, save=True)

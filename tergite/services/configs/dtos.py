@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass, field
 
 
 @dataclass
-class ProviderAccount:
+class AccountInfo:
     service_name: str
     url: str
     token: str = None

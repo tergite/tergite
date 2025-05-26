@@ -20,7 +20,7 @@ import pathlib
 from collections import OrderedDict
 from typing import List, Optional
 
-from ..services.configs import TERGITERC_FILE, ProviderAccount, Tergiterc
+from ..services.configs import TERGITERC_FILE, AccountInfo, Tergiterc
 from .provider import Provider
 
 
@@ -46,13 +46,13 @@ class ProviderFactory:
             self._providers[account.service_name] = Provider(account)
 
     def use_provider_account(
-        self, account: "ProviderAccount", save: bool = False
+        self, account: "AccountInfo", save: bool = False
     ) -> Provider:
         """Intializes a new Provider basing on the account passed and returns it.
 
         Args:
             account: the instance of the
-                :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
+                :class:`~tergite.providers.tergite.account.AccountInfo`
                 for which the provider is to be initialized
             save: whether the account should be persisted to the tergiterc file
 

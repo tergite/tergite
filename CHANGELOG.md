@@ -22,6 +22,7 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Removed the `tergite.qiskit` package and moved everything to the `tergite` package
 - Removed the `tergite.qiskit.providers` package and moved everything to the parent package
 - Removed OpenQASM backend definition as OpenPulse is sufficient
+- Raise `QiskitBackendNotFoundError` when malformed backend is returned in data instead of `TypeError`
 
 ### Fixed
 
@@ -147,7 +148,7 @@ Labber is being deprecated.
 ### Fixed
 
 - Fixed 'TypeError: 'NoneType' object is not iterable' in use_provider_account(account, save=True)
-- Fixed 'ProviderAccount.__init__() got an unexpected keyword argument' when loading accounts from tergiterc file
+- Fixed 'AccountInfo.__init__() got an unexpected keyword argument' when loading accounts from tergiterc file
 
 ## [0.2.0] - 2024-02-15
 

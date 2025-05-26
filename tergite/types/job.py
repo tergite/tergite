@@ -17,21 +17,24 @@
 #
 # Martin Ahindura, 2023
 """Defines the asynchronous job that executes the experiments."""
-import enum
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, Optional
 
 import requests
-from pydantic import BaseModel, ConfigDict
 from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from ..compat.qiskit.qobj import PulseQobj, QasmQobj
-from ..services.api_client.utils import iqx_rle
+from ..compat.qiskit.qobj import PulseQobj
+from ..services import api_client as client
+from ..services.api_client import JobFile
+from ..services.api_client.dtos import RemoteJobStatus
+
+# from ..services.api_client.dtos import RemoteJobStatus
+from ..utils.qobj import compress_qobj_dict
 
 if TYPE_CHECKING:
     from .backend import TergiteBackend
@@ -48,9 +51,9 @@ class Job(JobV1):
         *,
         backend: "TergiteBackend",
         job_id: str,
-        payload: Optional[Union[QasmQobj, PulseQobj]] = None,
+        payload: Optional[PulseQobj] = None,
         upload_url: Optional[str] = None,
-        remote_data: Optional["RemoteJob"] = None,
+        remote_data: Optional["client.RemoteJob"] = None,
         logfile: Optional[Path] = None,
         status: JobStatus = JobStatus.INITIALIZING,
         download_url: Optional[str] = None,
@@ -83,6 +86,7 @@ class Job(JobV1):
         self._calibration_date = calibration_date
         self._result: Optional[Result] = None
         self._remote_data = remote_data
+        self._account = backend.provider.account
 
     @property
     def _is_in_final_state(self):
@@ -96,10 +100,10 @@ class Job(JobV1):
             return False
 
     @property
-    def remote_data(self) -> Optional["RemoteJob"]:
+    def remote_data(self) -> Optional["client.RemoteJob"]:
         """The representation of the job in the remote API"""
         if not self._is_in_final_state:
-            self._remote_data = self._provider.get_remote_job_data(self.job_id())
+            self._remote_data = client.get_remote_job_data(self._account, self.job_id())
 
         return self._remote_data
 
@@ -124,26 +128,20 @@ class Job(JobV1):
         if self.upload_url is None:
             raise ValueError("This job is not submittable. It lacks an upload_url")
 
-        if isinstance(self.payload, QasmQobj):
-            job_entry = {
-                "job_id": self.job_id(),
-                "type": "script",  # ?
-                "name": "qasm_dummy_job",
-                "params": {"qobj": self.payload.to_dict()},
-                "post_processing": "process_qiskit_qasm_runner_qasm_dummy_job",
-            }
-        elif isinstance(self.payload, PulseQobj):
-            payload = _compress_qobj_dict(self.payload.to_dict())
-            job_entry = {
-                "job_id": self.job_id(),
-                "type": "script",  # ?
-                "name": "pulse_schedule",
-                "params": {"qobj": payload},
-            }
-        else:
+        if not isinstance(self.payload, PulseQobj):
             raise RuntimeError(f"Unprocessable payload type: {type(self.payload)}")
 
-        return self._provider.send_job_file(url=self.upload_url, job_data=job_entry)
+        payload = compress_qobj_dict(self.payload.to_dict())
+        job_entry = JobFile.model_validate(
+            {
+                "job_id": self.job_id(),
+                "params": {"qobj": payload},
+            }
+        )
+
+        return client.send_job_file(
+            self._account, url=self.upload_url, job_data=job_entry
+        )
 
     @property
     def download_url(self) -> Optional[str]:
@@ -167,8 +165,8 @@ class Job(JobV1):
         """The path to the logfile of this job when it is completed"""
         if self._logfile is None and self.status() in JOB_FINAL_STATES:
             if self.download_url:
-                self._logfile = self._provider.download_job_logfile(
-                    self.job_id(), url=self.download_url
+                self._logfile = client.download_job_logfile(
+                    self._account, self.job_id(), url=self.download_url
                 )
 
         return self._logfile
@@ -184,7 +182,9 @@ class Job(JobV1):
         if self.upload_url is None:
             raise ValueError("This job is not cancellable. It lacks an upload_url")
 
-        self._provider.cancel_job(upload_url=self.upload_url, job_id=self.job_id())
+        client.cancel_job(
+            self._account, upload_url=self.upload_url, job_id=self.job_id()
+        )
 
     def result(self) -> Optional[Result]:
         """Retrieves the outcome of this job when it is completed.
@@ -256,74 +256,6 @@ class Job(JobV1):
                 return False
 
         return True
-
-
-def _compress_qobj_dict(qobj_dict: Dict[str, Any]) -> Dict[str, Any]:
-    """Creates a compressed dictionary representation of the qobj dict
-
-    In order to reduce the bandwidth taken up be the qobject
-    dict, we do a few things with the data which will be reversed
-    at the backend
-
-    Note that this compression is in-place
-
-    Args:
-        qobj_dict: the dict of the PulseQobj to compress
-
-    Returns:
-        A compressed dict of the qobj
-    """
-    # In-place RLE pulse library for compression
-    for pulse in qobj_dict["config"]["pulse_library"]:
-        pulse["samples"] = iqx_rle(pulse["samples"])
-
-    return qobj_dict
-
-
-class CreatedJobResponse(TypedDict):
-    """The response when a new job is created"""
-
-    job_id: str
-    upload_url: str
-
-
-class RemoteJobResult(BaseModel):
-    """The results of the job"""
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-
-    memory: List[List[str]] = []
-
-
-class RemoteJobStatus(str, enum.Enum):
-    PENDING = "pending"
-    SUCCESSFUL = "successful"
-    FAILED = "failed"
-    EXECUTING = "executing"
-    CANCELLED = "cancelled"
-
-
-class RemoteJob(BaseModel):
-    """the job schema"""
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-
-    device: str
-    calibration_date: str
-    job_id: str
-    project_id: Optional[str] = None
-    user_id: Optional[str] = None
-    status: RemoteJobStatus
-    failure_reason: Optional[str] = None
-    cancellation_reason: Optional[str] = None
-    download_url: Optional[str] = None
-    result: Optional[RemoteJobResult] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
 
 
 STATUS_MAP = {

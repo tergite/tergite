@@ -24,16 +24,9 @@ import re
 from configparser import ConfigParser
 from typing import List, Optional
 
-from .dtos import ProviderAccount
+from .dtos import AccountInfo
 
 TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
-REST_API_MAP = {
-    "jobs": "/jobs",
-    "result": "/result",
-    "download_url": "/download_url",
-    "devices": "/devices",
-    "calibrations": "/calibrations",
-}
 
 
 class Tergiterc:
@@ -51,18 +44,16 @@ class Tergiterc:
         self._file_path = rc_file
         self._parser = Tergiterc._get_parser(rc_file)
 
-    def load_accounts(self) -> List["ProviderAccount"]:
+    def load_accounts(self) -> List["AccountInfo"]:
         """Retrieves the accounts from the tergiterc file
 
         Returns:
             list of instances of
-                :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
+                :class:`~tergite.providers.tergite.account.AccountInfo`
                 as read from the tergiterc file
         """
 
-        account_fields = {
-            field.name: True for field in dataclasses.fields(ProviderAccount)
-        }
+        account_fields = {field.name: True for field in dataclasses.fields(AccountInfo)}
         accounts = []
 
         parser = self._parser
@@ -89,17 +80,17 @@ class Tergiterc:
                     else:
                         account_options["extras"][k] = v
 
-                new_account = ProviderAccount(service_name, **account_options)
+                new_account = AccountInfo(service_name, **account_options)
                 accounts.append(new_account)
 
         return accounts
 
-    def save_accounts(self, accounts: List["ProviderAccount"]):
+    def save_accounts(self, accounts: List["AccountInfo"]):
         """Saves the accounts into the tergiterc file
 
         Args:
             accounts: the list of instances of
-                :class:`~tergite.providers.tergite.provider_account.ProviderAccount`
+                :class:`~tergite.providers.tergite.account.AccountInfo`
                 to save
 
         Raises:

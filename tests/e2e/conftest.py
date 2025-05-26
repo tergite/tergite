@@ -9,7 +9,7 @@ import requests_mock
 from urllib3 import HTTPResponse
 
 from tergite import Provider, Tergite
-from tergite.services.configs import ProviderAccount
+from tergite.services.configs import AccountInfo
 from tests.utils.env import is_end_to_end, is_in_docker
 
 
@@ -30,7 +30,7 @@ def backend_provider(mock_backend_servers) -> Provider:
     """A provider that is authenticated using API token"""
     api_url = os.environ.get("API_URL")
     api_token = os.environ.get("API_TOKEN")
-    account = ProviderAccount(service_name="test", url=api_url, token=api_token)
+    account = AccountInfo(service_name="test", url=api_url, token=api_token)
     return Tergite.use_provider_account(account)
 
 

@@ -28,9 +28,9 @@ from tergite import Job, OpenPulseBackend, Provider, Tergite
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
-from tergite.services.configs import ProviderAccount
+from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
+from tergite.services.configs import AccountInfo
 from tergite.services.device_compiler.schedules import cz
-from tergite.types.backend import DeviceCalibration, TergiteBackendConfig
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 
@@ -254,7 +254,7 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
-    backend.provider.provider_account.token = token
+    backend.provider.account.token = token
 
     with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.result()
@@ -318,7 +318,7 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
-    backend.provider.provider_account.token = token
+    backend.provider.account.token = token
 
     with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.status()
@@ -383,7 +383,7 @@ def test_job_cancel_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     job_id = job.job_id()
 
     # change the token to the invalid one
-    backend.provider.provider_account.token = token
+    backend.provider.account.token = token
 
     with pytest.raises(
         RuntimeError, match=f"Failed to cancel job '{job_id}': Unauthorized"
@@ -450,7 +450,7 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
-    backend.provider.provider_account.token = token
+    backend.provider.account.token = token
 
     with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.download_url
@@ -520,7 +520,7 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     job = backend.run(tc, meas_level=2)
 
     # change the token to the invalid one
-    backend.provider.provider_account.token = token
+    backend.provider.account.token = token
 
     with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
         _ = job.logfile
@@ -537,7 +537,7 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name):
     """Test that Provider.job() returns the correct Job object."""
-    account = ProviderAccount(service_name="test", url=API_URL)
+    account = AccountInfo(service_name="test", url=API_URL)
     provider = Tergite.use_provider_account(account)
 
     # create a job the usual way
@@ -828,7 +828,7 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
         An OpenPulseBackend corresponding to the given name
     """
     if provider is None:
-        account = ProviderAccount(service_name="test", url=API_URL, token=token)
+        account = AccountInfo(service_name="test", url=API_URL, token=token)
         provider = Tergite.use_provider_account(account)
 
     expected_json = get_record(BACKENDS_LIST, _filter={"name": name})

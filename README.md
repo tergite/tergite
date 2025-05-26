@@ -40,11 +40,11 @@ pip install tergite
 
 ```python
 from tergite import Tergite
-from tergite.service.configs import ProviderAccount
+from tergite.service.configs import AccountInfo
 
 TERGITE_API_URL = "https://api.qal9000.se"  # or the URL to your own tergite MSS
 
-account = ProviderAccount(
+account = AccountInfo(
     service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN"
 )
 provider = Tergite.use_provider_account(account, save=True)

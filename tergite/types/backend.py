@@ -25,13 +25,11 @@ import functools
 import logging
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
-import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
 from numpy import inf as infinity
-from pydantic import BaseModel, ConfigDict
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
 from qiskit.pulse.channels import (
@@ -46,11 +44,11 @@ from qiskit_ibm_runtime.models import BackendConfiguration
 
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
-from ..services import device_compiler
-from ..services.device_compiler import __init__
+from ..services import api_client, device_compiler
 from .job import Job
 
 if TYPE_CHECKING:
+    from ..services.api_client import DeviceCalibration, TergiteBackendConfig
     from .provider import Provider as TergiteProvider
 
 
@@ -98,7 +96,7 @@ class TergiteBackend(BackendV2):
     def device_properties(self) -> Optional["DeviceCalibration"]:
         """The calibrated data for the given device"""
 
-    def register_job(self, payload: Union[PulseQobj, QasmQobj], **metadata) -> Job:
+    def register_job(self, payload: PulseQobj, **metadata) -> Job:
         """Registers a new asynchronous job with the Tergite API.
 
         Args:
@@ -110,14 +108,16 @@ class TergiteBackend(BackendV2):
                  job registered in the Tergite API to be executed
         """
         calibration_date = metadata.get("calibration_date", None)
-        resp = self.provider.register_job_on_api(
-            backend_name=self.name, calibration_date=calibration_date
+        resp = api_client.register_job(
+            self.provider.account,
+            backend_name=self.name,
+            calibration_date=calibration_date,
         )
         return Job(
             backend=self,
-            job_id=resp["job_id"],
+            job_id=resp.job_id,
             payload=payload,
-            upload_url=resp["upload_url"],
+            upload_url=resp.upload_url,
             **metadata,
         )
 
@@ -409,8 +409,8 @@ class OpenPulseBackend(TergiteBackend):
         Internally, a fresh call to the calibrations endpoint is made to the REST API
         """
         if self.data.characterized:
-            self._device_properties = self.provider.get_latest_calibration(
-                backend_name=self.name
+            self._device_properties = api_client.get_latest_calibration(
+                self.provider.account, backend_name=self.name
             )
             logging.info(f"Refreshed the device properties of '{self.name}' backend")
 
@@ -433,142 +433,3 @@ class OpenPulseBackend(TergiteBackend):
 
         logging.info(f"Refreshed the target for '{self.name}' backend")
         self._target = gmap
-
-
-class TergiteBackendConfig(BaseModel):
-    """backend configuration got from the remote server"""
-
-    model_config = ConfigDict(extra="allow")
-
-    # Fields without default values
-    name: str
-    version: str
-    number_of_qubits: int
-    is_online: bool
-    basis_gates: List[str]
-    coupling_map: List[Tuple[int, int]]
-    coordinates: List[Tuple[int, int]]
-    is_simulator: bool
-    characterized: bool
-    open_pulse: bool
-    meas_map: List[List[int]]
-
-    # Fields with default values
-    id: Optional[str] = None
-    last_online: Optional[str] = None
-    description: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    number_of_couplers: int = 0
-    number_of_resonators: int = 0
-    dt: Optional[float] = None
-    dtm: Optional[float] = None
-    coupling_dict: Dict[str, Tuple[str, str]] = {}
-    coupled_qubit_idxs: Tuple[Tuple[int, int], ...] = []
-    qubit_ids_coupler_dict: Dict[Tuple[int, int], int] = {}
-    qubit_ids_coupler_map: List[Tuple[Tuple[int, int], int]] = []
-    qubit_ids: List[str] = []
-    meas_lo_freq: Optional[List[int]] = None
-    qubit_lo_freq: Optional[List[int]] = None
-    gates: Optional[Dict[str, Any]] = None
-    is_active: Optional[bool] = None
-
-    def model_post_init(self, _context: Any):
-        """Run after initialization of the model"""
-        # qubits_coupler_map is a list of key,value tuples for the qubit_ids_coupler_dict
-        # It is so because a dict with tuples as keys is not JSON serializable
-        self.qubit_ids_coupler_dict = {
-            tuple(k): v for (k, v) in self.qubit_ids_coupler_map
-        }
-
-        # the coupling_map sometimes has qubits connected to themselves e.g. [0, 0] when there are
-        # no couplers so we need to filter these out to get the qubits that are actually coupled
-        self.coupled_qubit_idxs = tuple(
-            [pair for pair in self.coupling_map if pair[0] != pair[1]]
-        )
-
-
-class CalibrationValue(BaseModel):
-    """A calibration value"""
-
-    model_config = ConfigDict(extra="allow")
-
-    value: Union[float, str, int]
-    date: Optional[str] = None
-    unit: str = ""
-
-
-class QubitCalibration(BaseModel):
-    """Schema for the calibration data of the qubit"""
-
-    model_config = ConfigDict(extra="allow")
-
-    t1_decoherence: Optional[CalibrationValue] = None
-    t2_decoherence: Optional[CalibrationValue] = None
-    frequency: Optional[CalibrationValue] = None
-    anharmonicity: Optional[CalibrationValue] = None
-    readout_assignment_error: Optional[CalibrationValue] = None
-    # parameters for x gate
-    pi_pulse_amplitude: Optional[CalibrationValue] = None
-    pi_pulse_duration: Optional[CalibrationValue] = None
-    pulse_type: Optional[CalibrationValue] = None
-    pulse_sigma: Optional[CalibrationValue] = None
-    id: Optional[int] = None
-    index: Optional[CalibrationValue] = None
-    x_position: Optional[CalibrationValue] = None
-    y_position: Optional[CalibrationValue] = None
-    xy_drive_line: Optional[CalibrationValue] = None
-    z_drive_line: Optional[CalibrationValue] = None
-
-
-class ResonatorCalibration(BaseModel):
-    """Schema for the calibration data of the resonator"""
-
-    model_config = ConfigDict(extra="allow")
-
-    acq_delay: Optional[CalibrationValue] = None
-    acq_integration_time: Optional[CalibrationValue] = None
-    frequency: Optional[CalibrationValue] = None
-    pulse_amplitude: Optional[CalibrationValue] = None
-    pulse_delay: Optional[CalibrationValue] = None
-    pulse_duration: Optional[CalibrationValue] = None
-    pulse_type: Optional[CalibrationValue] = None
-    id: Optional[int] = None
-    index: Optional[CalibrationValue] = None
-    x_position: Optional[CalibrationValue] = None
-    y_position: Optional[CalibrationValue] = None
-    readout_line: Optional[CalibrationValue] = None
-
-
-class CouplersCalibration(BaseModel):
-    """Schema for the calibration data of the coupler"""
-
-    model_config = ConfigDict(extra="allow")
-
-    frequency: Optional[CalibrationValue] = None
-    frequency_detuning: Optional[CalibrationValue] = None
-    anharmonicity: Optional[CalibrationValue] = None
-    coupling_strength_02: Optional[CalibrationValue] = None
-    coupling_strength_12: Optional[CalibrationValue] = None
-    cz_pulse_amplitude: Optional[CalibrationValue] = None
-    cz_pulse_dc_bias: Optional[CalibrationValue] = None
-    cz_pulse_phase_offset: Optional[CalibrationValue] = None
-    cz_pulse_duration_before: Optional[CalibrationValue] = None
-    cz_pulse_duration_rise: Optional[CalibrationValue] = None
-    cz_pulse_duration_constant: Optional[CalibrationValue] = None
-    pulse_type: Optional[CalibrationValue] = None
-    id: Optional[int] = None
-
-
-class DeviceCalibration(BaseModel):
-    """Schema for the calibration data of a given device"""
-
-    model_config = ConfigDict(extra="allow")
-
-    name: str
-    version: str
-    qubits: List[QubitCalibration]
-    resonators: Optional[List[ResonatorCalibration]] = None
-    couplers: Optional[List[CouplersCalibration]] = None
-    discriminators: Optional[Dict[str, Any]] = None
-    last_calibrated: str

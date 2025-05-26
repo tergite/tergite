@@ -28,7 +28,8 @@ from sympy import symbols
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
-    from ...types.backend import DeviceCalibration, OpenPulseBackend
+    from ...types.backend import OpenPulseBackend
+    from ..api_client.dtos import DeviceCalibration
 
 
 def rx(
