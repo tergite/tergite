@@ -16,7 +16,7 @@
 #
 # - Martin Ahindura 2023
 # - Stefan Hill 2023
-"""Handles the creation of schedules for the devices of type OpenPulseBackend"""
+"""Handles the creation of schedules for the devices of type TergiteBackend"""
 from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
@@ -28,12 +28,12 @@ from sympy import symbols
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
-    from ...types.backend import OpenPulseBackend
+    from ...types.backend import TergiteBackend
     from ..api_client.dtos import DeviceCalibration
 
 
 def rx(
-    backend: "OpenPulseBackend",
+    backend: "TergiteBackend",
     qubits: Iterable,
     rx_theta: circuit.Parameter,
     device_properties: "DeviceCalibration",
@@ -75,7 +75,7 @@ def rx(
 
 
 def rz(
-    backend: "OpenPulseBackend", qubits: Iterable, rz_lambda: circuit.Parameter
+    backend: "TergiteBackend", qubits: Iterable, rz_lambda: circuit.Parameter
 ) -> pulse.ScheduleBlock:
     """Creates a rotation around the z-axis on the Bloch sphere for the list of qubits in the backend.
 
@@ -132,7 +132,7 @@ def wacqt_cz_gate(duration, name, numerical_args):
 
 
 def cz(
-    backend: "OpenPulseBackend",
+    backend: "TergiteBackend",
     control_qubit_idxs: Iterable,
     target_qubit_idxs: Iterable,
     device_properties: "DeviceCalibration",
@@ -199,7 +199,7 @@ def cz(
 
 
 def measure(
-    backend: "OpenPulseBackend",
+    backend: "TergiteBackend",
     qubits: Iterable,
     device_properties: "DeviceCalibration",
 ) -> pulse.ScheduleBlock:
@@ -248,7 +248,7 @@ def measure(
 
 
 def delay(
-    backend: "OpenPulseBackend",
+    backend: "TergiteBackend",
     qubits: Iterable,
     delay_tau: circuit.Parameter,
     delay_str: str = "Delay",

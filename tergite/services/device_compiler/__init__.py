@@ -24,13 +24,13 @@ from qiskit.transpiler import InstructionProperties, Target
 from ..device_compiler import schedules as templates
 
 if TYPE_CHECKING:
-    from ...types.backend import OpenPulseBackend
+    from ...types.backend import TergiteBackend
     from ..api_client.dtos import DeviceCalibration
 
 
 def add_instructions(
     target: Target,
-    backend: "OpenPulseBackend",
+    backend: "TergiteBackend",
     qubits: tuple,
     coupled_qubit_idxs: tuple,
     device_properties: "DeviceCalibration",

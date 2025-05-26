@@ -15,7 +15,6 @@ import uuid
 import warnings
 from collections import Counter
 from typing import List, Optional
-from urllib.parse import quote as urlparse
 
 import numpy as np
 import pytest
@@ -24,7 +23,7 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from tergite import Job, OpenPulseBackend, Provider, Tergite
+from tergite import Job, Provider, Tergite, TergiteBackend
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
@@ -565,7 +564,7 @@ def test_provider_job(api_with_logfile, backend_name):
     assert got == expected, "The retrieved job does not match the original job."
 
 
-def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
+def _get_expected_job_result(backend: TergiteBackend, job: Job) -> Result:
     """Returns the expected job result"""
     results = [
         ExperimentResult(
@@ -591,7 +590,7 @@ def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
 
 
 def _get_expected_job(
-    backend: OpenPulseBackend,
+    backend: TergiteBackend,
     transpiled_circuit: QuantumCircuit,
     qobj_id: str,
     **options,
@@ -644,7 +643,7 @@ def _get_test_2q_qiskit_circuit():
 
 
 def _get_expected_1q_transpiled_circuit(
-    backend: OpenPulseBackend,
+    backend: TergiteBackend,
     calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ) -> circuit.QuantumCircuit:
@@ -704,7 +703,7 @@ def _get_expected_1q_transpiled_circuit(
 
 
 def _get_expected_2q_transpiled_circuit(
-    backend: OpenPulseBackend,
+    backend: TergiteBackend,
     calibrations: DeviceCalibration,
     circuit_name: Optional[str] = None,
 ):
@@ -825,14 +824,14 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
         provider: an optional provider to use; defaults to None
 
     Returns:
-        An OpenPulseBackend corresponding to the given name
+        An TergiteBackend corresponding to the given name
     """
     if provider is None:
         account = AccountInfo(service_name="test", url=API_URL, token=token)
         provider = Tergite.use_provider_account(account)
 
     expected_json = get_record(BACKENDS_LIST, _filter={"name": name})
-    return OpenPulseBackend(
+    return TergiteBackend(
         data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
     )
 
