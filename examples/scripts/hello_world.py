@@ -20,7 +20,6 @@ import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 
 from tergite import Job, Tergite
-from tergite.services.configs import AccountInfo
 
 if __name__ == "__main__":
     # the Tergite API URL e.g. "https://api.tergite.example"
