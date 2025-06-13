@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import enum
 import json
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Literal
 
 from pydantic import (
     BaseModel,
@@ -23,6 +23,7 @@ from pydantic import (
     field_serializer,
     field_validator,
 )
+from pydantic.main import IncEx
 
 from tergite.compat.qiskit.qobj import PulseQobj
 from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder
@@ -227,17 +228,23 @@ class JobFileParams(BaseModel):
 
     @field_serializer("qobj")
     def serialize_qobj(self, qobj: PulseQobj, _info: SerializationInfo):
-        """Converts qobj into a JSON"""
-        return json.dumps(qobj.to_dict(), cls=IQXJsonEncoder)
+        """Converts qobj into a dict"""
+        qobj_dict = qobj.to_dict()
+
+        if _info.mode_is_json():
+            return json.dumps(qobj_dict, cls=IQXJsonEncoder)
+        return qobj_dict
 
     @field_validator("qobj", mode="before")
     @classmethod
     def parse_qobj(cls, v):
-        """Parses the qobject from dict to Qobj"""
+        """Parses the qobject from dict/str to Qobj"""
         if isinstance(v, PulseQobj):
             return v
         elif isinstance(v, dict):
             return PulseQobj.from_dict(v)
+        elif isinstance(v, str):
+            return PulseQobj.from_dict(json.loads(v))
 
         raise TypeError(f"Invalid type for PulseQobj: {type(v)}")
 

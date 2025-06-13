@@ -25,6 +25,7 @@ import shutil
 import tempfile
 from json import JSONDecodeError
 from pathlib import Path
+from textwrap import indent
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from uuid import uuid4
 
@@ -162,10 +163,11 @@ def send_job_file(account: "AccountInfo", url: str, job_data: JobFile) -> Respon
     try:
         # dump json to temporary file
         with path.open("w") as dest:
-            json.dump(job_data.model_dump_json(indent=2), dest)
+            job_data_json = job_data.model_dump_json(indent=2)
+            dest.write(job_data_json)
 
         # Send temporary file to url
-        with path.open("r") as src:
+        with path.open("rb") as src:
             headers = _get_auth_headers(account)
             response = requests.post(url, files={"upload_file": src}, headers=headers)
 
