@@ -19,6 +19,11 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Added pydantic as an explicit dependency
 - Moved completely from dataclasses to pydantic models
 - Set the minimum permitted python to 3.12
+- Removed the `tergite.qiskit` package and moved everything to the `tergite` package
+- Removed the `tergite.qiskit.providers` package and moved everything to the parent package
+- Raise `QiskitBackendNotFoundError` when malformed backend is returned in data instead of `TypeError`
+- BREAKING: Remove `extras` from `AccountInfo`
+- BREAKING: Change signature of `Tergite.use_provider_account(account, save)` to `Tergite.use_provider_account(service_name, url, token, save)` 
 
 ### Fixed
 

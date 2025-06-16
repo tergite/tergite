@@ -11,8 +11,8 @@ import qiskit
 from qiskit import transpile
 
 try:
-    from tergite.qiskit.providers import Provider
-    from tergite.qiskit.providers.backend import TergiteBackend
+    from tergite import Provider
+    from tergite.types.backend import TergiteBackend
 except:
     print("Could not import Tergite!")
 from qiskit.result import marginal_counts

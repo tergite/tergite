@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from learning import Net
 
 try:
-    from qiskit.providers.tergite import Tergite
+    from tergite import Tergite
 except:
     print("Could not import Tergite!")
 

@@ -1,6 +1,7 @@
 # This code is part of Tergite
 #
-# (C) Copyright Miroslav Dobsicek 2020, 2021
+# (C) Copyright Miroslav Dobsicek 2021
+# (C) Copyright Axel Andersson 2022
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -9,11 +10,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+from dataclasses import asdict, dataclass
 
 
-from .types.backend import OpenPulseBackend, OpenQASMBackend
-from .types.job import Job
-from .types.provider import Provider
-from .types.provider_factory import ProviderFactory
+@dataclass
+class AccountInfo:
+    service_name: str
+    url: str
+    token: str = None
 
-Tergite = ProviderFactory()
+    def to_dict(self: object) -> dict:
+        return asdict(self)

@@ -4,16 +4,11 @@
   {
     "service_name": "foo-bar",
     "url": "http://localhost",
-    "token": "another-token",
-    "extras": {}
+    "token": "another-token"
   },
   {
     "service_name": "foo-bar-extra",
     "url": "http://localhost:6000",
-    "token": "another-token",
-    "extras": {
-      "username": "johndoe",
-      "password": "some-password"
-    }
+    "token": "another-token"
   }
 ]

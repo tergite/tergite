@@ -36,18 +36,17 @@ pip install tergite
 
 - Create an account with [QAL 9000](https://www.qal9000.se/) if you haven't already. (Or you can have your own [tergite Frontend](https://github.com/tergite/tergite-frontend) running)
 
-- With the credentials received from Tergite, create and save a provider account by calling `Tergite.use_provider_account(account, save=True)`.
+- With the credentials received from Tergite, create and save a provider account by calling `Tergite.use_provider_account(..., save=True)`.
 
 ```python
-from tergite.qiskit.providers import Tergite
-from tergite.qiskit.providers.provider_account import ProviderAccount
+from tergite import Tergite
 
-TERGITE_API_URL="https://api.qal9000.se"  # or the URL to your own tergite MSS
-
-account = ProviderAccount(
-      service_name="MY_SERVICE_NAME", url="TERGITE_API_URL", token="MY_API_TOKEN"
+provider = Tergite.use_provider_account(
+    service_name="MY_SERVICE_NAME",
+    url="https://api.qal9000.se",  # or the URL to your own tergite MSS,
+    token="MY_API_TOKEN",
+    save=True,
 )
-provider = Tergite.use_provider_account(account, save=True)
 ```
 
 The code above stores your credentials in a configuration file called `tergiterc`, located in `$HOME/.qiskit` folder, `$HOME` being your home directory.
@@ -69,8 +68,14 @@ backend = provider.get_backend("Loke")
 - Alternatively, you can create a provider account that won't be saved. This is useful in things like automated tests. Just call the `Tergite.use_provider_account(account)` without the `save` option.
 
 ```python
+from tergite import Tergite
+
 # the account from before
-provider = Tergite.use_provider_account(account)
+provider = Tergite.use_provider_account( 
+    service_name="MY_SERVICE_NAME",
+    url="https://api.qal9000.se",  # or the URL to your own tergite MSS
+    token="MY_API_TOKEN",
+)
 ```
 
 - You can look at the [examples folder](./examples) for more samples.
@@ -86,7 +91,7 @@ To find out how to use the library, please take a look into the notebooks and sc
 ## ToDo
 
 - [ ] Add docs and doc generation
-- [ ] Separate Client code, from analysis, and from compilation and data transfer object definition
+- [ ] Convert archives into examples, adding proper credits and timestamps
 
 ## Contribution Guidelines
 

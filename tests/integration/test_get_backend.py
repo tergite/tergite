@@ -11,10 +11,10 @@
 # that they have been altered from the originals.
 """tests for the get_backend method on tergite backend"""
 import pytest
+from qiskit.providers import QiskitBackendNotFoundError
 
-from tergite.qiskit.providers import OpenPulseBackend, Provider, Tergite
-from tergite.qiskit.providers.backend import TergiteBackendConfig
-from tergite.qiskit.providers.provider_account import ProviderAccount
+from tergite import OpenPulseBackend, Provider, Tergite
+from tergite.services.api_client.dtos import TergiteBackendConfig
 from tests.utils.records import get_record
 
 from ..utils.env import is_end_to_end
@@ -50,9 +50,8 @@ def test_get_malformed_backend(api):
     """Raises TypeError if a malformed backend is returned"""
     provider = _get_test_provider(url=API_URL)
 
-    err_msg = "1 validation error for TergiteBackendConfig\nversion\n"
     with pytest.raises(
-        TypeError, match=f"malformed backend '{MALFORMED_BACKEND}', {err_msg}"
+        QiskitBackendNotFoundError, match="No backend matches the criteria"
     ):
         provider.get_backend(MALFORMED_BACKEND)
 
@@ -81,5 +80,4 @@ def test_invalid_bearer_auth(token, backend, bearer_auth_api):
 
 def _get_test_provider(url: str, token: str = None) -> Provider:
     """Retrieves a provider to be used for testing given the optional token"""
-    account = ProviderAccount(service_name="test", url=url, token=token)
-    return Tergite.use_provider_account(account)
+    return Tergite.use_provider_account(service_name="test", url=url, token=token)
