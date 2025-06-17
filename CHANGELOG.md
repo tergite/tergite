@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2025.06.1] - 2025-06-17
+
 ### Changed
 
 - Removed unwanted artefacts from the packaged library
