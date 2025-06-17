@@ -50,7 +50,7 @@ docker rmi -f tergite/tergite-backend-e2e:latest 2>/dev/null
 docker system prune -f
 
 # Create and navigating to temporary directory
-echo "Creating up temp folder $TEMP_DIR_PATH"
+echo "Creating temp folder $TEMP_DIR_PATH"
 rm -rf "$TEMP_DIR_PATH"
 mkdir "$TEMP_DIR_PATH"
 cd "$TEMP_DIR_PATH"
@@ -120,9 +120,9 @@ if [[ $(echo "${DEBUG}" | tr '[:lower:]' '[:upper:]') != "TRUE" ]]; then
   echo "Cleaning up..."
   docker compose -p tergite-e2e down --rmi all --volumes
   docker rm tergite-e2e-runner 2>/dev/null
-  rm -rf "$TEMP_DIR_PATH"
-  rm -rf "$ROOT_PATH/env"
-  rm "$ROOT_PATH/e2e-runner.sh"
+  rm -rf "$TEMP_DIR_PATH" || echo "Error removing '$TEMP_DIR_PATH' folder"
+  rm -rf "$ROOT_PATH/env" || echo "Error deleting '$ROOT_PATH/env' folder"
+  rm "$ROOT_PATH/e2e-runner.sh" || echo "Error deleting '$ROOT_PATH/e2e-runner.sh' folder"
 else
   echo "Not deleting the containers and repositories because DEBUG=$DEBUG"
 fi
