@@ -1,0 +1,10 @@
+# MANIFEST.in
+prune docs
+prune archive
+prune tests
+prune .github
+prune .idea
+prune .gitlab
+prune .vscode
+prune temp
+prune examples

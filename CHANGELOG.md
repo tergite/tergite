@@ -7,6 +7,10 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Removed unwanted artefacts from the packaged library
+
 ### Fixed
 
 - Make folder removal in e2e fault tolerant
