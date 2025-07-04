@@ -206,6 +206,7 @@ class Job(JobV1):
 
         if self._result is None:
             backend: TergiteBackend = self.backend()
+            n_qubits = self.payload.config.n_qubits
 
             try:
                 memory = self.remote_data.result.memory
@@ -218,6 +219,11 @@ class Job(JobV1):
                     f"unexpected number of results;"
                     f"expected {len(self.payload.experiments)}, got: {len(memory)}"
                 )
+
+            # temporary hack to show full classical register
+            for exp in self.payload.experiments:
+                # headers are dataclasses; set attribute directly
+                setattr(exp.header, "memory_slots", n_qubits)
 
             self._result = Result(
                 backend_name=backend.name,
