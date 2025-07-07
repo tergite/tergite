@@ -220,7 +220,8 @@ class Job(JobV1):
                     f"expected {len(self.payload.experiments)}, got: {len(memory)}"
                 )
 
-            # temporary hack to show full classical register
+            # FIXME: There is an assumption that classical register length is equal to n_qubits
+            # Instead we should catch classical register size before we convert circuit to schedule and save it
             for exp in self.payload.experiments:
                 # headers are dataclasses; set attribute directly
                 setattr(exp.header, "memory_slots", n_qubits)
