@@ -7,6 +7,10 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+- Extend data type of the job results to allow IQpoints together with HexMap for meas_level 1
+- Add e2e tests for meas_level 1 with clustering algorithm populaton and distance 
+- clean up classical register of quantum circuits before scheduling them to remove idle classical registers
+
 ## [2025.06.1] - 2025-06-17
 
 ### Changed
