@@ -219,6 +219,8 @@ class Job(JobV1):
                     f"unexpected number of results;"
                     f"expected {len(self.payload.experiments)}, got: {len(memory)}"
                 )
+            meas_level = self.payload.config.meas_level
+            has_counts = meas_level == 2
 
             # FIXME: There is an assumption that classical register length is equal to n_qubits
             # Instead we should catch classical register size before we convert circuit to schedule and save it
@@ -237,8 +239,9 @@ class Job(JobV1):
                         header=self.payload.experiments[idx].header,
                         shots=self.payload.config.shots,
                         success=True,
+                        meas_level=meas_level,
                         data=ExperimentResultData(
-                            counts=dict(Counter(v)),
+                            counts=dict(Counter(v)) if has_counts else None,
                             memory=v,
                         ),
                     )

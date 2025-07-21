@@ -36,29 +36,59 @@ e2e:
   stage: e2e
   when: manual
   manual_confirmation: 'Are you sure you want to run the end-to-end test?'
+
   variables:
     FRONTEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-frontend.git"
-    BACKEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
+    BACKEND_REPO:  "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
     BACKEND_BRANCH: "main"
     FRONTEND_BRANCH: "main"
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
     PYTHON_IMAGE: python:$VERSION
+
+    BACKEND_LOG_LEVEL: DEBUG        
+
+    CI_DEBUG_TRACE: "false"           
+
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG =~ /^v.*$/
+
   before_script:
+    - mkdir -p "$CI_PROJECT_DIR/logs"
     - docker info
     - |
-      if [[ n "$DOCKER_USER" && -n "$DOCKER_TOKEN" ]]; then
-        echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin; 
+      if [[ -n "$DOCKER_USER" && -n "$DOCKER_TOKEN" ]]; then
+        echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
       else
         echo "Skipping docker login: DOCKER_USER or DOCKER_TOKEN not set."
-      fi;
+      fi
     - apk update && apk add --no-cache curl bash build-base
       openssl-dev zlib-dev libffi-dev make git
+
   script:
-    - ./e2e_test.sh
+    - |
+      set +e
+      ./e2e_test.sh 2>&1 | tee e2e.log
+      TEST_EXIT_CODE=$?
+      set -e
+    - |
+      echo "Collecting tergite-backend logs …"
+      BACKEND_ID=$(docker ps -aqf "name=tergite-e2e-qiskit_pulse_2q-1" | head -n1)
+      if [[ -n "$BACKEND_ID" ]]; then
+        docker logs "$BACKEND_ID" > "$CI_PROJECT_DIR/logs/backend.log" 2>&1
+        echo "Saved $(wc -l < backend.log) log lines to backend.log"
+      else
+        echo "No running backend container found" > "$CI_PROJECT_DIR/logs/backend.log"
+      fi
+    - exit $TEST_EXIT_CODE
+  artifacts:
+    when: always          
+    paths:
+      - e2e.log
+      - logs/backend.log
+    expire_in: 1 week
+
   parallel:
     matrix:
       - VERSION: ['3.12-slim', '3.13-bookworm']

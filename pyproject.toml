@@ -38,7 +38,8 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=7.4.2",
-    "requests-mock>=1.11.0"
+    "requests-mock>=1.11.0",
+    "scikit-learn~=1.7.0"
 ]
 dev = [
     "jupyter>=1.0.0",

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import enum
 import json
-from typing import Any, Dict, List, Optional, Tuple, Union, Literal
+from typing import Any, Dict, List, Optional, Tuple, Union, Literal, TypeAlias
 
 from pydantic import (
     BaseModel,
@@ -27,6 +27,12 @@ from pydantic.main import IncEx
 
 from tergite.compat.qiskit.qobj import PulseQobj
 from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder
+
+IQPoint: TypeAlias = Tuple[float, float]  # [re, im]  (len = 2)
+IQMemory: TypeAlias = List[List[List[IQPoint]]]  # exp → shot → IQ points
+HexMemory: TypeAlias = List[
+    List[str]
+]  # experiments x reps/shots x str(channels x bits)
 
 
 class TergiteBackendConfig(BaseModel):
@@ -186,7 +192,7 @@ class RemoteJobResult(BaseModel):
         extra="allow",
     )
 
-    memory: List[List[str]] = []
+    memory: Union[HexMemory, IQMemory] = []
 
 
 class RemoteJobStatus(str, enum.Enum):
