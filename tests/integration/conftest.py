@@ -40,15 +40,19 @@ _TEST_JOB_URL = f"{API_URL}/jobs/{TEST_JOB_ID}"
 _JOB_UPLOAD_URL = f"{QUANTUM_COMPUTER_URL}/jobs"
 _TEST_JOB_CANCEL_URL = f"{QUANTUM_COMPUTER_URL}/jobs/{TEST_JOB_ID}/cancel"
 _TEST_RESULTS_DOWNLOAD_PATH = f"{QUANTUM_COMPUTER_URL}/test_file.hdf5"
-_TEST_JOB_RESPONSE = {"job_id": TEST_JOB_ID, "upload_url": _JOB_UPLOAD_URL}
+_TEST_JOB_RESPONSE = {
+    "job_id": TEST_JOB_ID,
+    "upload_url": _JOB_UPLOAD_URL,
+    "access_token": "ACCESS_TOKEN",
+}
 _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
-_CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/calibrations/([\w-]+)")
+_CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/calibrations/([\\w-]+)")
 _JOBS_REGISTER_URL_REGEX = re.compile(f"^{API_URL}/jobs/")
-_JOBS_UPLOAD_URL_REGEX = re.compile(f"^http://([\w-]+)\.tergite\.example/jobs")
-_JOBS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\w-]+)")
+_JOBS_UPLOAD_URL_REGEX = re.compile(f"^http://([\\w-]+)\.tergite\.example/jobs")
+_JOBS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\\w-]+)")
 _JOBS_CANCEL_URL_REGEX = re.compile(
-    f"^http://([\w-]+)\.tergite\.example/jobs/([\w-]+)/cancel"
+    f"^http://([\\w-]+)\.tergite\.example/jobs/([\\w-]+)/cancel"
 )
 _JOBS_LOGFILE_URL_REGEX = re.compile(
     r"^http://([\w-]+)\.tergite\.example/test_file.hdf5"
@@ -66,6 +70,7 @@ TEST_JOB_RESULTS = {
 _TEST_JOB = {
     **_TEST_JOB_RESPONSE,
     **TEST_JOB_RESULTS,
+    "access_token": "ACCESS_TOKEN",
     "device": "DUMMY_DEVICE",  # a dummy device that we might be able to replace in mock handler
     "calibration_date": "DUMMY_CALIB_DATE",  # a dummy date that we might be able to replace in mock handler
 }
@@ -88,6 +93,7 @@ TEST_JOBS_MAP = {
     backend: {
         "job_id": f"{TEST_JOB_ID}-{backend}",
         "upload_url": f"{TEST_QUANTUM_COMPUTER_URL_MAP[backend]}/jobs",
+        "access_token": "ACCESS_TOKEN",
     }
     for backend in GOOD_BACKENDS
 }
@@ -97,6 +103,7 @@ TEST_JOB_RESULTS_MAP = {
         "device": backend,
         "calibration_date": TEST_CALIBRATIONS_MAP[backend]["last_calibrated"],
         "download_url": TEST_LOGFILE_DOWNLOAD_MAP[backend],
+        "access_token": "ACCESS_TOKEN",
     }
     for backend in GOOD_BACKENDS
 }
@@ -135,85 +142,89 @@ def api(requests_mock):
 @pytest.fixture
 def bearer_auth_api(requests_mock):
     """The mock api with bearer auth"""
-    request_headers = {"Authorization": f"Bearer {API_TOKEN}"}
+    mss_request_headers = {"Authorization": f"Bearer {API_TOKEN}"}
+    bcc_request_headers = {"Authorization": f"Bearer ACCESS_TOKEN"}
 
-    no_auth_matcher = _without_headers(request_headers)
+    no_mss_auth_matcher = _without_headers(mss_request_headers)
+    no_bcc_auth_matcher = _without_headers(bcc_request_headers)
     no_auth_json = {"detail": "Unauthorized"}
     requests_mock.get(
         _BACKENDS_URL,
-        request_headers=request_headers,
+        request_headers=mss_request_headers,
         json={"data": BACKENDS_LIST, "skip": 0, "limit": None},
     )
     requests_mock.get(
         _BACKENDS_URL,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_mss_auth_matcher,
         json=no_auth_json,
     )
 
     # job registration
     requests_mock.post(
-        _JOBS_URL, request_headers=request_headers, json=_TEST_JOB_RESPONSE
+        _JOBS_URL, request_headers=mss_request_headers, json=_TEST_JOB_RESPONSE
     )
     requests_mock.post(
         _JOBS_URL,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_mss_auth_matcher,
         json=no_auth_json,
     )
 
     # job upload
     requests_mock.post(
-        _JOB_UPLOAD_URL, request_headers=request_headers, status_code=200
+        _JOB_UPLOAD_URL, request_headers=bcc_request_headers, status_code=200
     )
     requests_mock.post(
         _JOB_UPLOAD_URL,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_bcc_auth_matcher,
         json=no_auth_json,
     )
 
     # job details
-    requests_mock.get(_TEST_JOB_URL, request_headers=request_headers, json=_TEST_JOB)
+    requests_mock.get(
+        _TEST_JOB_URL, request_headers=mss_request_headers, json=_TEST_JOB
+    )
     requests_mock.get(
         _TEST_JOB_URL,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_mss_auth_matcher,
         json=no_auth_json,
     )
 
     # job cancellation
-    requests_mock.post(_TEST_JOB_CANCEL_URL, headers=request_headers)
+    requests_mock.post(_TEST_JOB_CANCEL_URL, headers=bcc_request_headers)
     requests_mock.post(
         _TEST_JOB_CANCEL_URL,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_bcc_auth_matcher,
         json=no_auth_json,
     )
 
     # download file
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH,
-        request_headers=request_headers,
+        request_headers=bcc_request_headers,
         content=RAW_TEST_JOB_RESULTS,
     )
     requests_mock.get(
         _TEST_RESULTS_DOWNLOAD_PATH,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_bcc_auth_matcher,
         json=no_auth_json,
     )
 
     # calibrations
     requests_mock.get(
         _CALIBRATIONS_REGEX,
-        request_headers=request_headers,
+        request_headers=mss_request_headers,
         json=_mock_calibrations_handler,
     )
     requests_mock.get(
         _CALIBRATIONS_REGEX,
         status_code=401,
-        additional_matcher=no_auth_matcher,
+        additional_matcher=no_mss_auth_matcher,
         json=no_auth_json,
     )
     yield requests_mock

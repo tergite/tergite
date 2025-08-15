@@ -1,5 +1,6 @@
-from qiskit.circuit import QuantumCircuit
 from collections.abc import Iterable
+
+from qiskit.circuit import QuantumCircuit
 
 
 def as_circuit_list(experiments):

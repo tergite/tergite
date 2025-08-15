@@ -7,9 +7,12 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
 - Extend data type of the job results to allow IQpoints together with HexMap for meas_level 1
 - Add e2e tests for meas_level 1 with clustering algorithm populaton and distance 
 - clean up classical register of quantum circuits before scheduling them to remove idle classical registers
+- Changed to use the `access_token` got on job submission to MSS, to submit/cancel jobs to BCC as well as download logfiles.
 
 ## [2025.06.1] - 2025-06-17
 

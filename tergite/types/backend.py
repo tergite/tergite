@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
+from debugpy.adapter import access_token
 from numpy import inf as infinity
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
@@ -46,8 +47,8 @@ from qiskit_ibm_runtime.models import BackendConfiguration
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
 from ..services import api_client, device_compiler
-from .job import Job
 from ..utils.quantum_circuit import as_circuit_list, normalise_classical_registers
+from .job import Job
 
 if TYPE_CHECKING:
     from ..services.api_client import DeviceCalibration, TergiteBackendConfig
@@ -120,6 +121,7 @@ class TergiteBackend(BackendV2):
             job_id=resp.job_id,
             payload=payload,
             upload_url=resp.upload_url,
+            access_token=resp.access_token,
             **metadata,
         )
 

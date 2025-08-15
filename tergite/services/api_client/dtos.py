@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import enum
 import json
-from typing import Any, Dict, List, Optional, Tuple, Union, Literal, TypeAlias
+from typing import Any, Dict, List, Literal, Optional, Tuple, TypeAlias, Union
 
 from pydantic import (
     BaseModel,
@@ -183,6 +183,7 @@ class CreatedJobResponse(BaseModel):
 
     job_id: str
     upload_url: str
+    access_token: str
 
 
 class RemoteJobResult(BaseModel):
