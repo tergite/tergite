@@ -25,12 +25,11 @@ import functools
 import logging
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
-from debugpy.adapter import access_token
 from numpy import inf as infinity
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
