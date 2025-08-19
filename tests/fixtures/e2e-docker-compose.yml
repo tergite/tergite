@@ -63,6 +63,8 @@ services:
       IS_AUTH_ENABLED: "True"
       REDIS_PORT: 6379
       REDIS_HOST: "tergite-redis"
+      JWT_SECRET: "dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7"
+      CORS_ORIGINS: "127.0.0.1,localhost"
     volumes:
       - ./.env/:/code/.env:ro
       - ./qiskit_pulse_1q.toml/:/code/backend_config.toml:ro
@@ -98,6 +100,8 @@ services:
       IS_AUTH_ENABLED: "True"
       REDIS_PORT: 6379
       REDIS_HOST: "tergite-redis"
+      JWT_SECRET: "e9fae9efa7c3ff10348acde323baa5273db8021712ecb1f59fdf0e8336240fb7d70c6d8d"
+      CORS_ORIGINS: "127.0.0.1,localhost"
     volumes:
       - ./.env/:/code/.env:ro
       - ./qiskit_pulse_2q.toml/:/code/backend_config.toml:ro
