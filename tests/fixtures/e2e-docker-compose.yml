@@ -67,7 +67,7 @@ services:
       - ./.env/:/code/.env:ro
       - ./qiskit_pulse_1q.toml/:/code/backend_config.toml:ro
       - ./qiskit_pulse_1q.seed.toml/:/code/calibration.seed.toml:ro
-      - ./mss_public_key.pem/:/code/mss_public_key.pem:ro
+      - ./public-mss-key.pem/:/code/public-mss-key.pem:ro
     networks:
       - tergite-e2e
     env_file:
@@ -102,7 +102,7 @@ services:
       - ./.env/:/code/.env:ro
       - ./qiskit_pulse_2q.toml/:/code/backend_config.toml:ro
       - ./qiskit_pulse_2q.seed.toml/:/code/calibration.seed.toml:ro
-      - ./mss_public_key.pem/:/code/mss_public_key.pem:ro
+      - ./public-mss-key.pem/:/code/public-mss-key.pem:ro
     networks:
       - tergite-e2e
     env_file:
