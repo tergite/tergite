@@ -142,6 +142,7 @@ config.ini
 
 # ssh keys
 *.pem
+!tests/fixtures/*.pem
 
 # idea
 .idea/
