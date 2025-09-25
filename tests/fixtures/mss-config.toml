@@ -30,7 +30,6 @@ url = "http://qiskit_pulse_1q:8000"
 
 [auth]
 # turn auth OFF or ON, default=true
-is_enabled = false
 cookie_domain = "127.0.0.1"
 cookie_name = "tergiteauth"
 

@@ -58,6 +58,7 @@ class Job(JobV1):
         status: JobStatus = JobStatus.INITIALIZING,
         download_url: Optional[str] = None,
         calibration_date: Optional[str] = None,
+        access_token: Optional[str] = None,
         **kwargs,
     ):
         """Initializes the job instance for the given backend
@@ -72,6 +73,7 @@ class Job(JobV1):
             status: the JobStatus of the current job; defaults to `JobStatus.INITIALIZING`
             download_url: the URL to download the results logfile from
             calibration_date: the last_calibrated timestamp of the backend when this job was compiled
+            access_token: the access token for submitting jobs to BCC
             kwargs: extra key-word arguments to add to the job's metadata
         """
         super().__init__(
@@ -87,6 +89,7 @@ class Job(JobV1):
         self._result: Optional[Result] = None
         self._remote_data = remote_data
         self._account = backend.provider.account
+        self._access_token = access_token
 
     @property
     def _is_in_final_state(self):
@@ -131,6 +134,9 @@ class Job(JobV1):
         if not isinstance(self.payload, PulseQobj):
             raise RuntimeError(f"Unprocessable payload type: {type(self.payload)}")
 
+        if self._access_token is None:
+            raise ValueError("This job is not submittable. It lacks an access token")
+
         payload = compress_qobj_dict(self.payload.to_dict())
         job_entry = JobFile.model_validate(
             {
@@ -140,7 +146,10 @@ class Job(JobV1):
         )
 
         return client.send_job_file(
-            self._account, url=self.upload_url, job_data=job_entry
+            self._account,
+            url=self.upload_url,
+            job_data=job_entry,
+            access_token=self._access_token,
         )
 
     @property
@@ -166,7 +175,9 @@ class Job(JobV1):
         if self._logfile is None and self.status() in JOB_FINAL_STATES:
             if self.download_url:
                 self._logfile = client.download_job_logfile(
-                    self._account, self.job_id(), url=self.download_url
+                    self.job_id(),
+                    url=self.download_url,
+                    access_token=self._access_token,
                 )
 
         return self._logfile
@@ -178,12 +189,13 @@ class Job(JobV1):
             ValueError: This job is not cancellable. It lacks an upload_url
             RuntimeError: Failed to cancel job '{job_id}': {detail}
         """
-        # TODO: Write automated test for this
         if self.upload_url is None:
             raise ValueError("This job is not cancellable. It lacks an upload_url")
 
         client.cancel_job(
-            self._account, upload_url=self.upload_url, job_id=self.job_id()
+            upload_url=self.upload_url,
+            job_id=self.job_id(),
+            access_token=self._access_token,
         )
 
     def result(self) -> Optional[Result]:
