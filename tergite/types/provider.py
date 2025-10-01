@@ -111,9 +111,10 @@ class Provider:
             raise RuntimeError(f"Job: {job_id} has no download_url")
 
         download_url = remote_data.download_url
+        access_token = remote_data.access_token
         backend = self.get_backend(name=remote_data.device)
         logfile = api_client.download_job_logfile(
-            account, job_id=job_id, url=download_url
+            job_id=job_id, url=download_url, access_token=access_token
         )
         raw_status = remote_data.status
         status = STATUS_MAP.get(raw_status)
@@ -132,6 +133,7 @@ class Provider:
             status=status,
             remote_data=remote_data,
             calibration_date=calibration_date,
+            access_token=access_token,
             **metadata,
         )
 

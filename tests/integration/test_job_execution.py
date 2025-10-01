@@ -381,7 +381,7 @@ def test_job_cancel_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     job_id = job.job_id()
 
     # change the token to the invalid one
-    backend.provider.account.token = token
+    job._access_token = token
 
     with pytest.raises(
         RuntimeError, match=f"Failed to cancel job '{job_id}': Unauthorized"
@@ -613,6 +613,7 @@ def _get_expected_job(
         job_id=TEST_JOB_ID,
         payload=qobj,
         upload_url=f"{QUANTUM_COMPUTER_URL}/jobs",
+        access_token="ACCESS_TOKEN",
     )
 
     job.metadata["shots"] = NUMBER_OF_SHOTS

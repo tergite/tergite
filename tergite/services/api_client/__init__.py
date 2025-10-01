@@ -144,13 +144,16 @@ def register_job(
     return CreatedJobResponse.model_validate(raw_data)
 
 
-def send_job_file(account: "AccountInfo", url: str, job_data: JobFile) -> Response:
+def send_job_file(
+    account: "AccountInfo", url: str, job_data: JobFile, access_token: str
+) -> Response:
     """Sends the job file to the remote server
 
     Args:
         account: the account details for accessing the API
         url: the URL to send the job file to
         job_data: the data of the job
+        access_token: the temporary JWT token used for submitting jobs and downloading logfiles
 
     Returns:
         the response after the submission
@@ -168,7 +171,7 @@ def send_job_file(account: "AccountInfo", url: str, job_data: JobFile) -> Respon
 
         # Send temporary file to url
         with path.open("rb") as src:
-            headers = _get_auth_headers(account)
+            headers = {"Authorization": f"Bearer {access_token}"}
             response = requests.post(url, files={"upload_file": src}, headers=headers)
 
             # FIXME: Can the backend update the MSS when a job is queued i.e. after this request?
@@ -185,13 +188,13 @@ def send_job_file(account: "AccountInfo", url: str, job_data: JobFile) -> Respon
     return response
 
 
-def cancel_job(account: "AccountInfo", upload_url: str, job_id: str) -> Response:
+def cancel_job(upload_url: str, job_id: str, access_token: str) -> Response:
     """Cancels the job on the remote server
 
     Args:
-        account: the account details for accessing the API
         upload_url: the URL where the job file was sent to
         job_id: the unique identifier of the job
+        access_token: the JWT token for accessing the backend
 
     Returns:
         the response after the submission
@@ -200,7 +203,7 @@ def cancel_job(account: "AccountInfo", upload_url: str, job_id: str) -> Response
         RuntimeError: Failed to cancel job '{job_id}': {detail}
     """
     url = f"{upload_url}/{job_id}/cancel"
-    headers = _get_auth_headers(account)
+    headers = {"Authorization": f"Bearer {access_token}"}
     resp = requests.post(url, json={}, headers=headers)
     if not resp.ok:
         error_msg = _get_err_text(resp)
@@ -209,13 +212,13 @@ def cancel_job(account: "AccountInfo", upload_url: str, job_id: str) -> Response
     return resp
 
 
-def download_job_logfile(account: "AccountInfo", job_id: str, url: str) -> Path:
+def download_job_logfile(job_id: str, url: str, access_token: str) -> Path:
     """Downloads the job logfile and returns the path to the downloaded file
 
     Args:
-        account: the account details for accessing the API
         job_id: the id of the job
         url: the URL to download from
+        access_token: the JWT access token for accessing the backend
 
     Returns:
         the path to the downloaded job file
@@ -223,7 +226,7 @@ def download_job_logfile(account: "AccountInfo", job_id: str, url: str) -> Path:
     Raises:
         RuntimeError: Failed to GET logfile of job '{job_id}': {detail}
     """
-    headers = _get_auth_headers(account)
+    headers = {"Authorization": f"Bearer {access_token}"}
     file_response = requests.get(url, stream=True, headers=headers)
     if not file_response.ok:
         error_msg = _get_err_text(file_response)
