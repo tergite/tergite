@@ -25,13 +25,12 @@ import functools
 import logging
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
 import qiskit.pulse as pulse
 from numpy import inf as infinity
-from pydantic import BaseModel, ConfigDict
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
 from qiskit.pulse.channels import (
@@ -47,6 +46,7 @@ from qiskit_ibm_runtime.models import BackendConfiguration
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
 from ..services import api_client, device_compiler
+from ..utils.quantum_circuit import as_circuit_list, normalise_classical_registers
 from .job import Job
 
 if TYPE_CHECKING:
@@ -120,6 +120,7 @@ class TergiteBackend(BackendV2):
             job_id=resp.job_id,
             payload=payload,
             upload_url=resp.upload_url,
+            access_token=resp.access_token,
             **metadata,
         )
 
@@ -147,6 +148,16 @@ class TergiteBackend(BackendV2):
         Returns:
             tergite.qiskit.providers.job.Job: The job object for the run
         """
+        experiments = as_circuit_list(experiments)
+
+        # only normalize if that's a circuit
+        if all(isinstance(exp, QuantumCircuit) for exp in experiments):
+            # measure_all creates an additional classical register with a different name
+            # remove unsused classical register if any present
+            experiments = [
+                normalise_classical_registers(exp, prefer_c=True) for exp in experiments
+            ]
+
         qobj = self.make_qobj(experiments, **kwargs)
         job = self.register_job(
             payload=qobj,
