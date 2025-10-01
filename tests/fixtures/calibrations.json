@@ -936,6 +936,16 @@
           "date": "2024-11-28T13:56:24.782856Z",
           "unit": "s"
         },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad"
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad"
+        },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",
           "date": "2024-11-28T13:56:24.782971Z",
@@ -998,6 +1008,16 @@
           "value": 3.7e-7,
           "date": "2024-11-28T13:56:24.782856Z",
           "unit": "s"
+        },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad"
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad"
         },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",
@@ -1684,6 +1704,32 @@
           "component_id": "u0",
           "source": null
         },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",
           "date": "2024-12-16T14:11:56.268588Z",
@@ -1838,6 +1884,32 @@
           "property_type": "device",
           "notes": null,
           "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u1",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
           "long_name": null,
           "tags": null,
           "component_id": "u1",
@@ -2002,6 +2074,32 @@
           "component_id": "u2",
           "source": null
         },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u2",
+          "source": null
+        },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",
           "date": "2024-12-16T14:11:56.280954Z",
@@ -2156,6 +2254,32 @@
           "property_type": "device",
           "notes": null,
           "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u3",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
           "long_name": null,
           "tags": null,
           "component_id": "u3",
@@ -2320,6 +2444,32 @@
           "component_id": "u4",
           "source": null
         },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u4",
+          "source": null
+        },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",
           "date": "2024-12-16T14:11:56.292917Z",
@@ -2474,6 +2624,32 @@
           "property_type": "device",
           "notes": null,
           "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u5",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
           "long_name": null,
           "tags": null,
           "component_id": "u5",
@@ -2638,6 +2814,32 @@
           "component_id": "u6",
           "source": null
         },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u6",
+          "source": null
+        },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",
           "date": "2024-12-16T14:11:56.304989Z",
@@ -2792,6 +2994,32 @@
           "property_type": "device",
           "notes": null,
           "name": "cz_pulse_duration_constant",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u7",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
           "long_name": null,
           "tags": null,
           "component_id": "u7",
@@ -3711,6 +3939,32 @@
           "name": "cz_pulse_duration_constant",
           "source": null,
           "property_type": "device"
+        },
+        "control_rz_lambda": {
+          "value": 0.6,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "control_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
+        },
+        "target_rz_lambda": {
+          "value": 0.3,
+          "date": "2024-11-28T13:56:24.782856Z",
+          "unit": "rad",
+          "component": "coupler",
+          "property_type": "device",
+          "notes": null,
+          "name": "target_rz_lambda",
+          "long_name": null,
+          "tags": null,
+          "component_id": "u0",
+          "source": null
         },
         "pulse_type": {
           "value": "wacqt_cz_gate_pulse",

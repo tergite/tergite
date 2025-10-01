@@ -64,6 +64,8 @@ coupler_parameters = [
   "cz_pulse_duration_before",
   "cz_pulse_duration_rise",
   "cz_pulse_duration_constant",
+  "control_rz_lambda",
+  "target_rz_lambda",
   "pulse_type"
 ]
 

@@ -156,6 +156,8 @@ class CouplersCalibration(BaseModel):
     cz_pulse_duration_before: Optional[CalibrationValue] = None
     cz_pulse_duration_rise: Optional[CalibrationValue] = None
     cz_pulse_duration_constant: Optional[CalibrationValue] = None
+    control_rz_lambda: Optional[CalibrationValue] = None
+    target_rz_lambda: Optional[CalibrationValue] = None
     pulse_type: Optional[CalibrationValue] = None
     id: Optional[int] = None
 

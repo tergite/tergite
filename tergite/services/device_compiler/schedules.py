@@ -189,11 +189,29 @@ def cz(
 
         args["amp"] = amp
         args["freq"] = freq
+        control_rz_lambda = c_props.control_rz_lambda.value
+        target_rz_lambda = c_props.target_rz_lambda.value
 
         cz_gate = wacqt_cz_gate(
             duration=round(t_gate / backend.dt), name="cz_pulse", numerical_args=args
         )
+        sched += pulse.SetFrequency(
+            c_props.frequency.value,
+            channel=control_channels[0],
+        )
         sched += pulse.Play(cz_gate, control_channels[0])
+
+        if control_rz_lambda and target_rz_lambda:
+            sched += pulse.ShiftPhase(
+                control_rz_lambda,
+                channel=backend.drive_channel(control_qubit_idx),
+                name=f"RZ q{control_qubit_idx}",
+            )
+            sched += pulse.ShiftPhase(
+                target_rz_lambda,
+                channel=backend.drive_channel(target_qubit_idx),
+                name=f"RZ q{target_qubit_idx}",
+            )
 
     return sched
 
