@@ -14,7 +14,6 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """A sample script doing a very simple quantum operation"""
-import time
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
