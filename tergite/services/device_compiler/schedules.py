@@ -63,7 +63,11 @@ def rx(
         )
         duration = round(qubit[q].pi_pulse_duration.value / backend.dt)
         calibration_sigma = qubit[q].pulse_sigma.value
-        sigma = round(calibration_sigma / backend.dt) if calibration_sigma else round(duration / 4)
+        sigma = (
+            round(calibration_sigma / backend.dt)
+            if calibration_sigma
+            else round(duration / 4)
+        )
         amplitude = rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value
         motzoi = round(qubit[q].pi_pulse_motzoi.value / backend.dt)
         sched += pulse.Play(

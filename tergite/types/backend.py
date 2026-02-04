@@ -66,6 +66,7 @@ def _extract_q_to_clbit_map(circ: QuantumCircuit) -> Dict[int, int]:
         q_to_c[q_i] = c_i
     return q_to_c
 
+
 def _derive_reg_len_from_qobj_experiment(qobj_exp) -> Optional[int]:
     """Fallback reg length from acquire memory slots."""
     mem_slots: List[int] = []
@@ -80,6 +81,7 @@ def _derive_reg_len_from_qobj_experiment(qobj_exp) -> Optional[int]:
         else:
             mem_slots.append(int(ms))
     return (max(mem_slots) + 1) if mem_slots else None
+
 
 def _rewrite_acquire_memory_slots(qobj_exp, q_to_c: Dict[int, int]) -> None:
     """Rewrite acquire.memory_slot so it matches the circuit clbit indices."""
@@ -108,6 +110,7 @@ def _rewrite_acquire_memory_slots(qobj_exp, q_to_c: Dict[int, int]) -> None:
                 new_m_list.append(q_to_c[q])
 
         inst.memory_slot = new_m_list
+
 
 class TergiteBackend(BackendV2):
     """Abstract class for Tergite Backends"""
@@ -471,8 +474,8 @@ class OpenPulseBackend(TergiteBackend):
                     }
                 )
             else:
-                per_exp_meta.append({"c_reg_len":None, "q_to_c": None})
-        
+                per_exp_meta.append({"c_reg_len": None, "q_to_c": None})
+
         # convert all non-schedules to schedules
         experiments = [
             (
@@ -497,7 +500,7 @@ class OpenPulseBackend(TergiteBackend):
                 meas_lo_freq=self.meas_lo_freq,
                 **kwargs,
             )
-        
+
         # patch qobj experiments with correct circuit-level classical width + mapping
         max_slots = getattr(qobj.config, "memory_slots", 0) or 0
         for i, qexp in enumerate(qobj.experiments):
@@ -506,7 +509,7 @@ class OpenPulseBackend(TergiteBackend):
 
             if c_reg_len is None:
                 c_reg_len = _derive_reg_len_from_qobj_experiment(qexp)
-            
+
             if c_reg_len is not None:
                 # set per-experiments width, that is going to be passed back to SDK with Results/Counts obj
                 if hasattr(qexp, "header") and qexp.header is not None:
@@ -528,16 +531,15 @@ class OpenPulseBackend(TergiteBackend):
 
                 max_slots = max(max_slots, int(c_reg_len))
 
-            # enforce acquire memory slots to match circuit clbits 
+            # enforce acquire memory slots to match circuit clbits
             if q_to_c:
                 _rewrite_acquire_memory_slots(qexp, q_to_c)
-        
+
         # keep qobj-wide memory_slots large enough for all experiments
         if hasattr(qobj, "config") and qobj.config is not None:
             setattr(qobj.config, "memory_slots", int(max_slots))
-        
+
         return qobj
-        
 
     def _refresh_device_properties(self):
         """Refreshes the device properties for this backend

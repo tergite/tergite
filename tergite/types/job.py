@@ -234,13 +234,13 @@ class Job(JobV1):
             meas_level = self.payload.config.meas_level
             has_counts = meas_level == 2
 
-
-            # Prefer the experiment header width, then qobj config, then n_qubits 
-            default_slots = getattr(self.payload.config, "memory_slots", None) or n_qubits
+            # Prefer the experiment header width, then qobj config, then n_qubits
+            default_slots = (
+                getattr(self.payload.config, "memory_slots", None) or n_qubits
+            )
             for exp in self.payload.experiments:
                 if getattr(exp.header, "memory_slots", None) is None:
                     setattr(exp.header, "memory_slots", default_slots)
-
 
             self._result = Result(
                 backend_name=backend.name,
