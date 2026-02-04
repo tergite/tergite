@@ -25,7 +25,7 @@ import functools
 import logging
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union, Dict
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -53,6 +53,61 @@ if TYPE_CHECKING:
     from ..services.api_client import DeviceCalibration, TergiteBackendConfig
     from .provider import Provider as TergiteProvider
 
+
+def _extract_q_to_clbit_map(circ: QuantumCircuit) -> Dict[int, int]:
+    """Map circuit qubit-index -> flattened classical-bit index."""
+    q_to_c: Dict[int, int] = {}
+    for inst, qargs, cargs in circ.data:
+        if inst.name != "measure":
+            continue
+        # measure is 1 qubit -> 1 clbit
+        q_i = circ.find_bit(qargs[0]).index
+        c_i = circ.find_bit(cargs[0]).index
+        q_to_c[q_i] = c_i
+    return q_to_c
+
+def _derive_reg_len_from_qobj_experiment(qobj_exp) -> Optional[int]:
+    """Fallback reg length from acquire memory slots."""
+    mem_slots: List[int] = []
+    for inst in qobj_exp.instructions:
+        if getattr(inst, "name", None) != "acquire":
+            continue
+        ms = getattr(inst, "memory_slot", None)
+        if ms is None:
+            continue
+        if isinstance(ms, list):
+            mem_slots.extend(ms)
+        else:
+            mem_slots.append(int(ms))
+    return (max(mem_slots) + 1) if mem_slots else None
+
+def _rewrite_acquire_memory_slots(qobj_exp, q_to_c: Dict[int, int]) -> None:
+    """Rewrite acquire.memory_slot so it matches the circuit clbit indices."""
+    for inst in qobj_exp.instructions:
+        if getattr(inst, "name", None) != "acquire":
+            continue
+
+        qubits = getattr(inst, "qubits", None)
+        mem = getattr(inst, "memory_slot", None)
+        if qubits is None or mem is None:
+            continue
+
+        # Normalize to lists
+        q_list = qubits if isinstance(qubits, list) else [int(qubits)]
+        m_list = mem if isinstance(mem, list) else [int(mem)]
+
+        if len(q_list) != len(m_list):
+            raise ValueError("Acquire has mismatched qubits/memory_slot lengths")
+
+        new_m_list: List[int] = []
+        for q in q_list:
+            if q not in q_to_c:
+                # If we can't map, keep existing (or raise if you prefer strictness)
+                new_m_list.append(m_list[len(new_m_list)])
+            else:
+                new_m_list.append(q_to_c[q])
+
+        inst.memory_slot = new_m_list
 
 class TergiteBackend(BackendV2):
     """Abstract class for Tergite Backends"""
@@ -405,6 +460,19 @@ class OpenPulseBackend(TergiteBackend):
         if type(experiments) is not list:
             experiments = [experiments]
 
+        # capture circuit-level classical register metadata before converting to pulses
+        per_exp_meta: List[Dict[str, Any]] = []
+        for exp in experiments:
+            if isinstance(exp, QuantumCircuit):
+                per_exp_meta.append(
+                    {
+                        "c_reg_len": exp.num_clbits,
+                        "q_to_c": _extract_q_to_clbit_map(exp),
+                    }
+                )
+            else:
+                per_exp_meta.append({"c_reg_len":None, "q_to_c": None})
+        
         # convert all non-schedules to schedules
         experiments = [
             (
@@ -421,7 +489,7 @@ class OpenPulseBackend(TergiteBackend):
             warnings.filterwarnings(
                 "ignore", category=DeprecationWarning, module="qiskit"
             )
-            return assemble(
+            qobj = assemble(
                 experiments=experiments,
                 backend=self,
                 shots=self.options.shots,
@@ -429,6 +497,47 @@ class OpenPulseBackend(TergiteBackend):
                 meas_lo_freq=self.meas_lo_freq,
                 **kwargs,
             )
+        
+        # patch qobj experiments with correct circuit-level classical width + mapping
+        max_slots = getattr(qobj.config, "memory_slots", 0) or 0
+        for i, qexp in enumerate(qobj.experiments):
+            c_reg_len = per_exp_meta[i]["c_reg_len"]
+            q_to_c = per_exp_meta[i]["q_to_c"]
+
+            if c_reg_len is None:
+                c_reg_len = _derive_reg_len_from_qobj_experiment(qexp)
+            
+            if c_reg_len is not None:
+                # set per-experiments width, that is going to be passed back to SDK with Results/Counts obj
+                if hasattr(qexp, "header") and qexp.header is not None:
+                    setattr(qexp.header, "memory_slots", int(c_reg_len))
+
+                    md = getattr(qexp.header, "metadata", None) or {}
+                    md.setdefault("tergite", {})
+                    md["tergite"]["c_reg_len"] = int(c_reg_len)
+
+                    if q_to_c:
+                        md["tergite"]["q_to_c"] = dict(q_to_c)
+                        # also convinient inverse view
+                        meas_by_clbit = [None] * int(c_reg_len)
+                        for q, c in q_to_c.items():
+                            if 0 <= c < int(c_reg_len):
+                                meas_by_clbit[c] = q
+                        md["tergite"]["meas_qubits_by-clbit"] = meas_by_clbit
+                    qexp.header.metadata = md
+
+                max_slots = max(max_slots, int(c_reg_len))
+
+            # enforce acquire memory slots to match circuit clbits 
+            if q_to_c:
+                _rewrite_acquire_memory_slots(qexp, q_to_c)
+        
+        # keep qobj-wide memory_slots large enough for all experiments
+        if hasattr(qobj, "config") and qobj.config is not None:
+            setattr(qobj.config, "memory_slots", int(max_slots))
+        
+        return qobj
+        
 
     def _refresh_device_properties(self):
         """Refreshes the device properties for this backend
