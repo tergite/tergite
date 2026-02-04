@@ -61,11 +61,17 @@ def rx(
             qubit[q].frequency.value,
             channel=backend.drive_channel(q),
         )
+        duration = round(qubit[q].pi_pulse_duration.value / backend.dt)
+        calibration_sigma = qubit[q].pulse_sigma.value
+        sigma = round(calibration_sigma / backend.dt) if calibration_sigma else round(duration / 4)
+        amplitude = rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value
+        motzoi = round(qubit[q].pi_pulse_motzoi.value / backend.dt)
         sched += pulse.Play(
-            pulse.Gaussian(
-                duration=round(qubit[q].pi_pulse_duration.value / backend.dt),
-                amp=rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value,
-                sigma=round(qubit[q].pulse_sigma.value / backend.dt),
+            pulse.Drag(
+                duration=duration,
+                amp=amplitude,
+                sigma=sigma,
+                beta=motzoi,
                 name=f"RX q{q}",
             ),
             channel=backend.drive_channel(q),
@@ -252,7 +258,7 @@ def measure(
             channel=backend.measure_channel(q),
         )
         sched += pulse.Delay(
-            duration=300,
+            duration=round(readout_resonator.acq_delay.value / backend.dt),
             channel=backend.acquire_channel(q),
             name=f"Time of flight q{q}",
         )
