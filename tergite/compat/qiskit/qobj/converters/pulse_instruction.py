@@ -270,7 +270,7 @@ class InstructionToQobjConverter:
             "name": "setf",
             "t0": time_offset + instruction.start_time,
             "ch": instruction.channel.name,
-            "frequency": instruction.frequency / 10 ** 9,
+            "frequency": instruction.frequency / 10**9,
         }
         return self._qobj_model(**command_dict)
 
@@ -293,7 +293,7 @@ class InstructionToQobjConverter:
             "name": "shiftf",
             "t0": time_offset + instruction.start_time,
             "ch": instruction.channel.name,
-            "frequency": instruction.frequency / 10 ** 9,
+            "frequency": instruction.frequency / 10**9,
         }
         return self._qobj_model(**command_dict)
 
@@ -809,7 +809,7 @@ class QobjToInstructionConverter:
             Qiskit Pulse set frequency instructions
         """
         channel = self.get_channel(instruction.ch)
-        frequency = self.disassemble_value(instruction.frequency) * 10 ** 9
+        frequency = self.disassemble_value(instruction.frequency) * 10**9
 
         yield instructions.SetFrequency(frequency, channel)
 
@@ -831,7 +831,7 @@ class QobjToInstructionConverter:
             Qiskit Pulse shift frequency schedule instructions
         """
         channel = self.get_channel(instruction.ch)
-        frequency = self.disassemble_value(instruction.frequency) * 10 ** 9
+        frequency = self.disassemble_value(instruction.frequency) * 10**9
 
         yield instructions.ShiftFrequency(frequency, channel)
 
