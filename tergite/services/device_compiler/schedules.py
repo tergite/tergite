@@ -191,7 +191,7 @@ def cz(
             "t_p": c_props.cz_pulse_duration_constant.value,  # s, constant pulse duration
         }
 
-        t_gate = args["t_rf"] + args["t_p"] + 2 * args["t_w"]
+        t_gate = args["t_w"] + args["t_p"] + 2 * args["t_rf"]
         # required param for pulse, for display purposes delta_0 is equivalent to max_amplitude
         amp = args["delta_0"]
         # this is for display purposes, as we overriding frequency modulation in backend
