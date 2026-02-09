@@ -10,7 +10,6 @@ from tergite import Job, Provider
 from tests.utils.env import is_end_to_end
 
 
-@pytest.mark.skipif(not is_end_to_end(), reason="is end-to-end test")
 def test_simulator_1_qubit_gate(backend_provider: Provider):
     """Can run a single qubit gate operation on simulator when auth on MSS and backend is ON"""
     backend = backend_provider.get_backend("qiskit_pulse_1q")
@@ -34,7 +33,6 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
     ), f"Expected {result['01']} to be between 450 and 640"
 
 
-@pytest.mark.skipif(not is_end_to_end(), reason="is end-to-end test")
 def test_simulator_2_qubit_gate(backend_provider: Provider):
     """Can run a two-qubit gate operation on simulator when auth on MSS and backend is ON"""
     backend = backend_provider.get_backend("qiskit_pulse_2q")
@@ -59,7 +57,6 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
     ), f"Expected {result['11']} to be between 450 and 640"
 
 
-@pytest.mark.skipif(not is_end_to_end(), reason="is end-to-end test")
 def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
     """Can return well-seperated clusters of raw iq points for a two-qubit gate operation
     on simulator when auth on MSS and backend is ON"""
