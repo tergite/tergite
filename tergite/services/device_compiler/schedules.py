@@ -69,7 +69,7 @@ def rx(
             else round(duration / 4)
         )
         amplitude = rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value
-        motzoi = round(qubit[q].pi_pulse_motzoi.value / backend.dt)
+        motzoi = qubit[q].pi_pulse_motzoi.value
         sched += pulse.Play(
             pulse.Drag(
                 duration=duration,

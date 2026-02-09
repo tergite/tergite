@@ -55,11 +55,15 @@
             "name": "parametric_pulse",
             "t0": 0,
             "ch": "d0",
-            "pulse_shape": "gaussian",
+            "pulse_shape": "drag",
             "parameters": {
-              "duration": 56,
-              "sigma": 7,
-              "amp": [0.0145, 0.0]
+              "duration": 5600,
+              "sigma": 700,
+              "beta": 0.001,
+              "amp": [
+                0.0145,
+                0.0
+              ]
             }
           },
           {
@@ -95,7 +99,17 @@
         "header": {
           "memory_slots": 1,
           "name": "circuit-160",
-          "metadata": {}
+          "metadata": {
+            "tergite": {
+              "c_reg_len": 1,
+              "q_to_c": {
+                "0": 0
+              },
+              "meas_qubits_by-clbit": [
+                0
+              ]
+            }
+          }
         }
       }
     ]
@@ -156,11 +170,15 @@
             "name": "parametric_pulse",
             "t0": 0,
             "ch": "d0",
-            "pulse_shape": "gaussian",
+            "pulse_shape": "drag",
             "parameters": {
-              "duration": 56,
-              "sigma": 7,
-              "amp": [0.0877785632, 0.0]
+              "duration": 5600,
+              "sigma": 700,
+              "beta": 0.001,
+              "amp": [
+                0.0145,
+                0.0
+              ]
             }
           },
           {
@@ -196,7 +214,17 @@
         "header": {
           "memory_slots": 1,
           "name": "circuit-161",
-          "metadata": {}
+          "metadata": {
+            "tergite": {
+              "c_reg_len": 1,
+              "q_to_c": {
+                "0": 0
+              },
+              "meas_qubits_by-clbit": [
+                0
+              ]
+            }
+          }
         }
       }
     ]
@@ -257,11 +285,15 @@
             "name": "parametric_pulse",
             "t0": 0,
             "ch": "d0",
-            "pulse_shape": "gaussian",
+            "pulse_shape": "drag",
             "parameters": {
               "duration": 5600,
               "sigma": 700,
-              "amp": [0.0145, 0.0]
+              "beta": 0.001,
+              "amp": [
+                0.0145,
+                0.0
+              ]
             }
           },
           {
@@ -283,21 +315,38 @@
             "pulse_shape": "constant",
             "parameters": {
               "duration": 90000,
-              "amp": [0.1266499392606423, 0.0]
+              "amp": [
+                0.1266499392606423,
+                0.0
+              ]
             }
           },
           {
             "name": "acquire",
-            "t0": 5900,
+            "t0": 10600,
             "duration": 100000,
-            "qubits": [0],
-            "memory_slot": [0]
+            "qubits": [
+              0
+            ],
+            "memory_slot": [
+              0
+            ]
           }
         ],
         "header": {
           "memory_slots": 1,
           "name": "circuit-163",
-          "metadata": {}
+          "metadata": {
+            "tergite": {
+              "c_reg_len": 1,
+              "q_to_c": {
+                "0": 0
+              },
+              "meas_qubits_by-clbit": [
+                0
+              ]
+            }
+          }
         }
       }
     ]
@@ -358,11 +407,15 @@
             "name": "parametric_pulse",
             "t0": 0,
             "ch": "d0",
-            "pulse_shape": "gaussian",
+            "pulse_shape": "drag",
             "parameters": {
               "duration": 56,
               "sigma": 7,
-              "amp": [0.01424885, 0.0]
+              "beta": 0.001,
+              "amp": [
+                0.01424885,
+                0.0
+              ]
             }
           },
           {
@@ -384,21 +437,38 @@
             "pulse_shape": "constant",
             "parameters": {
               "duration": 900,
-              "amp": [0.1266499392606423, 0.0]
+              "amp": [
+                0.1266499392606423,
+                0.0
+              ]
             }
           },
           {
             "name": "acquire",
-            "t0": 356,
+            "t0": 106,
             "duration": 1000,
-            "qubits": [0],
-            "memory_slot": [0]
+            "qubits": [
+              0
+            ],
+            "memory_slot": [
+              0
+            ]
           }
         ],
         "header": {
           "memory_slots": 1,
           "name": "circuit-162",
-          "metadata": {}
+          "metadata": {
+            "tergite": {
+              "c_reg_len": 1,
+              "q_to_c": {
+                "0": 0
+              },
+              "meas_qubits_by-clbit": [
+                0
+              ]
+            }
+          }
         }
       }
     ]

@@ -35,6 +35,7 @@ qubit_parameters = [
   "z_drive_line",
   "frequency",
   "pi_pulse_amplitude",
+  "pi_pulse_motzoi",
   "pi_pulse_duration",
   "pulse_type",
   "pulse_sigma",
