@@ -13,7 +13,6 @@ from tergite.services.configs import AccountInfo
 from tests.utils.env import is_end_to_end, is_in_docker
 
 
-@pytest.mark.skipif(not is_end_to_end(), reason="is end-to-end test")
 @pytest.fixture
 def mock_backend_servers():
     with requests_mock.Mocker(real_http=True) as mocker:
@@ -24,7 +23,6 @@ def mock_backend_servers():
         yield mocker
 
 
-@pytest.mark.skipif(not is_end_to_end(), reason="is end-to-end test")
 @pytest.fixture
 def backend_provider(mock_backend_servers) -> Provider:
     """A provider that is authenticated using API token"""
