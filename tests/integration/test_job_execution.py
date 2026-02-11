@@ -23,6 +23,7 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
+
 from tergite import Job, OpenPulseBackend, Provider, Tergite
 
 # cross compatibility with future qiskit version where deprecated packages are removed
@@ -31,6 +32,7 @@ from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendCo
 from tergite.services.device_compiler.schedules import cz
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
+from tergite.types.backend import _extract_q_to_clbit_map, _derive_reg_len_from_qobj_experiment, _rewrite_acquire_memory_slots
 
 from ..utils.env import is_end_to_end
 from .conftest import (
@@ -54,7 +56,125 @@ _INVALID_PARAMS = [
 ]
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
+
+
+import json
+from collections import OrderedDict
+from typing import Any, Dict, Iterable, List, Union
+
+from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder as PulseQobj_encoder
+
+
+TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
+HEADER_ORDER = ["backend_name", "backend_version"]
+CONFIG_ORDER = [
+    "meas_level",
+    "meas_return",
+    "pulse_library",
+    "qubit_lo_freq",
+    "meas_lo_freq",
+    "memory_slot_size",
+    "shots",
+    "memory_slots",
+    "memory",
+    "parametric_pulses",
+    "init_qubits",
+    "n_qubits",
+]
+EXP_HEADER_ORDER = ["memory_slots", "name", "metadata"]
+INSTR_ORDER = ["name", "t0", "ch", "phase", "frequency", "pulse_shape", "parameters", "duration", "qubits", "memory_slot"]
+
+
+def _as_dict(qobj: Any) -> Dict[str, Any]:
+    # PulseQobj has .to_dict(); if already dict, just return it
+    if hasattr(qobj, "to_dict"):
+        return qobj.to_dict()
+    if isinstance(qobj, dict):
+        return qobj
+    raise TypeError(f"Expected PulseQobj or dict, got {type(qobj)!r}")
+
+
+def _order_dict(d: Dict[str, Any], order: List[str]) -> OrderedDict:
+    out = OrderedDict()
+    for k in order:
+        if k in d:
+            out[k] = d[k]
+    # keep any extra keys at the end, in original order
+    for k, v in d.items():
+        if k not in out:
+            out[k] = v
+    return out
+
+
+def _normalize_amp(val: Any) -> Any:
+    # Convert complex-like values to [real, imag] to match your fixture style.
+    # If it's already a list/tuple length 2, leave it.
+    if isinstance(val, complex):
+        return [val.real, val.imag]
+    return val
+
+
+def _order_instruction(instr: Dict[str, Any]) -> OrderedDict:
+    instr = dict(instr)
+    # normalize amp representation if present
+    params = instr.get("parameters")
+    if isinstance(params, dict) and "amp" in params:
+        params = dict(params)
+        params["amp"] = _normalize_amp(params["amp"])
+        instr["parameters"] = params
+
+    # order parameters keys if present (duration, sigma, beta, amp)
+    if isinstance(instr.get("parameters"), dict):
+        p = instr["parameters"]
+        instr["parameters"] = _order_dict(p, ["duration", "sigma", "beta", "amp"])
+
+    return _order_dict(instr, INSTR_ORDER)
+
+
+def _order_experiment(exp: Dict[str, Any]) -> OrderedDict:
+    exp = dict(exp)
+
+    # instructions
+    if "instructions" in exp and isinstance(exp["instructions"], list):
+        exp["instructions"] = [_order_instruction(i) for i in exp["instructions"]]
+
+    # header
+    if "header" in exp and isinstance(exp["header"], dict):
+        exp["header"] = _order_dict(exp["header"], EXP_HEADER_ORDER)
+
+    return _order_dict(exp, ["instructions", "header"])
+
+
+def order_pulse_qobj_for_export(qobj: Any) -> OrderedDict:
+    d = _as_dict(qobj)
+
+    # header/config ordering
+    if "header" in d and isinstance(d["header"], dict):
+        d["header"] = _order_dict(d["header"], HEADER_ORDER)
+    if "config" in d and isinstance(d["config"], dict):
+        d["config"] = _order_dict(d["config"], CONFIG_ORDER)
+
+    # experiments ordering
+    if "experiments" in d and isinstance(d["experiments"], list):
+        d["experiments"] = [_order_experiment(e) for e in d["experiments"]]
+
+    # top-level ordering
+    return _order_dict(d, TOP_ORDER)
+
+
+def dump_pulse_qobj_json(
+    qobjs: Union[Any, List[Any]],
+    path: str,
+) -> None:
+    if not isinstance(qobjs, list):
+        qobjs = [qobjs]
+
+    ordered = [order_pulse_qobj_for_export(q) for q in qobjs]
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(ordered, f, cls=PulseQobj_encoder, indent=2, sort_keys=False)
+        f.write("\n")
+
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_transpile_1q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 1-qubit ops"""
@@ -70,13 +190,15 @@ def test_transpile_1q_gates(api, backend_name):
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
+    apply_tergite_qobj_patches(expected_qobj, [expected])
+
+    dump_pulse_qobj_json(got_qobj, "actual.json")
 
     assert (
         got_qobj == expected_qobj
     ), "Transpiled circuit does not match expected result."
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", TWO_QUBIT_BACKENDS)
 def test_transpile_2q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 2-qubit gate ops"""
@@ -92,13 +214,13 @@ def test_transpile_2q_gates(api, backend_name):
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
+    apply_tergite_qobj_patches(expected_qobj, [expected])
 
     assert (
         got_qobj == expected_qobj
     ), "Transpiled circuit does not match expected result."
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_run_1q_gates(api, backend_name):
     """backend.run returns a registered job for 1-qubit gate operations"""
@@ -123,7 +245,6 @@ def test_run_1q_gates(api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", TWO_QUBIT_BACKENDS)
 def test_run_2q_gates(api, backend_name):
     """backend.run returns a registered job for 2-qubit gate operations"""
@@ -148,7 +269,6 @@ def test_run_2q_gates(api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_run_bearer_auth(bearer_auth_api, backend_name):
     """backend.run returns a registered job for API behind bearer auth"""
@@ -173,7 +293,6 @@ def test_run_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """backend.run with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -198,7 +317,6 @@ def test_run_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_result(api, backend_name):
     """job.result() returns a successful job's results"""
@@ -220,7 +338,6 @@ def test_job_result(api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     """job.result() returns a successful job's results for API behind bearer auth"""
@@ -241,7 +358,6 @@ def test_job_result_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.result() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -265,7 +381,6 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_status(api, backend_name):
     """job.status() returns a successful job's status"""
@@ -285,7 +400,6 @@ def test_job_status(api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     """job.status() returns a successful job's status for API behind bearer auth"""
@@ -305,7 +419,6 @@ def test_job_status_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.status() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -329,7 +442,6 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_cancel(api, backend_name):
     """job.cancel() cancels the running job"""
@@ -349,7 +461,6 @@ def test_job_cancel(api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_cancel_bearer_auth(bearer_auth_api, backend_name):
     """job.cancel() calls the cancel endpoint for API behind bearer auth"""
@@ -369,7 +480,6 @@ def test_job_cancel_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_cancel_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.cancel() with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -397,7 +507,6 @@ def test_job_cancel_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_download_url(api, backend_name):
     """job.download_url returns a successful job's download_url"""
@@ -417,7 +526,6 @@ def test_job_download_url(api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     """job.download_url returns a successful job's download_url for API behind bearer auth"""
@@ -437,7 +545,6 @@ def test_job_download_url_bearer_auth(bearer_auth_api, backend_name):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.download_url with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -461,7 +568,6 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_logfile(api, backend_name, tmp_results_file):
     """job.logfile downloads a job's data to tmp"""
@@ -484,7 +590,6 @@ def test_job_logfile(api, backend_name, tmp_results_file):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file):
     """job.logfile downloads a successful job's results for API behind bearer auth"""
@@ -507,7 +612,6 @@ def test_job_logfile_bearer_auth(bearer_auth_api, backend_name, tmp_results_file
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("token, backend_name", _INVALID_PARAMS)
 def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     """job.logfile with invalid bearer auth raises RuntimeError if backend is shielded with bearer auth"""
@@ -531,7 +635,6 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
-@pytest.mark.skipif(is_end_to_end(), reason="is not end-to-end test")
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name):
     """Test that Provider.job() returns the correct Job object."""
@@ -607,6 +710,7 @@ def _get_expected_job(
             qobj_id=qobj_id,
             **options,
         )
+    apply_tergite_qobj_patches(qobj, [transpiled_circuit])
 
     job = Job(
         backend=backend,
@@ -640,6 +744,47 @@ def _get_test_2q_qiskit_circuit():
     qc.measure_all()
     return qc
 
+
+def apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
+    # build per-exp meta from original circuits
+    per_exp_meta: List[Dict[str, Any]] = []
+    for circ in circuits:
+        per_exp_meta.append({
+            "c_reg_len": circ.num_clbits,
+            "q_to_c": _extract_q_to_clbit_map(circ),
+        })
+
+    max_slots = getattr(qobj.config, "memory_slots", 0) or 0
+
+    for i, qexp in enumerate(qobj.experiments):
+        c_reg_len = per_exp_meta[i]["c_reg_len"]
+        q_to_c = per_exp_meta[i]["q_to_c"]
+
+        if c_reg_len is None:
+            c_reg_len = _derive_reg_len_from_qobj_experiment(qexp)
+
+        if c_reg_len is not None and getattr(qexp, "header", None) is not None:
+            setattr(qexp.header, "memory_slots", int(c_reg_len))
+
+            md = getattr(qexp.header, "metadata", None) or {}
+            md.setdefault("tergite", {})
+            md["tergite"]["c_reg_len"] = int(c_reg_len)
+
+            if q_to_c:
+                md["tergite"]["q_to_c"] = {str(k): int(v) for k, v in q_to_c.items()}
+                meas_by_clbit = [None] * int(c_reg_len)
+                for q, c in q_to_c.items():
+                    if 0 <= c < int(c_reg_len):
+                        meas_by_clbit[c] = q
+                md["tergite"]["meas_qubits_by-clbit"] = meas_by_clbit
+
+            qexp.header.metadata = md
+            max_slots = max(max_slots, int(c_reg_len))
+
+        if q_to_c:
+            _rewrite_acquire_memory_slots(qexp, q_to_c)
+
+    setattr(qobj.config, "memory_slots", int(max_slots))
 
 def _get_expected_1q_transpiled_circuit(
     backend: OpenPulseBackend,
@@ -682,10 +827,11 @@ def _get_expected_1q_transpiled_circuit(
     rx_block.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(
+            pulse.Drag(
                 duration=round(qubit_0.pi_pulse_duration.value / backend.dt),
                 amp=round(phase / np.pi * qubit_0.pi_pulse_amplitude.value, 10),
                 sigma=round(qubit_0.pulse_sigma.value / backend.dt),
+                beta=round(qubit_0.pi_pulse_motzoi.value, 10),
                 name="RX q0",
             ),
             pulse.DriveChannel(0),
@@ -764,9 +910,10 @@ def _get_expected_2q_transpiled_circuit(
     rx_block_0.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(
+            pulse.Drag(
                 duration=round(qubit_0.pi_pulse_duration.value / backend.dt),
                 amp=round(phase / np.pi * qubit_0.pi_pulse_amplitude.value, 10),
+                beta=round(qubit_0.pi_pulse_motzoi.value, 10),
                 sigma=round(qubit_0.pulse_sigma.value / backend.dt),
                 name="RX q0",
             ),
@@ -786,9 +933,10 @@ def _get_expected_2q_transpiled_circuit(
     rx_block_1.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(
+            pulse.Drag(
                 duration=round(qubit_1.pi_pulse_duration.value / backend.dt),
                 amp=round(phase / np.pi * qubit_1.pi_pulse_amplitude.value, 10),
+                beta=round(qubit_0.pi_pulse_motzoi.value, 10),
                 sigma=round(qubit_1.pulse_sigma.value / backend.dt),
                 name="RX q1",
             ),

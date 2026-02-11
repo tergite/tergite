@@ -34,6 +34,11 @@
           "date": "2024-11-28T13:56:24.777173Z",
           "unit": ""
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
         "pulse_type": {
           "value": "Gaussian",
           "date": "2024-11-28T13:56:24.777418Z",
@@ -72,6 +77,11 @@
         "pi_pulse_amplitude": {
           "value": 0.029,
           "date": "2024-11-28T13:56:24.778163Z",
+          "unit": ""
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
           "unit": ""
         },
         "pi_pulse_duration": {
@@ -119,6 +129,11 @@
           "date": "2024-11-28T13:56:24.777047Z",
           "unit": ""
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-11-28T13:56:24.777173Z",
@@ -162,6 +177,11 @@
         "pi_pulse_amplitude": {
           "value": 0.029,
           "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
           "unit": ""
         },
         "pi_pulse_duration": {
@@ -209,6 +229,11 @@
           "date": "2024-11-28T13:56:24.777047Z",
           "unit": ""
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-11-28T13:56:24.777173Z",
@@ -252,6 +277,11 @@
         "pi_pulse_amplitude": {
           "value": 0.029,
           "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
           "unit": ""
         },
         "pi_pulse_duration": {
@@ -299,6 +329,11 @@
           "date": "2024-11-28T13:56:24.777047Z",
           "unit": ""
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-11-28T13:56:24.777173Z",
@@ -342,6 +377,11 @@
         "pi_pulse_amplitude": {
           "value": 0.029,
           "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
           "unit": ""
         },
         "pi_pulse_duration": {
@@ -389,6 +429,11 @@
           "date": "2024-11-28T13:56:24.777047Z",
           "unit": ""
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": ""
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-11-28T13:56:24.777173Z",
@@ -432,6 +477,11 @@
         "pi_pulse_amplitude": {
           "value": 0.029,
           "date": "2024-11-28T13:56:24.777047Z",
+          "unit": ""
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
           "unit": ""
         },
         "pi_pulse_duration": {
@@ -1106,6 +1156,19 @@
           "component_id": "0",
           "source": null
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-12-16T14:11:56.218673Z",
@@ -1202,6 +1265,19 @@
           "property_type": "device",
           "notes": null,
           "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
           "long_name": null,
           "tags": null,
           "component_id": "1",
@@ -1308,6 +1384,19 @@
           "component_id": "2",
           "source": null
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
+          "long_name": null,
+          "tags": null,
+          "component_id": "2",
+          "source": null
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-12-16T14:11:56.225699Z",
@@ -1409,6 +1498,19 @@
           "component_id": "3",
           "source": null
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
+          "long_name": null,
+          "tags": null,
+          "component_id": "3",
+          "source": null
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-12-16T14:11:56.229286Z",
@@ -1505,6 +1607,19 @@
           "property_type": "device",
           "notes": null,
           "name": "pi_pulse_amplitude",
+          "long_name": null,
+          "tags": null,
+          "component_id": "4",
+          "source": null
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
           "long_name": null,
           "tags": null,
           "component_id": "4",
@@ -3630,6 +3745,19 @@
           "property_type": "device",
           "source": null
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-12-16T14:12:29.444224Z",
@@ -4053,6 +4181,19 @@
           "source": null,
           "property_type": "device"
         },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
+          "long_name": null,
+          "tags": null,
+          "component_id": "0",
+          "source": null
+        },
         "pi_pulse_duration": {
           "value": 5.6e-8,
           "date": "2024-12-16T14:12:55.593194Z",
@@ -4153,6 +4294,19 @@
           "name": "pi_pulse_amplitude",
           "source": null,
           "property_type": "device"
+        },
+        "pi_pulse_motzoi": {
+          "value": 0.001,
+          "date": "2024-11-28T13:56:24.777173Z",
+          "unit": "",
+          "component": "qubit",
+          "property_type": "device",
+          "notes": null,
+          "name": "pi_pulse_motzoi",
+          "long_name": null,
+          "tags": null,
+          "component_id": "1",
+          "source": null
         },
         "pi_pulse_duration": {
           "value": 5.6e-8,
