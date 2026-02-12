@@ -28,15 +28,181 @@
 
 
 """Backend Configuration Classes."""
-import datetime
 import copy
-from typing import Dict, List, Any, TypeVar, Type
-
-
+import datetime
+from typing import Any, Dict, List, Type, TypeVar
 
 GateConfigT = TypeVar("GateConfigT", bound="GateConfig")
-UchannelLOT = TypeVar("UchannelLOT", bound="UchannelLO")  # pylint: disable=[invalid-name]
-QasmBackendConfigurationT = TypeVar("QasmBackendConfigurationT", bound="QasmBackendConfiguration")
+UchannelLOT = TypeVar(
+    "UchannelLOT", bound="UchannelLO"
+)  # pylint: disable=[invalid-name]
+QasmBackendConfigurationT = TypeVar(
+    "QasmBackendConfigurationT", bound="QasmBackendConfiguration"
+)
+
+
+class GateConfig:
+    """Class representing a Gate Configuration
+
+    Attributes:
+        name: the gate name as it will be referred to in OpenQASM.
+        parameters: variable names for the gate parameters (if any).
+        qasm_def: definition of this gate in terms of OpenQASM 2 primitives U
+                  and CX.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        parameters: List[str],
+        qasm_def: str,
+        coupling_map: list = None,
+        latency_map: list = None,
+        conditional: bool = None,
+        description: str = None,
+    ):
+        """Initialize a GateConfig object
+
+        Args:
+            name (str): the gate name as it will be referred to in OpenQASM.
+            parameters (list): variable names for the gate parameters (if any)
+                               as a list of strings.
+            qasm_def (str): definition of this gate in terms of OpenQASM 2 primitives U and CX.
+            coupling_map (list): An optional coupling map for the gate. In
+                the form of a list of lists of integers representing the qubit
+                groupings which are coupled by this gate.
+            latency_map (list): An optional map of latency for the gate. In the
+                the form of a list of lists of integers of either 0 or 1
+                representing an array of dimension
+                len(coupling_map) X n_registers that specifies the register
+                latency (1: fast, 0: slow) conditional operations on the gate
+            conditional (bool): Optionally specify whether this gate supports
+                conditional operations (true/false). If this is not specified,
+                then the gate inherits the conditional property of the backend.
+            description (str): Description of the gate operation
+        """
+
+        self.name = name
+        self.parameters = parameters
+        self.qasm_def = qasm_def
+        # coupling_map with length 0 is invalid
+        if coupling_map:
+            self.coupling_map = coupling_map
+        # latency_map with length 0 is invalid
+        if latency_map:
+            self.latency_map = latency_map
+        if conditional is not None:
+            self.conditional = conditional
+        if description is not None:
+            self.description = description
+
+    @classmethod
+    def from_dict(cls: Type[GateConfigT], data: Dict[str, Any]) -> GateConfigT:
+        """Create a new GateConfig object from a dictionary.
+
+        Args:
+            data (dict): A dictionary representing the GateConfig to create.
+                         It will be in the same format as output by
+                         :func:`to_dict`.
+
+        Returns:
+            GateConfig: The GateConfig from the input dictionary.
+        """
+        return cls(**data)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a dictionary format representation of the GateConfig.
+
+        Returns:
+            dict: The dictionary form of the GateConfig.
+        """
+        out_dict: Dict[str, Any] = {
+            "name": self.name,
+            "parameters": self.parameters,
+            "qasm_def": self.qasm_def,
+        }
+        if hasattr(self, "coupling_map"):
+            out_dict["coupling_map"] = self.coupling_map
+        if hasattr(self, "latency_map"):
+            out_dict["latency_map"] = self.latency_map
+        if hasattr(self, "conditional"):
+            out_dict["conditional"] = self.conditional
+        if hasattr(self, "description"):
+            out_dict["description"] = self.description
+        return out_dict
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, GateConfig):
+            if self.to_dict() == other.to_dict():
+                return True
+        return False
+
+    def __repr__(self) -> str:
+        out_str = f"GateConfig({self.name}, {self.parameters}, {self.qasm_def}"
+        for i in ["coupling_map", "latency_map", "conditional", "description"]:
+            if hasattr(self, i):
+                out_str += ", " + repr(getattr(self, i))
+        out_str += ")"
+        return out_str
+
+
+class UchannelLO:
+    """Class representing a U Channel LO
+
+    Attributes:
+        q: Qubit that scale corresponds too.
+        scale: Scale factor for qubit frequency.
+    """
+
+    def __init__(self, q: int, scale: complex) -> None:
+        """Initialize a UchannelLOSchema object
+
+        Args:
+            q (int): Qubit that scale corresponds too. Must be >= 0.
+            scale (complex): Scale factor for qubit frequency.
+
+        Raises:
+            QiskitError: If q is < 0
+        """
+        if q < 0:
+            raise QiskitError("q must be >=0")
+        self.q = q
+        self.scale = scale
+
+    @classmethod
+    def from_dict(cls: Type[UchannelLOT], data: Dict[str, Any]) -> UchannelLOT:
+        """Create a new UchannelLO object from a dictionary.
+
+        Args:
+            data (dict): A dictionary representing the UChannelLO to
+                create. It will be in the same format as output by
+                :func:`to_dict`.
+
+        Returns:
+            UchannelLO: The UchannelLO from the input dictionary.
+        """
+        return cls(**data)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a dictionary format representation of the UChannelLO.
+
+        Returns:
+            dict: The dictionary form of the UChannelLO.
+        """
+        out_dict: Dict[str, Any] = {
+            "q": self.q,
+            "scale": self.scale,
+        }
+        return out_dict
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, UchannelLO):
+            if self.to_dict() == other.to_dict():
+                return True
+        return False
+
+    def __repr__(self) -> str:
+        return f"UchannelLO({self.q}, {self.scale})"
 
 
 class QasmBackendConfiguration:
@@ -167,7 +333,9 @@ class QasmBackendConfiguration:
 
         self.dynamic_reprate_enabled = dynamic_reprate_enabled
         if rep_delay_range:
-            self.rep_delay_range = [_rd * 1e-6 for _rd in rep_delay_range]  # convert to sec
+            self.rep_delay_range = [
+                _rd * 1e-6 for _rd in rep_delay_range
+            ]  # convert to sec
         if default_rep_delay is not None:
             self.default_rep_delay = default_rep_delay * 1e-6  # convert to sec
 

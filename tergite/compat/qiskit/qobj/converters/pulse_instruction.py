@@ -47,11 +47,7 @@ from qiskit.pulse.parser import parse_string_expr
 from qiskit.pulse.schedule import Schedule
 from qiskit.utils import deprecate_func
 
-from .. import (
-    PulseLibraryItem,
-    PulseQobjInstruction,
-    QobjMeasurementOption,
-)
+from .. import PulseLibraryItem, PulseQobjInstruction, QobjMeasurementOption
 from ..utils import MeasLevel
 
 

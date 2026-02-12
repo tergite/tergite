@@ -17,7 +17,6 @@ from tergite import OpenPulseBackend, Provider, Tergite
 from tergite.services.api_client.dtos import TergiteBackendConfig
 from tests.utils.records import get_record
 
-from ..utils.env import is_end_to_end
 from .conftest import (
     API_TOKEN,
     API_URL,

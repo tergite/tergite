@@ -23,18 +23,20 @@ from qiskit.providers import JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-
 from tergite import Job, OpenPulseBackend, Provider, Tergite
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
 from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
 from tergite.services.device_compiler.schedules import cz
+from tergite.types.backend import (
+    _derive_reg_len_from_qobj_experiment,
+    _extract_q_to_clbit_map,
+    _rewrite_acquire_memory_slots,
+)
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
-from tergite.types.backend import _extract_q_to_clbit_map, _derive_reg_len_from_qobj_experiment, _rewrite_acquire_memory_slots
 
-from ..utils.env import is_end_to_end
 from .conftest import (
     API_TOKEN,
     API_URL,
@@ -56,14 +58,11 @@ _INVALID_PARAMS = [
 ]
 
 
-
-
 import json
 from collections import OrderedDict
 from typing import Any, Dict, Iterable, List, Union
 
 from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder as PulseQobj_encoder
-
 
 TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
 HEADER_ORDER = ["backend_name", "backend_version"]
@@ -82,7 +81,18 @@ CONFIG_ORDER = [
     "n_qubits",
 ]
 EXP_HEADER_ORDER = ["memory_slots", "name", "metadata"]
-INSTR_ORDER = ["name", "t0", "ch", "phase", "frequency", "pulse_shape", "parameters", "duration", "qubits", "memory_slot"]
+INSTR_ORDER = [
+    "name",
+    "t0",
+    "ch",
+    "phase",
+    "frequency",
+    "pulse_shape",
+    "parameters",
+    "duration",
+    "qubits",
+    "memory_slot",
+]
 
 
 def _as_dict(qobj: Any) -> Dict[str, Any]:
@@ -162,19 +172,6 @@ def order_pulse_qobj_for_export(qobj: Any) -> OrderedDict:
     return _order_dict(d, TOP_ORDER)
 
 
-def dump_pulse_qobj_json(
-    qobjs: Union[Any, List[Any]],
-    path: str,
-) -> None:
-    if not isinstance(qobjs, list):
-        qobjs = [qobjs]
-
-    ordered = [order_pulse_qobj_for_export(q) for q in qobjs]
-
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(ordered, f, cls=PulseQobj_encoder, indent=2, sort_keys=False)
-        f.write("\n")
-
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_transpile_1q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 1-qubit ops"""
@@ -191,8 +188,6 @@ def test_transpile_1q_gates(api, backend_name):
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
     apply_tergite_qobj_patches(expected_qobj, [expected])
-
-    dump_pulse_qobj_json(got_qobj, "actual.json")
 
     assert (
         got_qobj == expected_qobj
@@ -749,10 +744,12 @@ def apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
     # build per-exp meta from original circuits
     per_exp_meta: List[Dict[str, Any]] = []
     for circ in circuits:
-        per_exp_meta.append({
-            "c_reg_len": circ.num_clbits,
-            "q_to_c": _extract_q_to_clbit_map(circ),
-        })
+        per_exp_meta.append(
+            {
+                "c_reg_len": circ.num_clbits,
+                "q_to_c": _extract_q_to_clbit_map(circ),
+            }
+        )
 
     max_slots = getattr(qobj.config, "memory_slots", 0) or 0
 
@@ -785,6 +782,7 @@ def apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
             _rewrite_acquire_memory_slots(qexp, q_to_c)
 
     setattr(qobj.config, "memory_slots", int(max_slots))
+
 
 def _get_expected_1q_transpiled_circuit(
     backend: OpenPulseBackend,

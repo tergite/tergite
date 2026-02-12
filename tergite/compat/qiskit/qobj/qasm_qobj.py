@@ -37,10 +37,7 @@ from qiskit.circuit.parameterexpression import ParameterExpression
 from qiskit.utils import deprecate_func
 
 from .common import QobjDictField, QobjHeader
-from .pulse_qobj import (
-    PulseLibraryItem,
-    PulseQobjInstruction,
-)
+from .pulse_qobj import PulseLibraryItem, PulseQobjInstruction
 
 
 class QasmQobjInstruction:

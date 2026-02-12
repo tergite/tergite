@@ -25,7 +25,7 @@ import functools
 import logging
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union, Dict
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -41,10 +41,10 @@ from qiskit.pulse.channels import (
 )
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
-from qiskit_ibm_runtime.models import BackendConfiguration
 
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
+from ..compat.qiskit_ibm_runtime.models import BackendConfiguration
 from ..services import api_client, device_compiler
 from ..utils.quantum_circuit import as_circuit_list, normalise_classical_registers
 from .job import Job
@@ -104,8 +104,9 @@ def _rewrite_acquire_memory_slots(qobj_exp, q_to_c: Dict[int, int]) -> None:
         new_m_list: List[int] = []
         for q in q_list:
             if q not in q_to_c:
-                # If we can't map, keep existing (or raise if you prefer strictness)
-                new_m_list.append(m_list[len(new_m_list)])
+                raise ValueError(
+                    f"Qobj metadata quantum to classical mapping doesn't have qubit {q} in {q_to_c.keys()}."
+                )
             else:
                 new_m_list.append(q_to_c[q])
 
@@ -321,14 +322,39 @@ class TergiteBackend(BackendV2):
         self_dict = self._as_dict().copy()
         other_dict = other._as_dict().copy()
 
-        # serialize a few items that are hard to serialize
-        self_dict["coupling_map"] = f"{self_dict['coupling_map']}"
-        other_dict["coupling_map"] = f"{other_dict['coupling_map']}"
+        # normalize fields
+        for d in (self_dict, other_dict):
+            if "coupling_map" in d:
+                d["coupling_map"] = str(d["coupling_map"])
+            if "supported_instructions" in d:
+                d["supported_instructions"] = str(d["supported_instructions"])
 
-        self_dict["supported_instructions"] = f"{self_dict['supported_instructions']}"
-        other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
+        # Only compare device-defining fields
+        STABLE_KEYS = {
+            "backend_name",
+            "backend_version",
+            "n_qubits",
+            "basis_gates",
+            "gates",
+            "coupling_map",
+            "open_pulse",
+            "memory",
+            "dt",
+            "dtm",
+            "meas_levels",
+            "parametric_pulses",
+            "dynamic_reprate_enabled",
+            "supported_instructions",
+            "max_shots",
+            "simulator",
+            "local",
+            "conditional",
+            "characterized",
+        }
 
-        return self_dict == other_dict
+        a = {k: self_dict.get(k) for k in STABLE_KEYS}
+        b = {k: other_dict.get(k) for k in STABLE_KEYS}
+        return a == b
 
 
 class OpenPulseBackend(TergiteBackend):
@@ -520,7 +546,9 @@ class OpenPulseBackend(TergiteBackend):
                     md["tergite"]["c_reg_len"] = int(c_reg_len)
 
                     if q_to_c:
-                        md["tergite"]["q_to_c"] = dict(q_to_c)
+                        md["tergite"]["q_to_c"] = {
+                            str(k): int(v) for k, v in q_to_c.items()
+                        }
                         # also convinient inverse view
                         meas_by_clbit = [None] * int(c_reg_len)
                         for q, c in q_to_c.items():

@@ -30,10 +30,7 @@ from qiskit.providers.providerutils import filter_backends
 from ..services import api_client
 from ..services.configs import AccountInfo
 from ..utils.job_file import extract_job_metadata, extract_job_qobj
-from .backend import (
-    OpenPulseBackend,
-    OpenQASMBackend,
-)
+from .backend import OpenPulseBackend, OpenQASMBackend
 from .job import STATUS_MAP, Job
 
 
@@ -123,7 +120,7 @@ class Provider:
         metadata = extract_job_metadata(logfile)
         payload = extract_job_qobj(logfile)
 
-        return Job(
+        job = Job(
             backend=backend,
             job_id=job_id,
             payload=payload,
@@ -136,12 +133,25 @@ class Provider:
             access_token=access_token,
             **metadata,
         )
+        self._sync_backend_options_from_job(job)
+        return job
 
     def __str__(self, /):
         return "Tergite: Provider"
 
     def __repr__(self, /):
         return "<{} from Tergite Qiskit>".format(self.__class__.__name__)
+
+    def _sync_backend_options_from_job(self, job):
+        # Prefer payload (source of truth), fallback to metadata
+        shots = None
+        if getattr(job, "payload", None) is not None:
+            shots = getattr(getattr(job.payload, "config", None), "shots", None)
+        if shots is None:
+            shots = job.metadata.get("shots")
+
+        if shots is not None:
+            job.backend().set_options(shots=int(shots))
 
     # The below code is part of Qiskit.
     #
