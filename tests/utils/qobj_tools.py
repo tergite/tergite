@@ -65,7 +65,7 @@ def _qobj_to_dict(qobj: Any) -> dict:
     return qobj
 
 
-def _extract_uploaded_qobj_from_request(req) -> dict:
+def extract_uploaded_qobj_from_request(req) -> dict:
     ct = req.headers.get("Content-Type", "")
     body = req.body
     if not isinstance(body, (bytes, bytearray)):

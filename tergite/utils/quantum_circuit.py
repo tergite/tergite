@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from typing import Dict
 
 from qiskit.circuit import QuantumCircuit
 
@@ -78,3 +79,16 @@ def normalise_classical_registers(
     qc_new.metadata = getattr(qc, "metadata", None)
     qc_new.name = getattr(qc, "name", None)
     return qc_new
+
+
+def extract_q_to_clbit_map(circ: QuantumCircuit) -> Dict[int, int]:
+    """Map circuit qubit-index -> flattened classical-bit index."""
+    q_to_c: Dict[int, int] = {}
+    for inst, qargs, cargs in circ.data:
+        if inst.name != "measure":
+            continue
+        # measure is 1 qubit -> 1 clbit
+        q_i = circ.find_bit(qargs[0]).index
+        c_i = circ.find_bit(cargs[0]).index
+        q_to_c[q_i] = c_i
+    return q_to_c

@@ -24,7 +24,7 @@ from requests import Request
 
 from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder as PulseQobj_encoder
 from tests.utils.fixtures import load_json_fixture
-from tests.utils.qobj_tools import _extract_uploaded_qobj_from_request
+from tests.utils.qobj_tools import extract_uploaded_qobj_from_request
 
 API_URL = "https://api.tergite.example"
 QUANTUM_COMPUTER_URL = "http://loke.tergite.example"
@@ -430,7 +430,7 @@ def _mock_job_upload_handler(request: Request, context, uploaded_qobj_by_backend
         raise rq_mock.NoMockAddress(request)
 
     backend = m.group(1).lower()
-    qobj = _extract_uploaded_qobj_from_request(request)
+    qobj = extract_uploaded_qobj_from_request(request)
 
     uploaded_qobj_by_backend[backend] = qobj
     context.status_code = 200

@@ -29,11 +29,9 @@ from tergite import Job, OpenPulseBackend, Provider, Tergite
 from tergite.compat.qiskit.compiler.assembler import assemble
 from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
 from tergite.services.device_compiler.schedules import cz
-from tergite.types.backend import (
-    _derive_reg_len_from_qobj_experiment,
-    _extract_q_to_clbit_map,
-    _rewrite_acquire_memory_slots,
-)
+
+from tergite.utils.quantum_circuit import extract_q_to_clbit_map
+from tergite.utils.qobj import derive_reg_len_from_qobj_experiment, rewrite_acquire_memory_slots
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 
@@ -60,9 +58,8 @@ _INVALID_PARAMS = [
 
 import json
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, List
 
-from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder as PulseQobj_encoder
 
 TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
 HEADER_ORDER = ["backend_name", "backend_version"]
@@ -95,83 +92,6 @@ INSTR_ORDER = [
 ]
 
 
-def _as_dict(qobj: Any) -> Dict[str, Any]:
-    # PulseQobj has .to_dict(); if already dict, just return it
-    if hasattr(qobj, "to_dict"):
-        return qobj.to_dict()
-    if isinstance(qobj, dict):
-        return qobj
-    raise TypeError(f"Expected PulseQobj or dict, got {type(qobj)!r}")
-
-
-def _order_dict(d: Dict[str, Any], order: List[str]) -> OrderedDict:
-    out = OrderedDict()
-    for k in order:
-        if k in d:
-            out[k] = d[k]
-    # keep any extra keys at the end, in original order
-    for k, v in d.items():
-        if k not in out:
-            out[k] = v
-    return out
-
-
-def _normalize_amp(val: Any) -> Any:
-    # Convert complex-like values to [real, imag] to match your fixture style.
-    # If it's already a list/tuple length 2, leave it.
-    if isinstance(val, complex):
-        return [val.real, val.imag]
-    return val
-
-
-def _order_instruction(instr: Dict[str, Any]) -> OrderedDict:
-    instr = dict(instr)
-    # normalize amp representation if present
-    params = instr.get("parameters")
-    if isinstance(params, dict) and "amp" in params:
-        params = dict(params)
-        params["amp"] = _normalize_amp(params["amp"])
-        instr["parameters"] = params
-
-    # order parameters keys if present (duration, sigma, beta, amp)
-    if isinstance(instr.get("parameters"), dict):
-        p = instr["parameters"]
-        instr["parameters"] = _order_dict(p, ["duration", "sigma", "beta", "amp"])
-
-    return _order_dict(instr, INSTR_ORDER)
-
-
-def _order_experiment(exp: Dict[str, Any]) -> OrderedDict:
-    exp = dict(exp)
-
-    # instructions
-    if "instructions" in exp and isinstance(exp["instructions"], list):
-        exp["instructions"] = [_order_instruction(i) for i in exp["instructions"]]
-
-    # header
-    if "header" in exp and isinstance(exp["header"], dict):
-        exp["header"] = _order_dict(exp["header"], EXP_HEADER_ORDER)
-
-    return _order_dict(exp, ["instructions", "header"])
-
-
-def order_pulse_qobj_for_export(qobj: Any) -> OrderedDict:
-    d = _as_dict(qobj)
-
-    # header/config ordering
-    if "header" in d and isinstance(d["header"], dict):
-        d["header"] = _order_dict(d["header"], HEADER_ORDER)
-    if "config" in d and isinstance(d["config"], dict):
-        d["config"] = _order_dict(d["config"], CONFIG_ORDER)
-
-    # experiments ordering
-    if "experiments" in d and isinstance(d["experiments"], list):
-        d["experiments"] = [_order_experiment(e) for e in d["experiments"]]
-
-    # top-level ordering
-    return _order_dict(d, TOP_ORDER)
-
-
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_transpile_1q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 1-qubit ops"""
@@ -187,7 +107,7 @@ def test_transpile_1q_gates(api, backend_name):
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
-    apply_tergite_qobj_patches(expected_qobj, [expected])
+    _apply_tergite_qobj_patches(expected_qobj, [expected])
 
     assert (
         got_qobj == expected_qobj
@@ -209,7 +129,7 @@ def test_transpile_2q_gates(api, backend_name):
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
-    apply_tergite_qobj_patches(expected_qobj, [expected])
+    _apply_tergite_qobj_patches(expected_qobj, [expected])
 
     assert (
         got_qobj == expected_qobj
@@ -705,7 +625,7 @@ def _get_expected_job(
             qobj_id=qobj_id,
             **options,
         )
-    apply_tergite_qobj_patches(qobj, [transpiled_circuit])
+    _apply_tergite_qobj_patches(qobj, [transpiled_circuit])
 
     job = Job(
         backend=backend,
@@ -740,14 +660,14 @@ def _get_test_2q_qiskit_circuit():
     return qc
 
 
-def apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
+def _apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
     # build per-exp meta from original circuits
     per_exp_meta: List[Dict[str, Any]] = []
     for circ in circuits:
         per_exp_meta.append(
             {
                 "c_reg_len": circ.num_clbits,
-                "q_to_c": _extract_q_to_clbit_map(circ),
+                "q_to_c": extract_q_to_clbit_map(circ),
             }
         )
 
@@ -758,7 +678,7 @@ def apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
         q_to_c = per_exp_meta[i]["q_to_c"]
 
         if c_reg_len is None:
-            c_reg_len = _derive_reg_len_from_qobj_experiment(qexp)
+            c_reg_len = derive_reg_len_from_qobj_experiment(qexp)
 
         if c_reg_len is not None and getattr(qexp, "header", None) is not None:
             setattr(qexp.header, "memory_slots", int(c_reg_len))
@@ -779,7 +699,7 @@ def apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
             max_slots = max(max_slots, int(c_reg_len))
 
         if q_to_c:
-            _rewrite_acquire_memory_slots(qexp, q_to_c)
+            rewrite_acquire_memory_slots(qexp, q_to_c)
 
     setattr(qobj.config, "memory_slots", int(max_slots))
 

@@ -191,7 +191,7 @@ def cz(
             "t_p": c_props.cz_pulse_duration_constant.value,  # s, constant pulse duration
         }
 
-        t_gate = args["t_w"] + args["t_p"] + 2 * args["t_rf"]
+        t_gate = args["t_rf"] + args["t_p"]
         # required param for pulse, for display purposes delta_0 is equivalent to max_amplitude
         amp = args["delta_0"]
         # this is for display purposes, as we overriding frequency modulation in backend
@@ -209,7 +209,13 @@ def cz(
             c_props.frequency.value,
             channel=control_channels[0],
         )
+        sched += pulse.Delay(
+            channel=control_channels[0], duration=round(args["t_w"] / backend.dt)
+        )
         sched += pulse.Play(cz_gate, control_channels[0])
+        sched += pulse.Delay(
+            channel=control_channels[0], duration=round(args["t_w"] / backend.dt)
+        )
 
         if control_rz_lambda and target_rz_lambda:
             sched += pulse.ShiftPhase(

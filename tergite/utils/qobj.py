@@ -12,7 +12,7 @@
 # that they have been altered from the originals.
 """Utility function for handling hte Qobj for a job"""
 from itertools import groupby
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 def compress_qobj_dict(qobj_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -51,3 +51,49 @@ def _iqx_rle(seq: List[Any]) -> List[Union[Tuple[Any], Tuple[Any, int]]]:
     """
     seq = [(k, sum(1 for _ in g)) for k, g in groupby(seq)]
     return [(c, rep) if rep > 1 else (c,) for c, rep in seq]
+
+
+def derive_reg_len_from_qobj_experiment(qobj_exp) -> Optional[int]:
+    """Fallback reg length from acquire memory slots."""
+    mem_slots: List[int] = []
+    for inst in qobj_exp.instructions:
+        if getattr(inst, "name", None) != "acquire":
+            continue
+        ms = getattr(inst, "memory_slot", None)
+        if ms is None:
+            continue
+        if isinstance(ms, list):
+            mem_slots.extend(ms)
+        else:
+            mem_slots.append(int(ms))
+    return (max(mem_slots) + 1) if mem_slots else None
+
+
+def rewrite_acquire_memory_slots(qobj_exp, q_to_c: Dict[int, int]) -> None:
+    """Rewrite acquire.memory_slot so it matches the circuit clbit indices."""
+    for inst in qobj_exp.instructions:
+        if getattr(inst, "name", None) != "acquire":
+            continue
+
+        qubits = getattr(inst, "qubits", None)
+        mem = getattr(inst, "memory_slot", None)
+        if qubits is None or mem is None:
+            continue
+
+        # Normalize to lists
+        q_list = qubits if isinstance(qubits, list) else [int(qubits)]
+        m_list = mem if isinstance(mem, list) else [int(mem)]
+
+        if len(q_list) != len(m_list):
+            raise ValueError("Acquire has mismatched qubits/memory_slot lengths")
+
+        new_m_list: List[int] = []
+        for q in q_list:
+            if q not in q_to_c:
+                raise ValueError(
+                    f"Qobj metadata quantum to classical mapping doesn't have qubit {q} in {q_to_c.keys()}."
+                )
+            else:
+                new_m_list.append(q_to_c[q])
+
+        inst.memory_slot = new_m_list
