@@ -29,9 +29,11 @@ from tergite import Job, OpenPulseBackend, Provider, Tergite
 from tergite.compat.qiskit.compiler.assembler import assemble
 from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
 from tergite.services.device_compiler.schedules import cz
-
+from tergite.utils.qobj import (
+    derive_reg_len_from_qobj_experiment,
+    rewrite_acquire_memory_slots,
+)
 from tergite.utils.quantum_circuit import extract_q_to_clbit_map
-from tergite.utils.qobj import derive_reg_len_from_qobj_experiment, rewrite_acquire_memory_slots
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 
@@ -59,7 +61,6 @@ _INVALID_PARAMS = [
 import json
 from collections import OrderedDict
 from typing import Any, Dict, List
-
 
 TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
 HEADER_ORDER = ["backend_name", "backend_version"]

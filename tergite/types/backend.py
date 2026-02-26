@@ -267,12 +267,24 @@ class TergiteBackend(BackendV2):
     @property
     def backend_id(self) -> tuple:
         # fields that uniquely identify the remote backend
-        return (self.backend_name, self.backend_version, self.base_url)
+        # FIXME: backend_name is unresolved reference.
+        return self.backend_name, self.backend_version, self.base_url
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TergiteBackend):
             return False
-        return self.backend_id == other.backend_id
+
+        self_dict = self._as_dict().copy()
+        other_dict = other._as_dict().copy()
+
+        # serialize a few items that are hard to serialize
+        self_dict["coupling_map"] = f"{self_dict['coupling_map']}"
+        other_dict["coupling_map"] = f"{other_dict['coupling_map']}"
+
+        self_dict["supported_instructions"] = f"{self_dict['supported_instructions']}"
+        other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
+
+        return self_dict == other_dict
 
     def __hash__(self) -> int:
         return hash(self.backend_id)
