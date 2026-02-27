@@ -69,7 +69,9 @@ def rx(
             else round(duration / 4)
         )
         amplitude = rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value
-        motzoi = qubit[q].pi_pulse_motzoi.value
+        motzoi_params = device_properties.qubits[q].pi_pulse_motzoi
+        
+        motzoi = motzoi_params.value if motzoi_params else 0.0
         sched += pulse.Play(
             pulse.Drag(
                 duration=duration,
@@ -109,38 +111,6 @@ def rz(
     return sched
 
 
-def wacqt_cz_gate(duration, name, numerical_args):
-    # define the time variable
-    t = symbols("t", real=True)
-
-    # define symbolic variables (can also be passed as parameters)
-    symbolic_args = {
-        "t_w": symbols("t_w", real=True),
-        "t_rf": symbols("t_rf", real=True),
-        "t_p": symbols("t_p", real=True),
-        "delta_0": symbols("delta_0", real=True),
-    }
-
-    # create the symbolic expression
-    envelope_expr = delta_t_function_sympy(t, symbolic_args)
-
-    # substitute numerical values into the symbolic expression
-    if numerical_args:
-        envelope_expr = envelope_expr.subs(numerical_args)
-
-    numerical_args["amp"] = [numerical_args["amp"], 0]
-    # create the SymbolicPulse instance
-    instance = SymbolicPulse(
-        pulse_type="Wacqt_cz_gate_pulse",
-        duration=duration,
-        parameters=numerical_args,
-        envelope=envelope_expr,
-        name=name,
-    )
-
-    return instance
-
-
 def cz(
     backend: "TergiteBackend",
     control_qubit_idxs: Iterable,
@@ -171,27 +141,28 @@ def cz(
 
         # TODO: raise error if c_props is none
 
-        f1 = min(target_qubit.frequency.value, control_qubit.frequency.value)
-        f0 = max(target_qubit.frequency.value, control_qubit.frequency.value)
+        f1 = min(_val(target_qubit.frequency), _val(control_qubit.frequency))
+        f0 = max(_val(target_qubit.frequency), _val(control_qubit.frequency))
 
-        alpha0 = c_props.anharmonicity.value
+        alpha0 = _val(c_props.anharmonicity, default=-0.17e9)
 
-        f2 = c_props.frequency.value  # Coupler frequency
-        detuning = c_props.frequency_detuning.value  # detuning in radial frequency
+        f2 = _val(c_props.frequency)  # Coupler frequency
+        detuning = _val(c_props.frequency_detuning, default=0)  # detuning in radial frequency
 
         args = {
-            "delta_0": c_props.cz_pulse_amplitude.value,  # Maximum delta value
-            "Theta": c_props.cz_pulse_dc_bias.value,  # DC bias term
+            "delta_0": _val(c_props.cz_pulse_amplitude),  # Maximum delta value
+            "Theta": _val(c_props.cz_pulse_dc_bias, default=0.0),  # DC bias term
             "omega_c0": 2 * np.pi * f2,  # Maximum frequency in Hz
             "omega_Phi": detuning
             + 2 * np.pi * (f1 - f0 - alpha0),  # Transition frequency in Hz
-            "phi": c_props.cz_pulse_phase_offset.value,  # Phase offset
-            "t_w": c_props.cz_pulse_duration_before.value,  # s, duration before pulse
-            "t_rf": c_props.cz_pulse_duration_rise.value,  # s, rise time
-            "t_p": c_props.cz_pulse_duration_constant.value,  # s, constant pulse duration
+            "phi": _val(c_props.cz_pulse_phase_offset, default=0.0),  # Phase offset
+            "t_w": _val(c_props.cz_pulse_duration_before, default=4e-9),  # s, duration before pulse
+            "t_rf": _val(c_props.cz_pulse_duration_rise, default=4e-9),  # s, rise time
+            "t_p": _val(c_props.cz_pulse_duration_constant),  # s, constant pulse duration
         }
 
-        t_gate = args["t_rf"] + args["t_p"]
+        # we now set wait time before and after pulse explicitly for both sim and real backends
+        t_gate = args["t_p"] + args["t_rf"]
         # required param for pulse, for display purposes delta_0 is equivalent to max_amplitude
         amp = args["delta_0"]
         # this is for display purposes, as we overriding frequency modulation in backend
@@ -199,8 +170,8 @@ def cz(
 
         args["amp"] = amp
         args["freq"] = freq
-        control_rz_lambda = c_props.control_rz_lambda.value
-        target_rz_lambda = c_props.target_rz_lambda.value
+        control_rz_lambda = _val(c_props.control_rz_lambda)
+        target_rz_lambda = _val(c_props.target_rz_lambda)
 
         cz_gate = wacqt_cz_gate(
             duration=round(t_gate / backend.dt), name="cz_pulse", numerical_args=args
@@ -320,3 +291,43 @@ def delay(
             name=f"{delay_str} q{q}",
         )
     return sched
+
+def wacqt_cz_gate(duration, name, numerical_args):
+    # define the time variable
+    t = symbols("t", real=True)
+
+    # define symbolic variables (can also be passed as parameters)
+    symbolic_args = {
+        "t_w": symbols("t_w", real=True),
+        "t_rf": symbols("t_rf", real=True),
+        "t_p": symbols("t_p", real=True),
+        "delta_0": symbols("delta_0", real=True),
+    }
+
+    # create the symbolic expression
+    envelope_expr = delta_t_function_sympy(t, symbolic_args)
+
+    # substitute numerical values into the symbolic expression
+    if numerical_args:
+        envelope_expr = envelope_expr.subs(numerical_args)
+
+    numerical_args["amp"] = [numerical_args["amp"], 0]
+    # create the SymbolicPulse instance
+    instance = SymbolicPulse(
+        pulse_type="Wacqt_cz_gate_pulse",
+        duration=duration,
+        parameters=numerical_args,
+        envelope=envelope_expr,
+        name=name,
+    )
+
+    return instance
+
+
+def _val(x, default=None):
+    """ Unwrap calibration parameters safely.
+    """
+    if x is None:
+        return default 
+    v = getattr(x, "value", x)
+    return default if v is None else v
