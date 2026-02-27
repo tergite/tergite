@@ -70,7 +70,7 @@ def rx(
         )
         amplitude = rx_theta / np.pi * qubit[q].pi_pulse_amplitude.value
         motzoi_params = device_properties.qubits[q].pi_pulse_motzoi
-        
+
         motzoi = motzoi_params.value if motzoi_params else 0.0
         sched += pulse.Play(
             pulse.Drag(
@@ -147,7 +147,9 @@ def cz(
         alpha0 = _val(c_props.anharmonicity, default=-0.17e9)
 
         f2 = _val(c_props.frequency)  # Coupler frequency
-        detuning = _val(c_props.frequency_detuning, default=0)  # detuning in radial frequency
+        detuning = _val(
+            c_props.frequency_detuning, default=0
+        )  # detuning in radial frequency
 
         args = {
             "delta_0": _val(c_props.cz_pulse_amplitude),  # Maximum delta value
@@ -156,9 +158,13 @@ def cz(
             "omega_Phi": detuning
             + 2 * np.pi * (f1 - f0 - alpha0),  # Transition frequency in Hz
             "phi": _val(c_props.cz_pulse_phase_offset, default=0.0),  # Phase offset
-            "t_w": _val(c_props.cz_pulse_duration_before, default=4e-9),  # s, duration before pulse
+            "t_w": _val(
+                c_props.cz_pulse_duration_before, default=4e-9
+            ),  # s, duration before pulse
             "t_rf": _val(c_props.cz_pulse_duration_rise, default=4e-9),  # s, rise time
-            "t_p": _val(c_props.cz_pulse_duration_constant),  # s, constant pulse duration
+            "t_p": _val(
+                c_props.cz_pulse_duration_constant
+            ),  # s, constant pulse duration
         }
 
         # we now set wait time before and after pulse explicitly for both sim and real backends
@@ -292,6 +298,7 @@ def delay(
         )
     return sched
 
+
 def wacqt_cz_gate(duration, name, numerical_args):
     # define the time variable
     t = symbols("t", real=True)
@@ -325,9 +332,8 @@ def wacqt_cz_gate(duration, name, numerical_args):
 
 
 def _val(x, default=None):
-    """ Unwrap calibration parameters safely.
-    """
+    """Unwrap calibration parameters safely."""
     if x is None:
-        return default 
+        return default
     v = getattr(x, "value", x)
     return default if v is None else v
