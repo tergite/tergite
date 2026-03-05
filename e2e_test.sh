@@ -44,9 +44,9 @@ log_error() {
 # Clean up any remaining docker things
 echo "Cleaning up docker artefacts from previous runs"
 docker compose -p tergite-e2e  down --rmi all --volumes 2>/dev/null
-docker rmi -f tergite/tergite-mss 2>/dev/null
-docker rmi -f tergite/tergite-dashboard 2>/dev/null
-docker rmi -f tergite/tergite-backend-e2e:latest 2>/dev/null
+docker rmi -f tergite/tergite-mss:sdk-e2e 2>/dev/null
+docker rmi -f tergite/tergite-dashboard:sdk-e2e 2>/dev/null
+docker rmi -f tergite/tergite-backend-e2e:sdk-e2e 2>/dev/null
 docker system prune -f
 
 # Create and navigating to temporary directory
@@ -73,6 +73,8 @@ cp "$FIXTURES_PATH/qiskit_pulse_2q.toml" .
 cp "$FIXTURES_PATH/qiskit_pulse_2q.seed.toml" .
 cp "$FIXTURES_PATH/private-mss-key.pem" .
 cp "$FIXTURES_PATH/public-mss-key.pem" .
+cp "$FIXTURES_PATH/booking_db.db" qiskit_pulse_1q_booking_db.db
+cp "$FIXTURES_PATH/booking_db.db" qiskit_pulse_2q_booking_db.db
 cp "$FIXTURES_PATH/e2e.env" .env
 printf "\nMSS_APP_TOKEN=\"$APP_TOKEN\"" >> .env
 cp "$FIXTURES_PATH/mss-config.toml" .

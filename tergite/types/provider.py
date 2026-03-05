@@ -22,7 +22,7 @@
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-from typing import Dict, List, Union
+from typing import Any, Callable, Dict, List, Union
 
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
@@ -50,7 +50,7 @@ class Provider:
         self._malformed_backends = {}
 
     def backends(
-        self, /, name: str = None, filters: callable = None, **kwargs
+        self, /, name: str = None, filters: Callable[[Any], bool] = None, **kwargs
     ) -> List[Union[OpenPulseBackend, OpenQASMBackend]]:
         """Filters the available backends of this provider.
 

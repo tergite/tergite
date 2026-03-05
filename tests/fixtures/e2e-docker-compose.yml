@@ -1,16 +1,36 @@
 ---
 services:
   mss:
+    image: "tergite/tergite-mss:sdk-e2e"
     depends_on:
-      - tergite-mongo
+      tergite-mongo:
+        condition: service_healthy
     networks:
       - tergite-e2e
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002"]
+      test:
+        [
+          "CMD-SHELL",
+          'wget --header="Authorization: Bearer $MSS_APP_TOKEN" --quiet --tries=1 --spider http://mss:8002/jobs || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   dashboard:
+    image: "tergite/tergite-dashboard:sdk-e2e"
+    depends_on:
+      mss:
+        condition: service_healthy
     networks:
       - tergite-e2e
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:3000/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   tergite-mongo:
     restart: always
@@ -25,6 +45,12 @@ services:
       - tergite-e2e
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   tergite-redis:
     restart: always
@@ -37,13 +63,20 @@ services:
       - tergite-e2e
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
   qiskit_pulse_1q:
     restart: always
     depends_on:
-      - mss
-      - tergite-redis
-    image: "tergite/tergite-backend-e2e:latest"
+      mss:
+        condition: service_healthy
+      tergite-redis:
+        condition: service_healthy
+    image: "tergite/tergite-backend-e2e:sdk-e2e"
     build:
       context: ../tergite-backend
       dockerfile: Dockerfile
@@ -54,7 +87,7 @@ services:
     environment:
       MSS_MACHINE_ROOT_URL: "http://mss:8002"
       MSS_PORT: 8002
-      BCC_MACHINE_ROOT_URL: "http://localhost:8001"
+      BCC_MACHINE_ROOT_URL: "http://localhost:8000"
       BCC_PORT: 8000
       EXECUTOR_TYPE: "qiskit_pulse_1q"
       DEFAULT_PREFIX: "qiskit_pulse_1q"
@@ -70,20 +103,28 @@ services:
       - ./qiskit_pulse_1q.toml/:/code/backend_config.toml:ro
       - ./qiskit_pulse_1q.seed.toml/:/code/calibration.seed.toml:ro
       - ./public-mss-key.pem/:/code/public-mss-key.pem:ro
+      - ./qiskit_pulse_1q_booking_db.db:/code/booking_db.db:rw
     networks:
       - tergite-e2e
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/docs"]
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   qiskit_pulse_2q:
     restart: always
     depends_on:
-      - qiskit_pulse_1q
-      - mss
-      - tergite-redis
-    image: "tergite/tergite-backend-e2e:latest"
+      qiskit_pulse_1q:
+        condition: service_healthy
+      mss:
+        condition: service_healthy
+      tergite-redis:
+        condition: service_healthy
+    image: "tergite/tergite-backend-e2e:sdk-e2e"
     logging:
       driver: ${LOGGING_DRIVER}
     ports:
@@ -107,12 +148,17 @@ services:
       - ./qiskit_pulse_2q.toml/:/code/backend_config.toml:ro
       - ./qiskit_pulse_2q.seed.toml/:/code/calibration.seed.toml:ro
       - ./public-mss-key.pem/:/code/public-mss-key.pem:ro
+      - ./qiskit_pulse_2q_booking_db.db:/code/booking_db.db:rw
     networks:
       - tergite-e2e
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
 networks:
   tergite-e2e:
