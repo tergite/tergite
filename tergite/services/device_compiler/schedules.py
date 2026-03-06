@@ -185,15 +185,10 @@ def cz(
 
         args["amp"] = amp
         args["freq"] = freq
-<<<<<<< HEAD
         control_rz_lambda = c_props.control_rz_lambda.value
         target_rz_lambda = c_props.target_rz_lambda.value
         cz_gate_duration = round(t_gate / backend.dt)
         cz_wait_duration = round(args["t_w"] / backend.dt)
-=======
-        control_rz_lambda = _val(c_props.control_rz_lambda)
-        target_rz_lambda = _val(c_props.target_rz_lambda)
->>>>>>> 1cef768f76a3c4e09ac60a1d2928e54a07d83861
 
         cz_gate = wacqt_cz_gate(
             duration=cz_gate_duration, name="cz_pulse", numerical_args=args
