@@ -130,11 +130,17 @@ def cz(
         # FIXME: there is a an assumption how we choose target and control qubits for local phases
         # This should be replaced with proper explicit labels for target and control qubit ids per coupler
         # The assumption: when we have two qubits q_x and q_y coupled by a coupler
-        # the control qubit id from calibration config is even, target id is odd   
-        control_qubit_id_from_calibration = device_properties.qubits[control_qubit_idx].id 
-        is_control_qubit_even = control_qubit_id_from_calibration % 2 == 0 
-        cz_control_qubit_idx = control_qubit_idx if is_control_qubit_even else target_qubit_idx
-        cz_target_qubit_idx = target_qubit_idx if is_control_qubit_even else control_qubit_idx
+        # the control qubit id from calibration config is even, target id is odd
+        control_qubit_id_from_calibration = device_properties.qubits[
+            control_qubit_idx
+        ].id
+        is_control_qubit_even = control_qubit_id_from_calibration % 2 == 0
+        cz_control_qubit_idx = (
+            control_qubit_idx if is_control_qubit_even else target_qubit_idx
+        )
+        cz_target_qubit_idx = (
+            target_qubit_idx if is_control_qubit_even else control_qubit_idx
+        )
 
         control_qubit = device_properties.qubits[cz_control_qubit_idx]
         target_qubit = device_properties.qubits[cz_target_qubit_idx]
@@ -197,13 +203,9 @@ def cz(
             c_props.frequency.value,
             channel=control_channels[0],
         )
-        sched += pulse.Delay(
-            channel=control_channels[0], duration=cz_wait_duration
-        )
+        sched += pulse.Delay(channel=control_channels[0], duration=cz_wait_duration)
         sched += pulse.Play(cz_gate, control_channels[0])
-        sched += pulse.Delay(
-            channel=control_channels[0], duration=cz_wait_duration
-        )
+        sched += pulse.Delay(channel=control_channels[0], duration=cz_wait_duration)
 
         if control_rz_lambda and target_rz_lambda:
             sched += pulse.ShiftPhase(
@@ -244,13 +246,14 @@ def measure(
     for q in qubits:
         readout_resonator = readout_resonator_props[q]
         sched += pulse.SetFrequency(
-            readout_resonator.frequency.value,
-            channel=backend.measure_channel(q)
+            readout_resonator.frequency.value, channel=backend.measure_channel(q)
         )
-        sched += pulse.Delay(channel=backend.measure_channel(q),
-                             duration=round(4e-9/backend.dt))
-        sched += pulse.Delay(channel=backend.acquire_channel(q),
-                             duration=round(4e-9/backend.dt))
+        sched += pulse.Delay(
+            channel=backend.measure_channel(q), duration=round(4e-9 / backend.dt)
+        )
+        sched += pulse.Delay(
+            channel=backend.acquire_channel(q), duration=round(4e-9 / backend.dt)
+        )
         sched += pulse.Play(
             pulse.Constant(
                 amp=readout_resonator.pulse_amplitude.value,
