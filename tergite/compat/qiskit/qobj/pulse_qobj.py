@@ -39,11 +39,7 @@ from typing import List, Union
 import numpy
 from qiskit.utils import deprecate_func
 
-from .common import (
-    QobjDictField,
-    QobjExperimentHeader,
-    QobjHeader,
-)
+from .common import QobjDictField, QobjExperimentHeader, QobjHeader
 
 
 class QobjMeasurementOption:

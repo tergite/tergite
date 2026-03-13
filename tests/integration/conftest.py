@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+import functools
 import io
 import json
 import re
@@ -22,8 +23,8 @@ import requests_mock as rq_mock
 from requests import Request
 
 from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder as PulseQobj_encoder
-from tests.utils.env import is_end_to_end
 from tests.utils.fixtures import load_json_fixture
+from tests.utils.qobj_tools import extract_uploaded_qobj_from_request
 
 API_URL = "https://api.tergite.example"
 QUANTUM_COMPUTER_URL = "http://loke.tergite.example"
@@ -251,6 +252,10 @@ def mock_tergiterc() -> Path:
 @pytest.fixture
 def api_with_logfile(requests_mock):
     """A mock api fixture for tests that need to use TEST_JOB_RESULTS_LOGFILE."""
+
+    # per-test state
+    uploaded_qobj_by_backend: Dict[str, Any] = {}
+
     requests_mock.get(
         _BACKENDS_URL,
         headers={},
@@ -261,15 +266,27 @@ def api_with_logfile(requests_mock):
     requests_mock.post(
         _JOBS_REGISTER_URL_REGEX, headers={}, json=_mock_job_registration_handler
     )
-    # Job upload
-    requests_mock.post(_JOBS_UPLOAD_URL_REGEX, headers={}, status_code=200)
+
+    # Job upload / captures payload
+    requests_mock.post(
+        _JOBS_UPLOAD_URL_REGEX,
+        headers={},
+        content=functools.partial(
+            _mock_job_upload_handler, uploaded_qobj_by_backend=uploaded_qobj_by_backend
+        ),
+    )
 
     # Job details - use TEST_JOB_RESULTS_LOGFILE
     requests_mock.get(_JOBS_URL_REGEX, headers={}, json=_mock_job_details_handler)
 
     # Download file - use hdf5_content
     requests_mock.get(
-        _JOBS_LOGFILE_URL_REGEX, headers={}, content=_mock_logfile_download_handler
+        _JOBS_LOGFILE_URL_REGEX,
+        headers={},
+        content=functools.partial(
+            _mock_logfile_download_handler_local,
+            uploaded_qobj_by_backend=uploaded_qobj_by_backend,
+        ),
     )
 
     # job cancellation
@@ -352,37 +369,40 @@ def _mock_job_details_handler(request: Request, context: Any) -> Dict[str, Any]:
         raise rq_mock.NoMockAddress(request)
 
 
-def _mock_logfile_download_handler(request: Request, context: Any):
-    """Mock API handler for the logfile download endpoint
-
-    Args:
-        request: the request caught
-        context: the object with the extra context passed when creating mock e.g. headers
-
-    Returns:
-        the data to be returned on the given endpoint
+def _mock_logfile_download_handler_local(
+    request: Request, context: Any, uploaded_qobj_by_backend: Dict[str, Any]
+):
     """
-    matcher = _JOBS_LOGFILE_URL_REGEX.match(request.url)
-    try:
-        backend = matcher.group(1)
-        qobj = {**TEST_QOBJ_RESULTS_MAP[backend.lower()]}
-        hdf5_file = io.BytesIO()
-        with h5py.File(hdf5_file, "w") as hdf:
-            header_group = hdf.create_group("header")
-            qobj_metadata_group = header_group.create_group("qobj_metadata")
-
-            qobj_metadata_group.attrs["shots"] = qobj["config"]["shots"]
-            qobj_metadata_group.attrs["qobj_id"] = qobj["qobj_id"]
-            qobj_metadata_group.attrs["num_experiments"] = len(qobj["experiments"])
-
-            qobj_data_group = header_group.create_group("qobj_data")
-            experiment_data = json.dumps(qobj, cls=PulseQobj_encoder, indent="\t")
-            qobj_data_group.attrs["experiment_data"] = experiment_data
-
-        hdf5_file.seek(0)
-        return hdf5_file.read()
-    except (AttributeError, KeyError):
+    Serve a logfile where qobj_data.experiment_data matches what was uploaded for that backend.
+    Fallback to fixture qobj_results.json if nothing captured.
+    """
+    m = _JOBS_LOGFILE_URL_REGEX.match(request.url)
+    if not m:
         raise rq_mock.NoMockAddress(request)
+
+    backend = m.group(1).lower()
+
+    qobj = uploaded_qobj_by_backend.get(backend)
+    if qobj is None:
+        raise AssertionError(f"No captured qobj upload found for backend={backend}")
+
+    hdf5_file = io.BytesIO()
+    with h5py.File(hdf5_file, "w") as hdf:
+        header_group = hdf.create_group("header")
+        qobj_metadata_group = header_group.create_group("qobj_metadata")
+
+        # metadata extracted by extract_job_metadata(logfile)
+        qobj_metadata_group.attrs["shots"] = qobj["config"]["shots"]
+        qobj_metadata_group.attrs["qobj_id"] = qobj["qobj_id"]
+        qobj_metadata_group.attrs["num_experiments"] = len(qobj["experiments"])
+
+        # payload extracted by extract_job_qobj(logfile)
+        qobj_data_group = header_group.create_group("qobj_data")
+        experiment_data = json.dumps(qobj, cls=PulseQobj_encoder, indent="\t")
+        qobj_data_group.attrs["experiment_data"] = experiment_data
+
+    hdf5_file.seek(0)
+    return hdf5_file.read()
 
 
 def _mock_job_cancellation_handler(request: Request, context: Any):
@@ -402,3 +422,16 @@ def _mock_job_cancellation_handler(request: Request, context: Any):
         return None
     except (AttributeError, KeyError):
         raise rq_mock.NoMockAddress(request)
+
+
+def _mock_job_upload_handler(request: Request, context, uploaded_qobj_by_backend: dict):
+    m = _JOBS_UPLOAD_URL_REGEX.match(request.url)
+    if not m:
+        raise rq_mock.NoMockAddress(request)
+
+    backend = m.group(1).lower()
+    qobj = extract_uploaded_qobj_from_request(request)
+
+    uploaded_qobj_by_backend[backend] = qobj
+    context.status_code = 200
+    return b""

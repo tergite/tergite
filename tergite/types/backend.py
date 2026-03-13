@@ -25,7 +25,7 @@ import functools
 import logging
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -41,12 +41,20 @@ from qiskit.pulse.channels import (
 )
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
-from qiskit_ibm_runtime.models import BackendConfiguration
 
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
+from ..compat.qiskit_ibm_runtime.models import BackendConfiguration
 from ..services import api_client, device_compiler
-from ..utils.quantum_circuit import as_circuit_list, normalise_classical_registers
+from ..utils.qobj import (
+    derive_reg_len_from_qobj_experiment,
+    rewrite_acquire_memory_slots,
+)
+from ..utils.quantum_circuit import (
+    as_circuit_list,
+    extract_q_to_clbit_map,
+    normalise_classical_registers,
+)
 from .job import Job
 
 if TYPE_CHECKING:
@@ -256,7 +264,13 @@ class TergiteBackend(BackendV2):
             repr_list.append(f"  {attr}:\t{value}".expandtabs(30))
         return "\n".join(repr_list)
 
-    def __eq__(self, other: Any):
+    @property
+    def backend_id(self) -> tuple:
+        # fields that uniquely identify the remote backend
+        # FIXME: backend_name is unresolved reference.
+        return self.backend_name, self.backend_version, self.base_url
+
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TergiteBackend):
             return False
 
@@ -271,6 +285,9 @@ class TergiteBackend(BackendV2):
         other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
 
         return self_dict == other_dict
+
+    def __hash__(self) -> int:
+        return hash(self.backend_id)
 
 
 class OpenPulseBackend(TergiteBackend):
@@ -405,6 +422,19 @@ class OpenPulseBackend(TergiteBackend):
         if type(experiments) is not list:
             experiments = [experiments]
 
+        # capture circuit-level classical register metadata before converting to pulses
+        per_exp_meta: List[Dict[str, Any]] = []
+        for exp in experiments:
+            if isinstance(exp, QuantumCircuit):
+                per_exp_meta.append(
+                    {
+                        "c_reg_len": exp.num_clbits,
+                        "q_to_c": extract_q_to_clbit_map(exp),
+                    }
+                )
+            else:
+                per_exp_meta.append({"c_reg_len": None, "q_to_c": None})
+
         # convert all non-schedules to schedules
         experiments = [
             (
@@ -421,7 +451,7 @@ class OpenPulseBackend(TergiteBackend):
             warnings.filterwarnings(
                 "ignore", category=DeprecationWarning, module="qiskit"
             )
-            return assemble(
+            qobj = assemble(
                 experiments=experiments,
                 backend=self,
                 shots=self.options.shots,
@@ -429,6 +459,48 @@ class OpenPulseBackend(TergiteBackend):
                 meas_lo_freq=self.meas_lo_freq,
                 **kwargs,
             )
+
+        # patch qobj experiments with correct circuit-level classical width + mapping
+        max_slots = getattr(qobj.config, "memory_slots", 0) or 0
+        for i, qexp in enumerate(qobj.experiments):
+            c_reg_len = per_exp_meta[i]["c_reg_len"]
+            q_to_c = per_exp_meta[i]["q_to_c"]
+
+            if c_reg_len is None:
+                c_reg_len = derive_reg_len_from_qobj_experiment(qexp)
+
+            if c_reg_len is not None:
+                # set per-experiments width, that is going to be passed back to SDK with Results/Counts obj
+                if hasattr(qexp, "header") and qexp.header is not None:
+                    setattr(qexp.header, "memory_slots", int(c_reg_len))
+
+                    md = getattr(qexp.header, "metadata", None) or {}
+                    md.setdefault("tergite", {})
+                    md["tergite"]["c_reg_len"] = int(c_reg_len)
+
+                    if q_to_c:
+                        md["tergite"]["q_to_c"] = {
+                            str(k): int(v) for k, v in q_to_c.items()
+                        }
+                        # also convinient inverse view
+                        meas_by_clbit = [None] * int(c_reg_len)
+                        for q, c in q_to_c.items():
+                            if 0 <= c < int(c_reg_len):
+                                meas_by_clbit[c] = q
+                        md["tergite"]["meas_qubits_by-clbit"] = meas_by_clbit
+                    qexp.header.metadata = md
+
+                max_slots = max(max_slots, int(c_reg_len))
+
+            # enforce acquire memory slots to match circuit clbits
+            if q_to_c:
+                rewrite_acquire_memory_slots(qexp, q_to_c)
+
+        # keep qobj-wide memory_slots large enough for all experiments
+        if hasattr(qobj, "config") and qobj.config is not None:
+            setattr(qobj.config, "memory_slots", int(max_slots))
+
+        return qobj
 
     def _refresh_device_properties(self):
         """Refreshes the device properties for this backend

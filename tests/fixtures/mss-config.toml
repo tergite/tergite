@@ -7,7 +7,7 @@ mss_port = 8002
 # the port on which the websocket is running
 ws_port = 6532
 # environment reflect which environment the app is to run in.
-environment = "development"
+environment = "production"
 # the host the uvicorn runs on.
 # During testing auth on 127.0.0.1, set this to "127.0.0.1". default: "0.0.0.0"
 mss_host = "127.0.0.1"

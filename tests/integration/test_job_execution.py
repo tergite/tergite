@@ -29,10 +29,14 @@ from tergite import Job, OpenPulseBackend, Provider, Tergite
 from tergite.compat.qiskit.compiler.assembler import assemble
 from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
 from tergite.services.device_compiler.schedules import cz
+from tergite.utils.qobj import (
+    derive_reg_len_from_qobj_experiment,
+    rewrite_acquire_memory_slots,
+)
+from tergite.utils.quantum_circuit import extract_q_to_clbit_map
 from tests.utils.records import get_record
 from tests.utils.requests import MockRequest, get_request_list
 
-from ..utils.env import is_end_to_end
 from .conftest import (
     API_TOKEN,
     API_URL,
@@ -54,6 +58,41 @@ _INVALID_PARAMS = [
 ]
 
 
+import json
+from collections import OrderedDict
+from typing import Any, Dict, List
+
+TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
+HEADER_ORDER = ["backend_name", "backend_version"]
+CONFIG_ORDER = [
+    "meas_level",
+    "meas_return",
+    "pulse_library",
+    "qubit_lo_freq",
+    "meas_lo_freq",
+    "memory_slot_size",
+    "shots",
+    "memory_slots",
+    "memory",
+    "parametric_pulses",
+    "init_qubits",
+    "n_qubits",
+]
+EXP_HEADER_ORDER = ["memory_slots", "name", "metadata"]
+INSTR_ORDER = [
+    "name",
+    "t0",
+    "ch",
+    "phase",
+    "frequency",
+    "pulse_shape",
+    "parameters",
+    "duration",
+    "qubits",
+    "memory_slot",
+]
+
+
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_transpile_1q_gates(api, backend_name):
     """compiler.transpile(qc, backend=backend) returns backend-specific QuantumCircuits for 1-qubit ops"""
@@ -69,6 +108,7 @@ def test_transpile_1q_gates(api, backend_name):
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
+    _apply_tergite_qobj_patches(expected_qobj, [expected])
 
     assert (
         got_qobj == expected_qobj
@@ -90,6 +130,7 @@ def test_transpile_2q_gates(api, backend_name):
 
     got_qobj = backend.make_qobj(got)
     expected_qobj = backend.make_qobj(expected, qobj_id=got_qobj.qobj_id)
+    _apply_tergite_qobj_patches(expected_qobj, [expected])
 
     assert (
         got_qobj == expected_qobj
@@ -585,6 +626,7 @@ def _get_expected_job(
             qobj_id=qobj_id,
             **options,
         )
+    _apply_tergite_qobj_patches(qobj, [transpiled_circuit])
 
     job = Job(
         backend=backend,
@@ -617,6 +659,50 @@ def _get_test_2q_qiskit_circuit():
     qc.cx(0, 1)
     qc.measure_all()
     return qc
+
+
+def _apply_tergite_qobj_patches(qobj, circuits: List[QuantumCircuit]) -> None:
+    # build per-exp meta from original circuits
+    per_exp_meta: List[Dict[str, Any]] = []
+    for circ in circuits:
+        per_exp_meta.append(
+            {
+                "c_reg_len": circ.num_clbits,
+                "q_to_c": extract_q_to_clbit_map(circ),
+            }
+        )
+
+    max_slots = getattr(qobj.config, "memory_slots", 0) or 0
+
+    for i, qexp in enumerate(qobj.experiments):
+        c_reg_len = per_exp_meta[i]["c_reg_len"]
+        q_to_c = per_exp_meta[i]["q_to_c"]
+
+        if c_reg_len is None:
+            c_reg_len = derive_reg_len_from_qobj_experiment(qexp)
+
+        if c_reg_len is not None and getattr(qexp, "header", None) is not None:
+            setattr(qexp.header, "memory_slots", int(c_reg_len))
+
+            md = getattr(qexp.header, "metadata", None) or {}
+            md.setdefault("tergite", {})
+            md["tergite"]["c_reg_len"] = int(c_reg_len)
+
+            if q_to_c:
+                md["tergite"]["q_to_c"] = {str(k): int(v) for k, v in q_to_c.items()}
+                meas_by_clbit = [None] * int(c_reg_len)
+                for q, c in q_to_c.items():
+                    if 0 <= c < int(c_reg_len):
+                        meas_by_clbit[c] = q
+                md["tergite"]["meas_qubits_by-clbit"] = meas_by_clbit
+
+            qexp.header.metadata = md
+            max_slots = max(max_slots, int(c_reg_len))
+
+        if q_to_c:
+            rewrite_acquire_memory_slots(qexp, q_to_c)
+
+    setattr(qobj.config, "memory_slots", int(max_slots))
 
 
 def _get_expected_1q_transpiled_circuit(
@@ -660,10 +746,11 @@ def _get_expected_1q_transpiled_circuit(
     rx_block.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(
+            pulse.Drag(
                 duration=round(qubit_0.pi_pulse_duration.value / backend.dt),
                 amp=round(phase / np.pi * qubit_0.pi_pulse_amplitude.value, 10),
                 sigma=round(qubit_0.pulse_sigma.value / backend.dt),
+                beta=round(qubit_0.pi_pulse_motzoi.value, 10),
                 name="RX q0",
             ),
             pulse.DriveChannel(0),
@@ -742,9 +829,10 @@ def _get_expected_2q_transpiled_circuit(
     rx_block_0.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(
+            pulse.Drag(
                 duration=round(qubit_0.pi_pulse_duration.value / backend.dt),
                 amp=round(phase / np.pi * qubit_0.pi_pulse_amplitude.value, 10),
+                beta=round(qubit_0.pi_pulse_motzoi.value, 10),
                 sigma=round(qubit_0.pulse_sigma.value / backend.dt),
                 name="RX q0",
             ),
@@ -764,9 +852,10 @@ def _get_expected_2q_transpiled_circuit(
     rx_block_1.append(
         pulse.Play(
             # amp represents the magnitude of the complex amplitude and can't be complex
-            pulse.Gaussian(
+            pulse.Drag(
                 duration=round(qubit_1.pi_pulse_duration.value / backend.dt),
                 amp=round(phase / np.pi * qubit_1.pi_pulse_amplitude.value, 10),
+                beta=round(qubit_0.pi_pulse_motzoi.value, 10),
                 sigma=round(qubit_1.pulse_sigma.value / backend.dt),
                 name="RX q1",
             ),

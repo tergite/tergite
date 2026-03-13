@@ -39,9 +39,7 @@ from qiskit.pulse import channels, instructions, library, schedule, transforms
 from .. import qobj
 from ..qobj import converters
 from ..qobj import utils as qobj_utils
-from ..qobj.converters.pulse_instruction import (
-    ParametricPulseShapes,
-)
+from ..qobj.converters.pulse_instruction import ParametricPulseShapes
 from .run_config import RunConfig
 
 

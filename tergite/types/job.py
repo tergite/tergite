@@ -234,11 +234,13 @@ class Job(JobV1):
             meas_level = self.payload.config.meas_level
             has_counts = meas_level == 2
 
-            # FIXME: There is an assumption that classical register length is equal to n_qubits
-            # Instead we should catch classical register size before we convert circuit to schedule and save it
+            # Prefer the experiment header width, then qobj config, then n_qubits
+            default_slots = (
+                getattr(self.payload.config, "memory_slots", None) or n_qubits
+            )
             for exp in self.payload.experiments:
-                # headers are dataclasses; set attribute directly
-                setattr(exp.header, "memory_slots", n_qubits)
+                if getattr(exp.header, "memory_slots", None) is None:
+                    setattr(exp.header, "memory_slots", default_slots)
 
             self._result = Result(
                 backend_name=backend.name,
