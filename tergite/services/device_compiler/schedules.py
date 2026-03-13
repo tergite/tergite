@@ -210,13 +210,13 @@ def cz(
         if control_rz_lambda and target_rz_lambda:
             sched += pulse.ShiftPhase(
                 control_rz_lambda,
-                channel=backend.drive_channel(control_qubit_idx),
-                name=f"RZ q{control_qubit_idx}",
+                channel=backend.drive_channel(cz_control_qubit_idx),
+                name=f"RZ q{cz_control_qubit_idx}",
             )
             sched += pulse.ShiftPhase(
                 target_rz_lambda,
-                channel=backend.drive_channel(target_qubit_idx),
-                name=f"RZ q{target_qubit_idx}",
+                channel=backend.drive_channel(cz_target_qubit_idx),
+                name=f"RZ q{cz_target_qubit_idx}",
             )
 
     return sched
