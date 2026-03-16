@@ -17,10 +17,10 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 - Adapted qiskit_ibm_runtime models class for compatibility due to deprecation
 - Changed rxy pulse to DRAG pulse and add motzoi param from calibration
-- Fixed CZ gate target and control qubit assignment in accordance with parity of qubit id number in calibration 
 
 ### Fixed 
 
+- Fixed CZ gate target and control qubit assignment in accordance with parity of qubit id number in calibration 
 - Fix measurement_level=2 using c_reg_len in the job result method 
 
 ## [2025.09.0] - 2025-10-02
