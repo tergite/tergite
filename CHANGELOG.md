@@ -7,9 +7,21 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
-- Adapt qiskit_ibm_runtime models class for compatibility due to deprecation
-- Change rxy pulse to DRAG pulse and add motzoi param from calibration
-- Fix CZ gate target and control qubit assignment in accordance with parity of qubit id number in calibration 
+## [2025.12.0] - 2026-03-16
+
+### Added 
+
+- Add qobj fields c_reg_len and q_to_c to preserve circuit-level details in qobj for proper bitstring composition
+
+### Changed
+
+- Adapted qiskit_ibm_runtime models class for compatibility due to deprecation
+- Changed rxy pulse to DRAG pulse and add motzoi param from calibration
+
+### Fixed 
+
+- Fixed CZ gate target and control qubit assignment in accordance with parity of qubit id number in calibration 
+- Fix measurement_level=2 using c_reg_len in the job result method 
 
 ## [2025.09.0] - 2025-10-02
 
