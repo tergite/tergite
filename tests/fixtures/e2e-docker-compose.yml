@@ -11,7 +11,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'wget --header="Authorization: Bearer $MSS_APP_TOKEN" --quiet --tries=1 --spider http://mss:8002/jobs || exit 1',
+          'wget --header="Authorization: Bearer $MSS_APP_TOKEN" --quiet --tries=1 --spider http://mss:8002/devices/ || exit 1',
         ]
       interval: 10s
       timeout: 5s
