@@ -17,16 +17,19 @@ mss_host = "127.0.0.1"
 name = "testing"
 # database URI
 url = "mongodb://tergite-mongo:27017"
+redis_url = "redis://tergite-redis:6379/8"
 
 [[backends]]
 name = "qiskit_pulse_2q"
 # the URL where this backend is running
 url = "http://qiskit_pulse_2q:8000"
+public_key_path = "bcc_certs/public-qiskit-pulse-2q-key.pem"
 
 [[backends]]
 name = "qiskit_pulse_1q"
 # the URL where this backend is running
 url = "http://qiskit_pulse_1q:8000"
+public_key_path = "bcc_certs/public-qiskit-pulse-1q-key.pem"
 
 [auth]
 # turn auth OFF or ON, default=true

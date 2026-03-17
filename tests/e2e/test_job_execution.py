@@ -1,13 +1,11 @@
 """End-to-end tests for job execution"""
 
 import numpy as np
-import pytest
 from qiskit import circuit, compiler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from tergite import Job, Provider
-from tests.utils.env import is_end_to_end
 
 
 def test_simulator_1_qubit_gate(backend_provider: Provider):
