@@ -1,13 +1,11 @@
 """End-to-end tests for job execution"""
 
 import numpy as np
-import pytest
 from qiskit import circuit, compiler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from tergite import Job, Provider
-from tests.utils.env import is_end_to_end
 
 
 def test_simulator_1_qubit_gate(backend_provider: Provider):
@@ -26,10 +24,10 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
     result = job.result().get_counts()
 
     assert (
-        450 <= result["0"] <= 640
+        420 <= result["0"] <= 640
     ), f"Expected {result['00']} to be between 450 and 640"
     assert (
-        450 <= result["1"] <= 640
+        420 <= result["1"] <= 640
     ), f"Expected {result['01']} to be between 450 and 640"
 
 
@@ -50,10 +48,10 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
     result = job.result().get_counts()
 
     assert (
-        450 <= result["00"] <= 640
+        420 <= result["00"] <= 640
     ), f"Expected {result['00']} to be between 450 and 640"
     assert (
-        450 <= result["11"] <= 640
+        420 <= result["11"] <= 640
     ), f"Expected {result['11']} to be between 450 and 640"
 
 

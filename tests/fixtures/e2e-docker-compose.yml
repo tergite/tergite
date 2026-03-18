@@ -11,7 +11,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'wget --header="Authorization: Bearer $MSS_APP_TOKEN" --quiet --tries=1 --spider http://mss:8002/jobs || exit 1',
+          'wget --header="Authorization: Bearer $MSS_APP_TOKEN" --quiet --tries=1 --spider http://mss:8002/devices/ || exit 1',
         ]
       interval: 10s
       timeout: 5s
@@ -99,10 +99,11 @@ services:
       JWT_SECRET: "dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7"
       CORS_ORIGINS: "127.0.0.1,localhost"
     volumes:
-      - ./.env/:/code/.env:ro
-      - ./qiskit_pulse_1q.toml/:/code/backend_config.toml:ro
-      - ./qiskit_pulse_1q.seed.toml/:/code/calibration.seed.toml:ro
-      - ./public-mss-key.pem/:/code/public-mss-key.pem:ro
+      - ./.env:/code/.env:ro
+      - ./qiskit_pulse_1q.toml:/code/backend_config.toml:ro
+      - ./qiskit_pulse_1q.seed.toml:/code/calibration.seed.toml:ro
+      - ./private-qiskit-pulse-1q-key.pem:/code/private-bcc-key.pem:ro
+      - ./public-mss-key.pem:/code/public-mss-key.pem:ro
       - ./qiskit_pulse_1q_booking_db.db:/code/booking_db.db:rw
     networks:
       - tergite-e2e
@@ -144,10 +145,11 @@ services:
       JWT_SECRET: "e9fae9efa7c3ff10348acde323baa5273db8021712ecb1f59fdf0e8336240fb7d70c6d8d"
       CORS_ORIGINS: "127.0.0.1,localhost"
     volumes:
-      - ./.env/:/code/.env:ro
-      - ./qiskit_pulse_2q.toml/:/code/backend_config.toml:ro
-      - ./qiskit_pulse_2q.seed.toml/:/code/calibration.seed.toml:ro
-      - ./public-mss-key.pem/:/code/public-mss-key.pem:ro
+      - ./.env:/code/.env:ro
+      - ./qiskit_pulse_2q.toml:/code/backend_config.toml:ro
+      - ./qiskit_pulse_2q.seed.toml:/code/calibration.seed.toml:ro
+      - ./private-qiskit-pulse-2q-key.pem:/code/private-bcc-key.pem:ro
+      - ./public-mss-key.pem:/code/public-mss-key.pem:ro
       - ./qiskit_pulse_2q_booking_db.db:/code/booking_db.db:rw
     networks:
       - tergite-e2e
