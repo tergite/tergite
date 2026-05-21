@@ -80,6 +80,8 @@ services:
     build:
       context: ../tergite-backend
       dockerfile: Dockerfile
+      args:
+        DEPS_GROUP: "qiskit"
     logging:
       driver: ${LOGGING_DRIVER}
     ports:
@@ -109,12 +111,6 @@ services:
       - tergite-e2e
     env_file:
       - .env
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
 
   qiskit_pulse_2q:
     restart: always
@@ -155,12 +151,6 @@ services:
       - tergite-e2e
     env_file:
       - .env
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
 
 networks:
   tergite-e2e:
