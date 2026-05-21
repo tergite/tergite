@@ -80,6 +80,8 @@ services:
     build:
       context: ../tergite-backend
       dockerfile: Dockerfile
+      args:
+        DEPS_GROUP: "qiskit"
     logging:
       driver: ${LOGGING_DRIVER}
     ports:
