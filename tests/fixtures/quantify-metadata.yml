@@ -1,0 +1,24 @@
+clusterA:
+  instrument_type: Cluster
+  ip_address: 192.0.2.141
+  is_dummy: true
+  modules:
+    "2":
+      instrument_type: QCM_RF
+    "3":
+      instrument_type: QCM_RF
+    "16":
+      instrument_type: QRM_RF
+
+# instrument name
+spi_rack:
+  # another allowed top-level type
+  instrument_type: SPI-Rack
+  # on Posix port looks like this
+  port: "/dev/ttyACM0"
+  is_dummy: true
+
+  coupler_spi_mapping:
+    u0:          
+      spi_module_number: 1
+      dac_name: "dac0"

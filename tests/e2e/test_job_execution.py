@@ -94,3 +94,21 @@ def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
             f"Clusters for qubit {qubit} are not distinct enough "
             f"(silhouette ={sil:.2f} ≤ 0.25)"
         )
+
+
+def test_dummy_quantify_device(backend_provider: Provider):
+    """Can run summy jobs on the dummy device"""
+    backend = backend_provider.get_backend("Loke")
+    backend.set_options(shots=1024)
+
+    qc = circuit.QuantumCircuit(1, 1)
+    qc.x(0)
+    qc.h(0)
+    qc.measure_all()
+
+    tc = compiler.transpile(qc, backend=backend)
+    job: Job = backend.run(tc, meas_level=2, meas_return="single")
+    job.wait_for_final_state(timeout=100)
+    result = job.result().get_counts()
+
+    assert result["0"] == 1024, f"Expected {result['00']} to be 1024"
