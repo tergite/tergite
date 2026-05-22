@@ -1,0 +1,4 @@
+[q0_q1]
+spi_module_number = 1
+dac_name = "dac1"
+edge_group = 1

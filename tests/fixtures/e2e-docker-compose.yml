@@ -76,7 +76,7 @@ services:
         condition: service_healthy
       tergite-redis:
         condition: service_healthy
-    image: "tergite/tergite-backend-e2e:sdk-e2e"
+    image: "tergite/tergite-backend-e2e:sdk-e2e-qiskit"
     build:
       context: ../tergite-backend
       dockerfile: Dockerfile
@@ -121,7 +121,7 @@ services:
         condition: service_healthy
       tergite-redis:
         condition: service_healthy
-    image: "tergite/tergite-backend-e2e:sdk-e2e"
+    image: "tergite/tergite-backend-e2e:sdk-e2e-qiskit"
     logging:
       driver: ${LOGGING_DRIVER}
     ports:
@@ -147,6 +147,62 @@ services:
       - ./private-qiskit-pulse-2q-key.pem:/code/private-bcc-key.pem:ro
       - ./public-mss-key.pem:/code/public-mss-key.pem:ro
       - ./qiskit_pulse_2q_booking_db.db:/code/booking_db.db:rw
+    networks:
+      - tergite-e2e
+    env_file:
+      - .env
+
+  loke:
+    restart: always
+    platform: linux/amd64
+    depends_on:
+      qiskit_pulse_1q:
+        condition: service_healthy
+      mss:
+        condition: service_healthy
+      tergite-redis:
+        condition: service_healthy
+    image: "tergite/tergite-backend-e2e:sdk-e2e-quantify"
+    pull_policy: never
+    build:
+      context: ../tergite-backend
+      dockerfile: Dockerfile
+      args:
+        DEPS_GROUP: "quantify"
+    logging:
+      driver: ${LOGGING_DRIVER}
+    ports:
+      - "8003:8000"
+    environment:
+      MSS_MACHINE_ROOT_URL: "http://mss:8002"
+      MSS_PORT: 8002
+      BCC_MACHINE_ROOT_URL: "http://localhost:8000"
+      BCC_PORT: 8000
+      EXECUTOR_TYPE: "quantify"
+      DEFAULT_PREFIX: "Loke"
+      MAX_TIME_SLOT_LENGTH: 7200
+      MIN_TIME_SLOT_LENGTH: 1200
+      MAX_SLOTS_PER_DAY: 20
+      MAX_IDLE_TIME: 100
+      MSS_APP_TOKEN: ${MSS_APP_TOKEN}
+      APP_SETTINGS: "production"
+      IS_AUTH_ENABLED: "True"
+      REDIS_PORT: 6379
+      REDIS_HOST: "tergite-redis"
+      JWT_SECRET: "e9fae9efa7c3ff10348acde323baa5273db8021712ecb1f59fdf0e8336240fb7d70c6d8d"
+      CORS_ORIGINS: "127.0.0.1,localhost"
+    volumes:
+      - ./.env:/code/.env:ro
+      - ./loke.toml:/code/backend_config.toml:ro
+      - ./loke.seed.toml:/code/calibration.seed.toml:ro
+      - ./public-mss-key.pem:/code/public-mss-key.pem:ro
+      - ./private-loke-key.pem:/code/private-bcc-key.pem:ro
+      - ./quantify-config.json:/code/quantify-config.json:ro
+      - ./quantify-metadata.yml:/code/quantify-metadata.yml:ro
+      - ./device_config.calib.toml:/code/device_config.calib.toml:ro
+      - ./node_config.calib.toml:/code/node_config.calib.toml:ro
+      - ./spi_config.calib.toml:/code/spi_config.calib.toml:ro
+      - ./loke_booking_db.db:/code/booking_db.db:rw
     networks:
       - tergite-e2e
     env_file:
