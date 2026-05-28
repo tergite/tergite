@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tergite Quantum Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #060810;
+  --surface:  #0b0f1c;
+  --surface2: #10162a;
+  --border:   rgba(120,160,255,0.1);
+  --border2:  rgba(120,160,255,0.22);
+  --init:     hsl(210,90%,62%);
+  --init-dim: hsl(210,90%,28%);
+  --init-g:   hsla(210,90%,62%,0.13);
+  --ent:      hsl(168,80%,50%);
+  --ent-dim:  hsl(168,80%,20%);
+  --ent-g:    hsla(168,80%,50%,0.13);
+  --rnd:      hsl(38,95%,58%);
+  --rnd-dim:  hsl(38,95%,22%);
+  --rnd-g:    hsla(38,95%,58%,0.13);
+  --cust:     hsl(280,70%,65%);
+  --cust-dim: hsl(280,70%,24%);
+  --cust-g:   hsla(280,70%,65%,0.13);
+  --text:     #bdd0ee;
+  --muted:    #4a607f;
+  --mono:     'Space Mono', monospace;
+  --sans:     'Syne', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 2rem 1rem 4rem;
+  position: relative; overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(80,140,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80,140,255,0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+}
+
+.app {
+  width: 100%; max-width: 1280px;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  position: relative;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1.2rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+}
+.logo { display: flex; align-items: center; gap: 10px; padding-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1.5px solid rgba(120,160,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-mark::after {
+  content:''; width:7px; height:7px; border-radius:50%;
+  background: rgba(120,160,255,0.8); box-shadow: 0 0 8px rgba(120,160,255,0.6);
+}
+.logo-text { font-family: var(--mono); font-size: 0.76rem; font-weight:700; color:#fff; letter-spacing:.1em; }
+.logo-sub  { font-size: 0.62rem; color: var(--muted); }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.field input {
+  font-family: var(--mono); font-size: 0.76rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); padding: 6px 9px;
+  outline: none; width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+}
+.field input:focus { border-color: rgba(120,160,255,.4); box-shadow: 0 0 0 3px rgba(80,140,255,.07); }
+.field input[type=password] { letter-spacing:.1em; }
+
+.divider { height:1px; background: var(--border); }
+
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 0.66rem; color: var(--muted);
+  padding: 7px 9px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); margin-top: auto;
+}
+.dot { width:6px; height:6px; border-radius:50%; background: var(--muted); flex-shrink:0; }
+.dot.running { background: var(--rnd); animation: blink 1.1s ease-in-out infinite; }
+.dot.done    { background: var(--ent); }
+.dot.error   { background: #ff5a5a; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ── MAIN ── */
+.main { padding: 1.6rem; display: flex; flex-direction: column; gap: 1.2rem; }
+
+/* ── BUTTONS ── */
+.actions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 9px; }
+
+.action-btn {
+  border: none; border-radius: 10px; padding: 0;
+  cursor: pointer; overflow: hidden;
+  font-family: var(--sans);
+  transition: transform .15s, box-shadow .2s;
+  text-align: left;
+}
+.action-btn:hover { transform: translateY(-2px); }
+.action-btn:active { transform: scale(.97); }
+
+.btn-inner {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 1.1rem 1.2rem 1rem; border-radius: 10px; border: 1px solid;
+  height: 100%; position: relative; overflow: hidden;
+  transition: background .2s;
+}
+.btn-inner::before {
+  content:''; position:absolute;
+  width:100px; height:100px; border-radius:50%;
+  top:-30px; right:-20px; opacity:.1;
+  transition: opacity .2s, transform .3s;
+}
+.action-btn:hover .btn-inner::before { opacity:.2; transform:scale(1.3); }
+
+.btn-key {
+  position:absolute; top:8px; right:10px;
+  font-family:var(--mono); font-size:.58rem; opacity:.35;
+  border:1px solid currentColor; padding:1px 4px; border-radius:3px;
+}
+.btn-icon { font-size:1.4rem; margin-bottom:.55rem; line-height:1; }
+.btn-name { font-size:.85rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; margin-bottom:4px; }
+.btn-desc { font-size:.68rem; line-height:1.4; opacity:.65; }
+
+.btn-init .btn-inner { background:var(--init-g); border-color:var(--init-dim); color:var(--init); }
+.btn-init .btn-inner::before { background:var(--init); }
+.btn-init:hover .btn-inner { background:hsla(210,90%,62%,.2); border-color:var(--init); }
+.btn-init:hover { box-shadow: 0 0 24px hsla(210,90%,62%,.18); }
+
+.btn-ent .btn-inner { background:var(--ent-g); border-color:var(--ent-dim); color:var(--ent); }
+.btn-ent .btn-inner::before { background:var(--ent); }
+.btn-ent:hover .btn-inner { background:hsla(168,80%,50%,.2); border-color:var(--ent); }
+.btn-ent:hover { box-shadow: 0 0 24px hsla(168,80%,50%,.18); }
+
+.btn-rnd .btn-inner { background:var(--rnd-g); border-color:var(--rnd-dim); color:var(--rnd); }
+.btn-rnd .btn-inner::before { background:var(--rnd); }
+.btn-rnd:hover .btn-inner { background:hsla(38,95%,58%,.2); border-color:var(--rnd); }
+.btn-rnd:hover { box-shadow: 0 0 24px hsla(38,95%,58%,.18); }
+
+.btn-cust .btn-inner { background:var(--cust-g); border-color:var(--cust-dim); color:var(--cust); }
+.btn-cust .btn-inner::before { background:var(--cust); }
+.btn-cust:hover .btn-inner { background:hsla(280,70%,65%,.2); border-color:var(--cust); }
+.btn-cust:hover { box-shadow: 0 0 24px hsla(280,70%,65%,.18); }
+
+.action-btn.loading .btn-inner::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.05), transparent);
+  animation: shimmer 1.1s linear infinite;
+}
+@keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+
+/* ── CUSTOM EDITOR ── */
+.editor-panel {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--cust-dim);
+  border-radius: 10px; overflow: hidden;
+}
+.editor-panel.open { display: flex; flex-direction: column; }
+.editor-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .7rem 1rem; border-bottom: 1px solid var(--border);
+}
+.editor-title { font-family: var(--mono); font-size: .68rem; color: var(--cust); letter-spacing:.08em; }
+.editor-actions { display: flex; gap: 6px; }
+.editor-btn {
+  font-family: var(--mono); font-size: .68rem;
+  padding: 4px 12px; border-radius: 5px; cursor: pointer;
+  border: 1px solid; transition: background .15s;
+}
+.editor-btn.run  { color: var(--cust); border-color: var(--cust-dim); background: var(--cust-g); }
+.editor-btn.run:hover { background: hsla(280,70%,65%,.22); border-color: var(--cust); }
+.editor-btn.close { color: var(--muted); border-color: var(--border); background: transparent; }
+.editor-btn.close:hover { background: var(--surface); }
+textarea#code-editor {
+  font-family: var(--mono); font-size: .76rem; line-height: 1.7;
+  background: var(--bg); color: var(--text);
+  border: none; outline: none; resize: none;
+  padding: 1rem 1.1rem; width: 100%; height: 210px;
+  tab-size: 4;
+}
+
+/* ── CIRCUIT DISPLAY ── */
+.circuit-panel {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.1rem .85rem; overflow-x: auto;
+}
+.circuit-panel.visible { display: block; }
+.circuit-label { font-size:.6rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:8px; }
+
+/* ── BOTTOM GRID ── */
+.bottom-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
+
+.pane {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.2rem;
+}
+.pane-label { font-size:.6rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:8px; }
+
+.log-body {
+  font-family: var(--mono); font-size: .7rem; line-height:1.75;
+  color: var(--muted); height: 100px; overflow-y: auto;
+}
+.log-body::-webkit-scrollbar { width:3px; }
+.log-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+.log-line { white-space:pre; }
+.log-line.c-init { color: var(--init); }
+.log-line.c-ent  { color: var(--ent); }
+.log-line.c-rnd  { color: var(--rnd); }
+.log-line.c-cust { color: var(--cust); }
+.log-line.warn   { color: var(--rnd); }
+.log-line.info   { color: var(--init); }
+.log-line.step   { color: #fff; font-weight:700; }
+.log-line.ok     { color: #3dffb0; }
+.log-line.err    { color: #ff5a5a; }
+
+.result-body { min-height:280px; overflow-x:auto; overflow-y:hidden; }
+.result-body svg { display:block; }
+
+.empty-state {
+  height:200px; display:flex; align-items:center; justify-content:center;
+  text-align:center; font-family:var(--mono); font-size:.68rem; color:var(--muted); line-height:1.7;
+}
+.bar-row { display:flex; align-items:center; gap:8px; }
+.bar-state { font-family:var(--mono); font-size:.69rem; min-width:58px; color:var(--text); }
+.bar-track { flex:1; height:14px; background:rgba(255,255,255,.04); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; transition: width .9s cubic-bezier(.4,0,.2,1); }
+.bar-pct { font-family:var(--mono); font-size:.66rem; color:var(--muted); min-width:40px; text-align:right; }
+
+@keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+.bar-row { animation: fadein .25s ease forwards; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark"></div>
+      <div>
+        <div class="logo-text">TERGITE</div>
+        <div class="logo-sub">Quantum Runner</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">API Token</div>
+      <input type="password" id="api-key" placeholder="Paste token…">
+    </div>
+    <div class="field">
+      <div class="field-label">API URL</div>
+      <input type="text" id="api-url" value="https://api.qpu.wacqt.se/">
+    </div>
+    <div class="field">
+      <div class="field-label">Backend</div>
+      <div style="display:flex;gap:5px;">
+        <input type="text" id="backend" placeholder="click ⟳ to fetch" style="flex:1;min-width:0;">
+        <button id="fetch-btn" onclick="fetchBackends()" title="Fetch available backends"
+          style="font-family:var(--mono);font-size:.9rem;padding:0 9px;border-radius:6px;
+                 border:1px solid var(--border2);background:var(--surface2);color:var(--accent2);
+                 cursor:pointer;flex-shrink:0;transition:background .15s;"
+          onmouseover="this.style.background='var(--surface)'"
+          onmouseout="this.style.background='var(--surface2)'">⟳</button>
+      </div>
+      <div id="backend-chips" style="display:none;margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+    </div>
+    <div class="field">
+      <div class="field-label">Shots</div>
+      <input type="number" id="shots" value="1024" min="1" max="8192">
+    </div>
+    <div class="field">
+      <div class="field-label">Qubits</div>
+      <input type="number" id="qubit-input" value="5" min="1" max="25"
+        oninput="setQubits(Math.min(25,Math.max(1,parseInt(this.value)||1)))"
+        style="width:100%;">
+      <div style="font-size:.6rem;color:var(--muted);margin-top:3px;font-family:var(--mono);">
+        <span id="qubit-states-info">5 qubits → 32 states</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="status-pill">
+      <div class="dot" id="dot"></div>
+      <span id="status-text">Idle — ready</span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- 4 Action buttons -->
+    <div class="actions">
+      <button class="action-btn btn-init" onclick="handleAction('init')">
+        <div class="btn-inner">
+          <span class="btn-key">I</span>
+          <div class="btn-icon">⟩0⟩</div>
+          <div class="btn-name">Initialize</div>
+          <div class="btn-desc">Reset all qubits to |0⟩</div>
+        </div>
+      </button>
+
+      <button class="action-btn btn-rnd" onclick="handleAction('rnd')">
+        <div class="btn-inner">
+          <span class="btn-key">R</span>
+          <div class="btn-icon">⚄</div>
+          <div class="btn-name">Random</div>
+          <div class="btn-desc">H on every qubit, then measure</div>
+        </div>
+      </button>
+
+      <button class="action-btn btn-ent" onclick="handleAction('ent')">
+        <div class="btn-inner">
+          <span class="btn-key">E</span>
+          <div class="btn-icon">⟨ψ|</div>
+          <div class="btn-name">Entangle</div>
+          <div class="btn-desc">GHZ state via H + CNOT chain</div>
+        </div>
+      </button>
+
+      <button class="action-btn btn-cust" onclick="toggleEditor()">
+        <div class="btn-inner">
+          <span class="btn-key">C</span>
+          <div class="btn-icon">&lt;/&gt;</div>
+          <div class="btn-name">Custom</div>
+          <div class="btn-desc">Edit &amp; run your own circuit</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Custom code editor -->
+    <div class="editor-panel" id="editor-panel">
+      <div class="editor-header">
+        <span class="editor-title">custom circuit — edit below</span>
+        <div class="editor-actions">
+          <button class="editor-btn run" onclick="handleAction('cust')">▶ Run Circuit</button>
+          <button class="editor-btn close" onclick="toggleEditor()">✕ Close</button>
+        </div>
+      </div>
+      <textarea id="code-editor" spellcheck="false">qc = circuit.QuantumCircuit(5, 5)
+qc.h(0)
+qc.cx(0, 1)
+qc.cx(1, 2)
+qc.cx(2, 3)
+qc.cx(3, 4)
+qc.measure(0, 0)
+qc.measure(1, 1)
+qc.measure(2, 2)
+qc.measure(3, 3)
+qc.measure(4, 4)</textarea>
+    </div>
+
+    <!-- Circuit display (shown after clicking) -->
+    <div class="circuit-panel" id="circuit-panel">
+      <div class="circuit-label" id="circuit-label">—</div>
+      <svg id="circuit-svg" viewBox="0 0 580 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:380px;"></svg>
+    </div>
+
+    <!-- Log + Histogram -->
+    <div class="bottom-grid">
+      <div class="pane">
+        <div class="pane-label">Execution Log</div>
+        <div class="log-body" id="log">
+          <div class="log-line" style="color:#1e2d45">── Select an operation above ──</div>
+        </div>
+      </div>
+      <div class="pane">
+        <div class="pane-label">Measurement Results</div>
+        <canvas id="qc-anim" style="display:none;width:100%;height:280px;border-radius:6px;background:#000;"></canvas>
+        <div class="result-body" id="results">
+          <div class="empty-state">No results yet.<br>Run a circuit to see histogram.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const COLORS = { init:'#5a9fff', ent:'#3dffb0', rnd:'#ffb347', cust:'#b97fff' };
+
+// ── Qubit state ──────────────────────────────────────────
+let currentQubits = 5;
+
+function getQubits() { return currentQubits; }
+
+function getAllStates(n) {
+  return Array.from({length: 1 << n}, (_, i) => i.toString(2).padStart(n, '0'));
+}
+
+function setQubits(n) {
+  n = Math.min(25, Math.max(1, n || 1));
+  currentQubits = n;
+  const stateCount = 1 << n;
+  document.getElementById('qubit-states-info').textContent =
+    `${n} qubit${n>1?'s':''} → ${stateCount.toLocaleString()} states`;
+  updateEditorTemplate(n);
+}
+
+function updateEditorTemplate(n) {
+  const measures = Array.from({length:n},(_,i)=>`qc.measure(${i}, ${i})`).join('\n');
+  const cx = n > 1 ? Array.from({length:n-1},(_,i)=>`qc.cx(${i}, ${i+1})`).join('\n') : '';
+  document.getElementById('code-editor').value =
+    `qc = circuit.QuantumCircuit(${n}, ${n})\nqc.h(0)\n${cx ? cx+'\n' : ''}${measures}`;
+}
+
+// ── Dynamic circuit SVG builders ─────────────────────────
+const WIRE_SPACING = 36;
+const WIRE_START_Y  = 28;
+const WIRE_LEFT     = 44;
+
+function wireY(i) { return WIRE_START_Y + i * WIRE_SPACING; }
+
+function buildBaseStyle() {
+  return `<style>.qw{stroke:rgba(80,140,255,.28);stroke-width:1.2} .ql{font-size:12px;fill:#4a607f;font-family:'Space Mono',monospace} .gl{font-size:11px;fill:#5a9fff;font-family:'Space Mono',monospace;font-weight:700} .gl2{font-size:11px;fill:#d4932a;font-family:'Space Mono',monospace;font-weight:700} .ml{font-size:9px;fill:#d4932a;font-family:'Space Mono',monospace}</style>`;
+}
+
+function buildWiresAndLabels(n, wireEnd) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const y = wireY(i);
+    s += `<line class="qw" x1="${WIRE_LEFT}" y1="${y}" x2="${wireEnd}" y2="${y}"/>`;
+    const sub = i < 4 ? ['₀','₁','₂','₃','₄'][i] : i;
+    s += `<text class="ql" x="8" y="${y+4}">q${sub}</text>`;
+  }
+  return s;
+}
+
+function buildMeasures(n, x, color) {
+  const fc = color || 'rgba(255,179,71,.1)';
+  const sc = color ? 'rgba(79,143,255,.45)' : 'rgba(255,179,71,.5)';
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const y = wireY(i) - 11;
+    s += `<rect x="${x}" y="${y}" width="24" height="22" rx="4" fill="${fc}" stroke="${sc}" stroke-width="1"/>`;
+    s += `<text x="${x+12}" y="${y+14}" text-anchor="middle" class="ml">M</text>`;
+  }
+  return s;
+}
+
+function buildCircuitSVG(mode, n) {
+  const totalH = WIRE_START_Y + (n - 1) * WIRE_SPACING + WIRE_START_Y;
+  let inner = buildBaseStyle();
+
+  if (mode === 'init') {
+    const wireEnd = 360, mX = 310;
+    inner += buildWiresAndLabels(n, wireEnd);
+    inner += buildMeasures(n, mX, 'rgba(79,143,255,.1)');
+    return { viewBox: `0 0 ${wireEnd+20} ${totalH}`, svg: inner };
+  }
+
+  if (mode === 'ent') {
+    const hX = 58, cxStart = 118, cxStep = 74, mX = hX + 30 + (n-1)*cxStep + 60;
+    const wireEnd = mX + 40;
+    inner += buildWiresAndLabels(n, wireEnd);
+    // H on q0
+    inner += `<rect x="${hX}" y="${wireY(0)-11}" width="24" height="22" rx="4" fill="rgba(79,143,255,.12)" stroke="rgba(79,143,255,.5)" stroke-width="1"/>`;
+    inner += `<text class="gl" x="${hX+12}" y="${wireY(0)+4}" text-anchor="middle">H</text>`;
+    // CNOT chain
+    for (let i = 0; i < n-1; i++) {
+      const x = cxStart + i * cxStep;
+      const y0 = wireY(i), y1 = wireY(i+1);
+      inner += `<line stroke="rgba(61,255,176,.7)" stroke-width="1.5" x1="${x}" y1="${y0}" x2="${x}" y2="${y1}"/>`;
+      inner += `<circle cx="${x}" cy="${y0}" r="4" fill="#3dffb0"/>`;
+      inner += `<circle cx="${x}" cy="${y1}" r="9" fill="rgba(61,255,176,.1)" stroke="#3dffb0" stroke-width="1.5"/>`;
+      inner += `<text x="${x}" y="${y1+5}" text-anchor="middle" style="font-size:13px;fill:#3dffb0;font-family:monospace">⊕</text>`;
+    }
+    inner += buildMeasures(n, mX);
+    return { viewBox: `0 0 ${wireEnd+10} ${totalH}`, svg: inner };
+  }
+
+  if (mode === 'rnd') {
+    const hX = 58, mX = 180;
+    const wireEnd = mX + 40;
+    inner += buildWiresAndLabels(n, wireEnd);
+    for (let i = 0; i < n; i++) {
+      inner += `<rect x="${hX}" y="${wireY(i)-11}" width="24" height="22" rx="4" fill="rgba(255,179,71,.12)" stroke="rgba(255,179,71,.5)" stroke-width="1"/>`;
+      inner += `<text class="gl2" x="${hX+12}" y="${wireY(i)+4}" text-anchor="middle">H</text>`;
+    }
+    inner += buildMeasures(n, mX);
+    return { viewBox: `0 0 ${wireEnd+20} ${totalH}`, svg: inner };
+  }
+
+  // cust
+  return {
+    viewBox: '0 0 320 60',
+    svg: `<style>.t{font-size:11px;fill:#8b6fc0;font-family:'Space Mono',monospace}</style>
+    <text class="t" x="160" y="28" text-anchor="middle">Custom circuit from editor</text>
+    <text class="t" x="160" y="46" text-anchor="middle" style="opacity:.5;font-size:9px">Circuit diagram not rendered for custom code</text>`
+  };
+}
+
+// ── Fake data generators (qubit-aware) ───────────────────
+function makeFake(mode, n) {
+  const shots = parseInt(document.getElementById('shots')?.value) || 1024;
+  const zeros = '0'.repeat(n);
+  const ones  = '1'.repeat(n);
+
+  if (mode === 'init') return { [zeros]: shots };
+
+  if (mode === 'ent') {
+    const noise = {};
+    if (n > 1) {
+      [zeros.slice(0,-1)+'1', ones.slice(0,-1)+'0'].forEach(s => {
+        const v = Math.floor(Math.random()*18);
+        if (v > 0) noise[s] = v;
+      });
+    }
+    const noiseTotal = Object.values(noise).reduce((a,b)=>a+b,0);
+    const a = Math.round((shots - noiseTotal) * 0.48 + (Math.random()-.5)*20);
+    return { [zeros]: a, [ones]: shots - noiseTotal - a, ...noise };
+  }
+
+  if (mode === 'rnd') {
+    // For large n, only sample a realistic subset of states (sparse)
+    const totalStates = 1 << n;
+    const visibleStates = Math.min(totalStates, shots); // can't see more states than shots
+    const counts = {};
+    let rem = shots;
+    // Pick random states
+    const picked = new Set();
+    while (picked.size < Math.min(visibleStates, shots) && rem > 0) {
+      const idx = Math.floor(Math.random() * totalStates);
+      const s = idx.toString(2).padStart(n, '0');
+      if (!picked.has(s)) {
+        picked.add(s);
+        const v = Math.max(1, Math.floor(Math.random() * (rem / (visibleStates - picked.size + 1)) * 2));
+        counts[s] = Math.min(v, rem);
+        rem -= counts[s];
+      }
+    }
+    if (rem > 0 && Object.keys(counts).length > 0) {
+      const firstKey = Object.keys(counts)[0];
+      counts[firstKey] += rem;
+    }
+    return counts;
+  }
+
+  return { [zeros]: 420, [ones]: 380,
+    [zeros.slice(0,-2)+'10']: 120, [ones.slice(0,-2)+'01']: 104 };
+}
+
+// ── Logs (qubit-aware) ───────────────────────────────────
+function makeLogs(mode, n) {
+  const last = `q₀→q${n-1}`;
+  return {
+    init: [['Preparing |0⟩ state on all qubits…','c-init'],['No gates applied.',''],
+           [`✓ Initialized: |${'0'.repeat(n)}⟩`,'ok']],
+    ent:  [['Building GHZ circuit…','c-ent'],[`H → q₀, CNOT chain ${last}`,'c-ent'],
+           ['Transpiling for backend…',''],['Submitting job…','c-ent'],
+           ['Waiting for results…',''],['✓ Counts received.','ok']],
+    rnd:  [[`Applying H gate to all ${n} qubits…`,'c-rnd'],
+           ['Each qubit in equal superposition |+⟩','c-rnd'],
+           ['Measuring…',''],['✓ Counts received.','ok']],
+    cust: [['Parsing custom circuit…','c-cust'],['Transpiling…','c-cust'],
+           ['Submitting job…',''],['Waiting…',''],['✓ Counts received.','ok']]
+  }[mode];
+}
+
+let running = false;
+let editorOpen = false;
+
+function toggleEditor() {
+  editorOpen = !editorOpen;
+  document.getElementById('editor-panel').classList.toggle('open', editorOpen);
+}
+
+async function fetchBackends() {
+  const btn = document.getElementById('fetch-btn');
+  const apiKey = document.getElementById('api-key').value.trim();
+  const apiUrl = document.getElementById('api-url').value.trim();
+  if (!apiKey) { addLog('⚠ Enter API token first.', 'warn'); return; }
+  btn.textContent = '…';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/backends?' + new URLSearchParams({api_key: apiKey, api_url: apiUrl}));
+    const d = await r.json();
+    if (d.error) { addLog('✗ ' + d.error, 'err'); return; }
+    const chips = document.getElementById('backend-chips');
+    chips.style.display = 'flex';
+    chips.innerHTML = d.backends.map(name =>
+      `<span onclick="selectBackend('${name}')" style="
+        font-family:var(--mono);font-size:.65rem;padding:3px 8px;border-radius:4px;
+        border:1px solid var(--border2);cursor:pointer;color:var(--accent2);
+        background:var(--surface2);transition:background .15s;white-space:nowrap;"
+        onmouseover="this.style.background='var(--surface)'"
+        onmouseout="this.style.background='var(--surface2)'">${name}</span>`
+    ).join('');
+    addLog('Backends: ' + d.backends.join(', '), 'ok');
+  } catch(e) {
+    addLog('✗ ' + e.message, 'err');
+  } finally {
+    btn.textContent = '⟳';
+    btn.disabled = false;
+  }
+}
+
+function selectBackend(name) {
+  document.getElementById('backend').value = name;
+  document.querySelectorAll('#backend-chips span').forEach(el => {
+    el.style.color = el.textContent === name ? '#fff' : 'var(--accent2)';
+    el.style.borderColor = el.textContent === name ? 'rgba(120,160,255,.6)' : 'var(--border2)';
+  });
+}
+
+function setStatus(s, t) {
+  document.getElementById('dot').className = 'dot ' + s;
+  document.getElementById('status-text').textContent = t;
+}
+
+function addLog(msg, cls) {
+  const el = document.getElementById('log');
+  const ts = new Date().toLocaleTimeString('zh',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d = document.createElement('div');
+  d.className = 'log-line ' + cls;
+  d.textContent = `[${ts}] ${msg}`;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function handleAction(mode) {
+  if (running) return;
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey) { addLog('⚠ Enter your API token first.', 'warn'); return; }
+  running = true;
+  const n = getQubits();
+
+  document.querySelectorAll('.action-btn').forEach(b => { b.disabled = true; b.classList.remove('loading'); });
+  document.querySelector('.btn-' + mode).classList.add('loading');
+
+  const circ = buildCircuitSVG(mode, n);
+  document.getElementById('circuit-panel').classList.add('visible');
+  const zeros = '0'.repeat(n);
+  document.getElementById('circuit-label').textContent = {
+    init: 'Initialize — ' + n + '-Qubit |' + zeros + '⟩',
+    ent:  'Entangle — ' + n + '-Qubit GHZ',
+    rnd:  'Random — H on all ' + n + ' qubits',
+    cust: 'Custom Circuit'
+  }[mode];
+  const svgEl = document.getElementById('circuit-svg');
+  svgEl.setAttribute('viewBox', circ.viewBox);
+  svgEl.innerHTML = circ.svg;
+
+  if (mode !== 'cust' && editorOpen) toggleEditor();
+
+  setStatus('running', {init:'Initializing…',ent:'Entangling…',rnd:'Randomizing…',cust:'Running custom…'}[mode]);
+  startAnimation();
+
+  const payload = JSON.stringify({
+    mode, qubits: n,
+    api_key:     apiKey,
+    api_url:     document.getElementById('api-url').value.trim(),
+    backend:     document.getElementById('backend').value.trim(),
+    shots:       parseInt(document.getElementById('shots').value) || 1024,
+    timeout:     600,
+    custom_code: mode === 'cust' ? document.getElementById('code-editor').value : ''
+  });
+
+  const finish = () => {
+    document.querySelectorAll('.action-btn').forEach(b => { b.disabled = false; b.classList.remove('loading'); });
+    running = false;
+  };
+
+  try {
+    const es = new EventSource('/run?payload=' + encodeURIComponent(payload));
+    es.onmessage = e => {
+      const d = JSON.parse(e.data);
+      if (d.type === 'heartbeat') return;
+      if (d.type === 'log') addLog(d.msg, d.cls || '');
+      if (d.type === 'done') {
+        es.close();
+        stopAnimation();
+        renderHistogram(d.counts, mode, d.qubits || n);
+        setStatus('done', 'Done'); finish();
+      }
+      if (d.type === 'error') {
+        es.close();
+        addLog('✗ ' + d.msg, 'err');
+        stopAnimation();
+        document.getElementById('results').innerHTML =
+          '<div class="empty-state" style="color:#ff5a5a;padding:1rem">' + d.msg + '</div>';
+        setStatus('error', 'Error'); finish();
+      }
+    };
+    es.onerror = () => { es.close(); addLog('Connection lost.', 'err'); setStatus('error','Error'); finish(); };
+  } catch(err) {
+    addLog('✗ ' + err.message, 'err'); setStatus('error','Error'); finish();
+  }
+}
+
+function renderHistogram(counts, mode, n) {
+  n = n || getQubits();
+  const el = document.getElementById('results');
+  const color = COLORS[mode];
+  const totalStates = 1 << n;
+
+  // For small n (≤5): show all states including zeros in binary order
+  // For large n (>5): only show states that have counts (sparse), still binary ordered
+  let entries;
+  if (n <= 5) {
+    const ALL_STATES = getAllStates(n);
+    entries = ALL_STATES.map(s => [s, counts[s] || 0]);
+  } else {
+    entries = Object.entries(counts)
+      .filter(([,v]) => v > 0)
+      .sort((a, b) => a[0].localeCompare(b[0]));
+  }
+  const total = entries.reduce((a, [, v]) => a + v, 0);
+  const maxV  = Math.max(...entries.map(([, v]) => v), 1);
+
+  // Chart geometry
+  const mL = 56, mR = 20, mT = 32, mB = 68;
+  const barW = 18;
+  const gap  = 3;
+  const chartW = entries.length * (barW + gap) + mL + mR + 10;
+  const chartH = 290;
+  const innerH = chartH - mT - mB;
+
+  // Nice Y axis ticks
+  const rawStep = maxV / 4;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(Math.max(rawStep, 1))));
+  const niceStep = Math.ceil(rawStep / magnitude) * magnitude || 50;
+  const yMax = Math.ceil(maxV / niceStep) * niceStep || niceStep;
+  const ticks = [];
+  for (let t = 0; t <= yMax; t += niceStep) ticks.push(t);
+
+  let bars = '', xlabels = '', yticks = '', grids = '';
+
+  ticks.forEach(t => {
+    const y = mT + innerH - (t / yMax) * innerH;
+    grids  += `<line x1="${mL}" y1="${y.toFixed(1)}" x2="${chartW - mR}" y2="${y.toFixed(1)}" stroke="rgba(120,160,255,0.12)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    yticks += `<text x="${mL - 6}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#4a607f" font-family="Space Mono,monospace">${t}</text>`;
+  });
+
+  entries.forEach(([state, count], i) => {
+    const x  = mL + i * (barW + gap);
+    const bh = Math.max(count > 0 ? 1 : 0, (count / yMax) * innerH);
+    const by = mT + innerH - bh;
+    const isZero = count === 0;
+
+    bars += `<rect x="${x}" y="${by.toFixed(1)}" width="${barW}" height="${bh.toFixed(1)}"
+      fill="${isZero ? 'rgba(120,160,255,0.12)' : color}" rx="2" opacity="${isZero ? '1' : '0.85'}"/>`;
+
+    if (!isZero) {
+      bars += `<text x="${(x + barW / 2).toFixed(1)}" y="${(by - 4).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="${color}" font-family="Space Mono,monospace">${count}</text>`;
+    }
+
+    const lx = x + barW / 2;
+    const ly = mT + innerH + 8;
+    xlabels += `<text transform="translate(${lx.toFixed(1)},${ly}) rotate(45)" text-anchor="start" font-size="9" fill="${isZero ? '#2a3a55' : '#4a607f'}" font-family="Space Mono,monospace">${state}</text>`;
+  });
+
+  el.innerHTML = `<svg width="${chartW}" height="${chartH}" xmlns="http://www.w3.org/2000/svg" style="min-width:${chartW}px;display:block;">
+    ${grids}
+    <line x1="${mL}" y1="${mT}" x2="${mL}" y2="${mT + innerH}" stroke="rgba(120,160,255,0.25)" stroke-width="1"/>
+    <line x1="${mL}" y1="${mT + innerH}" x2="${chartW - mR}" y2="${mT + innerH}" stroke="rgba(120,160,255,0.25)" stroke-width="1"/>
+    ${yticks}
+    <text transform="translate(12,${mT + innerH / 2}) rotate(-90)" text-anchor="middle" font-size="11" fill="#6a8aaf" font-family="Space Mono,monospace">Count</text>
+    ${bars}
+    ${xlabels}
+  </svg>`;
+}
+
+// ── Quantum animation ────────────────────────────────────
+let animFrame = null;
+let animRunning = false;
+
+function startAnimation() {
+  const cv = document.getElementById('qc-anim');
+  const el = document.getElementById('results');
+  el.style.display = 'none';
+  cv.style.display = 'block';
+
+  const dpr = window.devicePixelRatio || 1;
+  // Force layout recalc so offsetWidth/Height are correct
+  cv.width  = cv.parentElement.offsetWidth * dpr;
+  cv.height = 280 * dpr;
+  const cx = cv.getContext('2d');
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = cv.parentElement.offsetWidth, H = 280;
+
+  const PI2 = Math.PI * 2;
+  const NUM = 5;
+  const COLORS2 = ['#4f8fff','#3dffb0','#ffb347','#b97fff','#ff6b9d'];
+  const qubits = Array.from({length: NUM}, (_, i) => {
+    const angle = (i / NUM) * PI2 - Math.PI / 2;
+    return {
+      id: i, color: COLORS2[i],
+      baseX: Math.cos(angle) * (W < 400 ? 75 : 100),
+      baseY: Math.sin(angle) * (H < 220 ? 55 : 72),
+      orbitSpeed: 0.003 + i * 0.0004,
+      orbitRadius: 5 + i * 1.1,
+      orbitPhase: (i / NUM) * PI2,
+      pulsePhase: i * 0.7,
+      electrons: Array.from({length: 2 + (i%2)}, (_, j) => ({
+        angle: (j / (2+(i%2))) * PI2,
+        speed: 0.04 + j*0.015 + i*0.005,
+        radius: 15 + j*4,
+        tilt: i * 0.4,
+      })),
+    };
+  });
+
+  const pairs = [[0,1],[1,2],[2,3],[3,4],[0,4]];
+  const pulses = [];
+  const bits = Array.from({length:18}, () => ({
+    x: Math.random()*W, y: Math.random()*H,
+    vx: (Math.random()-.5)*.35, vy: (Math.random()-.5)*.35,
+    val: Math.random()>.5?'1':'0',
+    alpha: 0.08+Math.random()*.1,
+    flipT: Math.random()*120,
+  }));
+
+  let at = 0, pairTimer = 0, activePair = 0;
+
+  function qpos(q) {
+    return {
+      x: W/2 + q.baseX + Math.cos(at*q.orbitSpeed*60+q.orbitPhase)*q.orbitRadius,
+      y: H/2 + q.baseY + Math.sin(at*q.orbitSpeed*60+q.orbitPhase)*q.orbitRadius,
+    };
+  }
+
+  const MSGS2 = ['Initializing qubits…','Applying Hadamard gates…','Building entanglement…','Compiling pulses…','Submitting to QPU…','Awaiting results…'];
+
+  function drawFrame() {
+    cx.fillStyle = 'rgba(0,0,10,0.32)';
+    cx.fillRect(0, 0, W, H);
+
+    // grid
+    cx.strokeStyle = 'rgba(79,143,255,0.03)';
+    cx.lineWidth = 1;
+    for (let x=0;x<W;x+=40){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
+    for (let y=0;y<H;y+=40){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+
+    // bits
+    cx.font = '10px Space Mono,monospace';
+    bits.forEach(b => {
+      cx.fillStyle = `rgba(79,143,255,${b.alpha})`;
+      cx.textAlign = 'center';
+      cx.fillText(b.val, b.x, b.y);
+      b.x+=b.vx; b.y+=b.vy;
+      if(b.x<0)b.x=W; if(b.x>W)b.x=0;
+      if(b.y<0)b.y=H; if(b.y>H)b.y=0;
+      b.flipT--;
+      if(b.flipT<=0){b.val=Math.random()>.5?'1':'0';b.flipT=60+Math.random()*120;}
+    });
+
+    // entanglement lines + waves
+    pairs.forEach(([a,b],i) => {
+      const p1=qpos(qubits[a]), p2=qpos(qubits[b]);
+      const alpha = 0.4+Math.sin(at*1.5+i)*0.3;
+      const mid={x:(p1.x+p2.x)/2+(Math.sin(at*.8)*10),y:(p1.y+p2.y)/2+(Math.cos(at*.8)*10)};
+      const grad=cx.createLinearGradient(p1.x,p1.y,p2.x,p2.y);
+      grad.addColorStop(0,qubits[a].color+Math.round(alpha*55).toString(16).padStart(2,'0'));
+      grad.addColorStop(1,qubits[b].color+Math.round(alpha*55).toString(16).padStart(2,'0'));
+      cx.beginPath(); cx.moveTo(p1.x,p1.y);
+      cx.quadraticCurveTo(mid.x,mid.y,p2.x,p2.y);
+      cx.strokeStyle=grad; cx.lineWidth=1; cx.stroke();
+
+      // wave
+      const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.sqrt(dx*dx+dy*dy);
+      if(len<1)return;
+      const nx=-dy/len, ny=dx/len;
+      cx.beginPath();
+      for(let s=0;s<=60;s++){
+        const prog=s/60;
+        const env=Math.sin(prog*Math.PI)*7;
+        const w=Math.sin(prog*Math.PI*8-at*3+i*1.3)*env;
+        const px=p1.x+dx*prog+nx*w, py=p1.y+dy*prog+ny*w;
+        s===0?cx.moveTo(px,py):cx.lineTo(px,py);
+      }
+      cx.strokeStyle=qubits[a].color+'44'; cx.lineWidth=1.2; cx.stroke();
+    });
+
+    // center ψ
+    cx.save(); cx.translate(W/2,H/2); cx.rotate(at*.5);
+    cx.scale(0.9+Math.sin(at*1.5)*.07, 0.9+Math.sin(at*1.5)*.07);
+    for(let i=0;i<3;i++){
+      cx.rotate(PI2/3);
+      cx.beginPath(); cx.arc(0,0,20,0,PI2);
+      cx.strokeStyle=`rgba(120,160,255,${0.1+Math.sin(at*2+i*.9)*.05})`;
+      cx.lineWidth=0.8; cx.stroke();
+    }
+    cx.restore();
+    cx.font=`bold ${17+Math.sin(at)*2}px serif`;
+    cx.textAlign='center'; cx.textBaseline='middle';
+    cx.fillStyle=`rgba(180,210,255,${0.5+Math.sin(at*1.5)*.2})`;
+    cx.fillText('ψ',W/2,H/2); cx.textBaseline='alphabetic';
+
+    // qubits
+    qubits.forEach(q => {
+      const pos=qpos(q);
+      const pulse=(Math.sin(at*2+q.pulsePhase)+1)/2;
+      const gs=20+pulse*7;
+      const grd=cx.createRadialGradient(pos.x,pos.y,7,pos.x,pos.y,gs);
+      grd.addColorStop(0,q.color+'38'); grd.addColorStop(1,q.color+'00');
+      cx.beginPath(); cx.arc(pos.x,pos.y,gs,0,PI2); cx.fillStyle=grd; cx.fill();
+
+      q.electrons.forEach(el => {
+        const ea=el.angle+at*el.speed*60;
+        const sy=Math.abs(Math.cos(el.tilt+at*.3));
+        const ex=pos.x+Math.cos(ea)*el.radius, ey=pos.y+Math.sin(ea)*el.radius*sy;
+        cx.save(); cx.translate(pos.x,pos.y); cx.rotate(el.tilt+at*.1); cx.scale(1,sy*.7+.3);
+        cx.beginPath(); cx.arc(0,0,el.radius,0,PI2);
+        cx.strokeStyle=q.color+'1a'; cx.lineWidth=0.6; cx.stroke(); cx.restore();
+        cx.beginPath(); cx.arc(ex,ey,2.2,0,PI2);
+        cx.fillStyle=q.color+'cc'; cx.fill();
+      });
+
+      cx.beginPath(); cx.arc(pos.x,pos.y,8,0,PI2);
+      cx.fillStyle=q.color; cx.fill();
+      cx.font='bold 9px Space Mono,monospace';
+      cx.fillStyle='#ffffff88'; cx.textAlign='center';
+      cx.fillText('q'+q.id,pos.x,pos.y-16);
+    });
+
+    // pulses
+    pulses.forEach(p => {
+      const fr=qubits[p.from], to=qubits[p.to];
+      const p1=qpos(fr), p2=qpos(to);
+      const x=p1.x+(p2.x-p1.x)*p.progress, y=p1.y+(p2.y-p1.y)*p.progress;
+      const grd=cx.createRadialGradient(x,y,0,x,y,9);
+      grd.addColorStop(0,fr.color+'ff'); grd.addColorStop(1,fr.color+'00');
+      cx.beginPath(); cx.arc(x,y,9,0,PI2); cx.fillStyle=grd; cx.fill();
+    });
+
+    pairTimer++;
+    if(pairTimer>45){
+      pairTimer=0;
+      const [a,b]=pairs[activePair%pairs.length];
+      pulses.push({from:a,to:b,progress:0,speed:0.013+Math.random()*.006});
+      activePair++;
+    }
+    for(let i=pulses.length-1;i>=0;i--){
+      pulses[i].progress+=pulses[i].speed;
+      if(pulses[i].progress>=1)pulses.splice(i,1);
+    }
+
+    // status
+    cx.font='9px Space Mono,monospace'; cx.textAlign='center';
+    cx.fillStyle=`rgba(100,150,255,${0.4+Math.sin(at*3)*.2})`;
+    cx.fillText(MSGS2[Math.floor(at/4)%MSGS2.length], W/2, H-8);
+
+    at+=0.016;
+    if(animRunning) animFrame=requestAnimationFrame(drawFrame);
+  }
+
+  animRunning = true;
+  animFrame = requestAnimationFrame(drawFrame);
+}
+
+function stopAnimation() {
+  animRunning = false;
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  const cv = document.getElementById('qc-anim');
+  if (cv) cv.style.display = 'none';
+  const el = document.getElementById('results');
+  if (el) el.style.display = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const map = { i:'init', e:'ent', r:'rnd', c: null };
+  if (e.key === 'c' || e.key === 'C') { toggleEditor(); return; }
+  const m = map[e.key.toLowerCase()];
+  if (m) handleAction(m);
+});
+</script>
+</body>
+</html>
