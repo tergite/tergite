@@ -1,22 +1,23 @@
 # Tergite Quantum Runner
 
-点击按钮，本地运行 GHZ 量子电路，实时显示结果。
+Click the button to run a quantum circuits locally and view results in real time.
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 1. 安装依赖
+# 1. Install dependencies
 pip install flask qiskit tergite
 
-# 2. 启动
+# 2. Launch
 python app.py
 
-# 3. 打开浏览器
+# 3. Open your browser
 http://localhost:5001
 ```
 
-## 使用方法
-1. 粘贴你的 Tergite API Token
-2. 选择后端和 Shots 数量
-3. 点击 **⟨ψ| ENTANGLE |ψ⟩** 按钮
-4. 实时查看日志和最终测量结果直方图
+## Usage
+
+1. Paste your Tergite API Token
+2. Select a backend and number of shots
+3. Click the **INITIALZE/RANDOM/ENTANGLE** button
+4. Watch live logs and the final measurement histogram in real time
