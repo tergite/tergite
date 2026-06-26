@@ -5,18 +5,10 @@ services:
     depends_on:
       tergite-mongo:
         condition: service_healthy
+      tergite-redis:
+        condition: service_healthy
     networks:
       - tergite-e2e
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'wget --header="Authorization: Bearer $MSS_APP_TOKEN" --quiet --tries=1 --spider http://mss:8002/devices/ || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
 
   dashboard:
     image: "tergite/tergite-dashboard:sdk-e2e"
