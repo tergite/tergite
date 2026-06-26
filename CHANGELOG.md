@@ -7,9 +7,18 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.06.0] - 2026-06-26
+
+This is part of the tergite release v2026.06.0.
+
 ### Added
 
 - Added e2e test for the quantify executor type of backend
+
+### Changed
+
+- Changed the e2e tests to use the new tergite-backend images from >2026.06.0 
+  where those with qiskit and those with quantify are different images
 
 ## [2026.06.0-rc.1] - 2026-05-21
 
