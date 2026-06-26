@@ -161,3 +161,5 @@ demo/
 temp/
 e2e-runner.sh
 !tests/fixtures/e2e-runner.sh
+
+.DS_Store

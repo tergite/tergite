@@ -56,12 +56,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install OpenBlas for scipy if no wheels
-        run: sudo apt-get install -y libopenblas-dev
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
         with:
@@ -73,6 +67,7 @@ jobs:
           BACKEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-backend.git
           BACKEND_BRANCH: ${{ github.ref_name }}
           FRONTEND_BRANCH: ${{ github.ref_name }}
+          PYTHON_IMAGE: python:${{ matrix.python-version }}-slim
         run: ./e2e_test.sh
 #      - name: Dump container logs on failure
 #        if: always()

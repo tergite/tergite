@@ -34,7 +34,10 @@ APP_TOKEN="pZTccp8F-8RLFvQie1AMM0ptfdkGNnH1wDEB4INUFqw"
 ROOT_PATH="$(pwd)"
 TEMP_DIR_PATH="$ROOT_PATH/$TEMP_DIR"
 FIXTURES_PATH="$ROOT_PATH/tests/fixtures"
-PYTHON_IMAGE="$PYTHON_IMAGE"
+# Force the tests to always run in an image because of the URLs
+# used in mss-config etc. They need the same docker network to resolve stuff like
+# http://loke:8000
+PYTHON_IMAGE="${PYTHON_IMAGE:-"python:3.12-slim"}"
 
 # Logging function for errors
 log_error() {
@@ -95,7 +98,6 @@ cp "$FIXTURES_PATH/booking_db.db" loke_booking_db.db
 cp "$FIXTURES_PATH/e2e.env" .env
 cp "$FIXTURES_PATH/mss-config.toml" .
 
-
 # Starting services in the tergite-frontend folder
 echo "Starting all e2e services"
 docker compose \
@@ -107,31 +109,32 @@ docker compose \
 # Run in python docker file if $PYTHON_IMAGE is set
 # or else run on host machine
 
-if [[ -z "$PYTHON_IMAGE" ]]; then
-  # Starting the tests
-  echo "Create virtual environment for tests..."
-  rm -rf "$ROOT_PATH/env"
-  python -m venv "$ROOT_PATH/env"
-  LOCAL_PYTHON="$ROOT_PATH/env/bin/python"
-  cd "$ROOT_PATH"
-  "$LOCAL_PYTHON" -m pip install ."[test]"
-
-  echo "Running end-to-end test suite..."
-  IS_END_TO_END="True" \
-   API_URL="http://127.0.0.1:8002" \
-   API_TOKEN="$APP_TOKEN" \
-   $LOCAL_PYTHON -m pytest "$ROOT_PATH/tests"
-else
-  cd "$ROOT_PATH"
-  cp "$FIXTURES_PATH/e2e-runner.sh" .
-  docker run \
+#if [[ -z "$PYTHON_IMAGE" ]]; then
+#  # Starting the tests
+#  echo "Create virtual environment for tests..."
+#  rm -rf "$ROOT_PATH/env"
+#  python -m venv "$ROOT_PATH/env"
+#  LOCAL_PYTHON="$ROOT_PATH/env/bin/python"
+#  cd "$ROOT_PATH"
+#  "$LOCAL_PYTHON" -m pip install ."[test]"
+#
+#  echo "Running end-to-end test suite..."
+#  IS_END_TO_END="True" \
+#   API_URL="http://127.0.0.1:8002" \
+#   API_TOKEN="$APP_TOKEN" \
+#   $LOCAL_PYTHON -m pytest "$ROOT_PATH/tests"
+#else
+echo "Running tests in docker image $PYTHON_IMAGE"
+cd "$ROOT_PATH"
+cp "$FIXTURES_PATH/e2e-runner.sh" .
+docker run \
     --name tergite-e2e-runner \
     --network=tergite-e2e_tergite-e2e \
     -v "$PWD":/app -w /app \
     -e APP_TOKEN="$APP_TOKEN" \
     -e API_URL="http://mss:8002" \
     "$PYTHON_IMAGE" bash ./e2e-runner.sh
-fi
+#fi
 
 # Cleanup
 # In order to debug the containers and the repos,
