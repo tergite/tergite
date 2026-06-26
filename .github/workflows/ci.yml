@@ -74,6 +74,13 @@ jobs:
           BACKEND_BRANCH: ${{ github.ref_name }}
           FRONTEND_BRANCH: ${{ github.ref_name }}
         run: ./e2e_test.sh
+      - name: Dump container logs on failure
+        if: always()
+        run: |
+          for container in $(docker ps -a --filter "name=tergite-e2e" --format "{{.Names}}"); do
+            echo "===== $container ====="
+            docker logs "$container" 2>&1 || true
+          done
 
   release:
     name: Release
