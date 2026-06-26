@@ -2,6 +2,7 @@
 services:
   mss:
     image: "tergite/tergite-mss:sdk-e2e"
+    pull_policy: never
     depends_on:
       tergite-mongo:
         condition: service_healthy
@@ -12,6 +13,7 @@ services:
 
   dashboard:
     image: "tergite/tergite-dashboard:sdk-e2e"
+    pull_policy: never
     depends_on:
       mss:
         condition: service_healthy
@@ -43,6 +45,20 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  mongo-init:
+    # throw-away service to initialize tergite-mongo since having health check
+    # and initialization scripts for mongo causes unexpected errors
+    image: mongo:latest
+    depends_on:
+      tergite-mongo:
+        condition: service_healthy
+    command: >
+      bash -c 'mongosh --host tergite-mongo /scripts/init.js'
+    volumes:
+      - ./mongo-init.js:/scripts/init.js:ro
+    networks:
+      - tergite-e2e
 
   tergite-redis:
     restart: always
