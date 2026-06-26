@@ -69,8 +69,8 @@ jobs:
       - name: Run end-to-end-tests
         env:
           DEBUG: ${{ vars.DEBUG || 'false' }}
-          FRONTEND_REPO: https://github.com/${{ github.repository_owner }}/tergite-frontend.git
-          BACKEND_REPO: https://github.com/${{ github.repository_owner }}/tergite-backend.git
+          FRONTEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-frontend.git
+          BACKEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-backend.git
           BACKEND_BRANCH: ${{ github.ref_name }}
           FRONTEND_BRANCH: ${{ github.ref_name }}
         run: ./e2e_test.sh
