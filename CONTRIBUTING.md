@@ -89,7 +89,8 @@ All signed CLAs are emails to us at <contact.quantum@chalmersnextlabs.se>.
 
 ## How to Test
 
--   Make sure you have [python +3.12](https://www.python.org/) installed (or you could use [conda](https://www.anaconda.com/docs/getting-started/miniconda/install) or [pyenv](https://github.com/pyenv/pyenv) to install python +3.12).
+-   Install [uv](https://docs.astral.sh/uv/getting-started/installation/), which installs
+    Python 3.13 for you if you do not have it.
 
 -   Clone the repo and enter its root folder
 
@@ -98,32 +99,22 @@ git clone git@github.com:tergite/tergite.git
 cd tergite
 ```
 
-- Create and activate a virtual environment
-
-Using conda:
-
-```shell
-conda create -n tergite-sdk python=3.12
-conda activate tergite-sdk
-```
-
-Using installed python:
-
-```shell
-python3.12 -m venv env 
-source env/bin/activate
-```
-
--   Install the dependencies
+-   Install the dependencies, into `.venv`
 
 ``` shell
-pip install ."[test]"
+uv sync
 ```
 
--   Run the tests command
+-   Run the tests
 
 ``` shell
-pytest tests
+uv run pytest
+```
+
+-   Run the example notebooks, with Jupyter alongside
+
+``` shell
+uv run --with jupyter jupyter lab examples/notebooks
 ```
 
 ## How to Run End-to-end Tests
