@@ -21,6 +21,7 @@
 import dataclasses
 import pathlib
 import re
+import warnings
 from configparser import ConfigParser
 from typing import List, Optional
 
@@ -64,8 +65,8 @@ class Tergiterc:
         for section in sections_all:
             if section.startswith("service"):
                 if not parser.has_option(section, "url"):
-                    print(
-                        f"Warning: Skipping account provider '{section}'. Invalid configuration."
+                    warnings.warn(
+                        f"Skipping account provider '{section}'. Invalid configuration."
                     )
                     continue
 

@@ -155,8 +155,9 @@ fix and gets a `Fixed` changelog entry.
    (`services/configs/__init__.py:100`), so running the README's snippet a second time
    crashes. Create the folder, and replace the section.
 5. **`import tergite` reads `~/.qiskit/tergiterc` and prints** (`types/provider_factory.py:40`),
-   at import time. The factory loads the file on first use, and both warnings, here and at
-   `configs/__init__.py:67`, go through `warnings.warn`. The `print` in `backend.run` (`:179`)
+   at import time. The factory loads the file on first use. Its "no stored account" warning
+   goes, as `get_provider` raises when there is none, and the invalid-account one at
+   `configs/__init__.py:67` goes through `warnings.warn`. The `print` in `backend.run` (`:179`)
    becomes a `logging.info`.
 6. **No HTTP call has a timeout** (`services/api_client/__init__.py:69-258`), so a backend
    that accepts the connection and never answers hangs the user's session for good. Every

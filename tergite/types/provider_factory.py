@@ -31,19 +31,9 @@ class ProviderFactory:
     """
 
     def __init__(self, rc_file: pathlib.Path = TERGITERC_FILE):
+        self._rc_file = rc_file
         self._providers = OrderedDict()
-        self._tergiterc = Tergiterc(rc_file=rc_file)
-
-        # get a list of provider account objects from tergiterc
-        accounts_list = self._tergiterc.load_accounts()
-        if not accounts_list:
-            print(
-                "Warning: No stored provider account found in $HOME/.qiskit/tergiterc"
-            )
-
-        # for each item in the accounts list create a Provider object
-        for account in accounts_list:
-            self._providers[account.service_name] = Provider(account)
+        self._tergiterc: Optional[Tergiterc] = None
 
     def use_provider_account(
         self,
@@ -65,9 +55,10 @@ class ProviderFactory:
                 :class:`~tergite.providers.tergite.provider.Provider`
                 for the given account
         """
+        tergiterc = self._load_saved_providers()
         account = AccountInfo(service_name=service_name, url=url, token=token)
         if save:
-            self._tergiterc.save_accounts([account])
+            tergiterc.save_accounts([account])
 
         new_provider = Provider(account)
         self._providers[account.service_name] = new_provider
@@ -80,6 +71,7 @@ class ProviderFactory:
         Returns:
             list of service names of providers in this collection
         """
+        self._load_saved_providers()
         return list(self._providers.keys())
 
     def get_provider(self, service_name=None) -> Optional[Provider]:
@@ -92,6 +84,7 @@ class ProviderFactory:
             the provider of the given service name
                 if it exists or None if it doesn't
         """
+        self._load_saved_providers()
         providers = self._providers
 
         if not providers:
@@ -101,3 +94,16 @@ class ProviderFactory:
 
         # get by name or default to the first entry
         return providers.get(service_name, next(iter(providers.values())))
+
+    def _load_saved_providers(self) -> Tergiterc:
+        """Loads the providers saved in the rc file, on the first call only
+
+        Returns:
+            the Tergiterc of the rc file
+        """
+        if self._tergiterc is None:
+            self._tergiterc = Tergiterc(rc_file=self._rc_file)
+            for account in self._tergiterc.load_accounts():
+                self._providers[account.service_name] = Provider(account)
+
+        return self._tergiterc

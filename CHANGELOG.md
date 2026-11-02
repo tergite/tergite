@@ -16,6 +16,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Fixed backends being unhashable, which made them unusable as set members or dict keys
 - Fixed saving a provider account failing when `~/.qiskit` did not exist or the account was
   already saved, and an account saved without a token being read back with the token "None"
+- Fixed `import tergite` reading `~/.qiskit/tergiterc` and printing warnings; the file is read
+  on first use, and warnings and the job submission notice go through `warnings` and `logging`
 
 ## [2026.06.0] - 2026-06-26
 

@@ -177,7 +177,7 @@ class TergiteBackend(BackendV2):
         )
         response = job.submit()
         if response.ok:
-            print("Tergite: Job has been successfully submitted")
+            logging.info(f"Tergite: Job {job.job_id()} has been successfully submitted")
             return job
         else:
             raise RuntimeError(

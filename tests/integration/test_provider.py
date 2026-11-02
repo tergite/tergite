@@ -1,4 +1,7 @@
+import os
 import re
+import subprocess
+import sys
 from datetime import datetime
 
 import pytest
@@ -93,3 +96,30 @@ def test_save_without_token(tmp_path):
 
     reloaded = factory.ProviderFactory(rc_file=rc_file)
     assert reloaded.get_provider("foo").account.token is None
+
+
+def test_import_is_silent(tmp_path):
+    """Importing tergite neither reads the rc file nor prints, even when it holds an invalid account"""
+    rc_file = tmp_path / ".qiskit" / "tergiterc"
+    rc_file.parent.mkdir()
+    rc_file.write_text("[service broken]\ntoken = some-token\n")
+
+    completed = subprocess.run(
+        [sys.executable, "-c", "import tergite"],
+        env={**os.environ, "HOME": str(tmp_path)},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert (completed.stdout, completed.stderr) == ("", "")
+
+
+def test_invalid_saved_account_warns(tmp_path):
+    """A saved account without a url is skipped with a warning"""
+    rc_file = tmp_path / "tergiterc"
+    rc_file.write_text("[service broken]\ntoken = some-token\n")
+    _tergite = factory.ProviderFactory(rc_file=rc_file)
+
+    with pytest.warns(UserWarning, match="Skipping account provider 'service broken'"):
+        assert _tergite.providers() == []
