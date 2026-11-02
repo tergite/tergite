@@ -80,6 +80,23 @@ provider = Tergite.use_provider_account(
 )
 ```
 
+### Use an Account from the Environment
+
+- Or set the environment variables `TERGITE_API_URL` and `TERGITE_API_TOKEN`, as Qiskit's IBM
+  provider reads `QISKIT_IBM_URL` and `QISKIT_IBM_TOKEN`. They make an account named `env`, which
+  is never saved, and which `Tergite.get_provider()` returns ahead of any saved account.
+
+```shell
+export TERGITE_API_URL="https://api.qal9000.se"
+export TERGITE_API_TOKEN="MY_API_TOKEN"
+```
+
+```python
+from tergite import Tergite
+
+provider = Tergite.get_provider()
+```
+
 ## Running Circuits
 
 A backend runs circuits transpiled to it: `transpile(circuit, backend)` maps them to the device's

@@ -16,10 +16,17 @@
 #
 # Martin Ahindura, 2023
 """Defines the ProviderFactory class that contains multiple Tergite Providers."""
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from ..accounts import TERGITERC_FILE, Account, load_accounts, save_account
+from ..accounts import (
+    TERGITERC_FILE,
+    Account,
+    get_environment_account,
+    load_accounts,
+    save_account,
+)
 from ..exc import TergiteError
 from .provider import Provider
 
@@ -27,7 +34,9 @@ from .provider import Provider
 class ProviderFactory:
     """Container of multiple Tergite Provider's, retrievable by service name
 
-    It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`
+    It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`. On
+    first use, it loads the accounts saved there and, ahead of them, the account named "env"
+    that the environment variables TERGITE_API_URL and TERGITE_API_TOKEN set, if any.
     """
 
     def __init__(self, rc_file: Path = TERGITERC_FILE):
@@ -55,7 +64,7 @@ class ProviderFactory:
                 :class:`~tergite.providers.tergite.provider.Provider`
                 for the given account
         """
-        self._load_saved_providers()
+        self._load_providers()
         account = Account(service_name=service_name, url=url, token=token)
         if save:
             save_account(self._rc_file, account)
@@ -71,29 +80,32 @@ class ProviderFactory:
         Returns:
             list of service names of providers in this collection
         """
-        self._load_saved_providers()
+        self._load_providers()
         return list(self._providers.keys())
 
     def get_provider(self, service_name: Optional[str] = None) -> Provider:
         """Gets the provider of the given service name, or the first if none is given
 
         Args:
-            service_name: the name the provider's account is saved or used under
+            service_name: the name the provider's account is saved or used under, or "env"
+                for the environment's
 
         Returns:
-            the provider of that name, or the first saved or used if no name is given
+            the provider of that name, or, if no name is given, the environment's account's
+            if TERGITE_API_URL is set, else that of the first account saved or used
 
         Raises:
             TergiteError: No provider account is available. Provide one via
-                Tergite.use_provider_account(..).
+                Tergite.use_provider_account(..) or TERGITE_API_URL and TERGITE_API_TOKEN.
             TergiteError: No provider account is named '{service_name}'; there are: {names}
         """
-        self._load_saved_providers()
+        self._load_providers()
         providers = self._providers
 
         if not providers:
             raise TergiteError(
-                "No provider account is available. Provide one via Tergite.use_provider_account(..)."
+                "No provider account is available. Provide one via Tergite.use_provider_account(..) "
+                "or TERGITE_API_URL and TERGITE_API_TOKEN."
             )
         if service_name is None:
             return next(iter(providers.values()))
@@ -104,9 +116,18 @@ class ProviderFactory:
             )
         return providers[service_name]
 
-    def _load_saved_providers(self) -> None:
-        """Loads the providers saved in the rc file, on the first call only"""
-        if not self._is_loaded:
-            self._is_loaded = True
-            for account in load_accounts(self._rc_file):
+    def _load_providers(self) -> None:
+        """Loads the providers of the environment's account and of the saved accounts, the
+        environment's first and in place of a saved one of its name, on the first call only
+        """
+        if self._is_loaded:
+            return
+        self._is_loaded = True
+        environment_account = get_environment_account(os.environ)
+        if environment_account is not None:
+            self._providers[environment_account.service_name] = Provider(
+                environment_account
+            )
+        for account in load_accounts(self._rc_file):
+            if account.service_name not in self._providers:
                 self._providers[account.service_name] = Provider(account)

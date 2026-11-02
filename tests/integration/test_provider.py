@@ -73,6 +73,35 @@ def test_get_provider_without_name(mock_tergiterc):
     assert reloaded.get_provider().account.service_name == "foo"
 
 
+def test_get_provider_of_the_environment(mock_tergiterc, monkeypatch):
+    """The account the environment sets comes before the saved ones, and is not saved"""
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
+    _tergite.use_provider_account("foo", url="http://foo.example", save=True)
+    monkeypatch.setenv("TERGITE_API_URL", "http://env.example")
+    monkeypatch.setenv("TERGITE_API_TOKEN", "env-token")
+
+    reloaded = factory.ProviderFactory(rc_file=mock_tergiterc)
+
+    assert reloaded.providers() == ["env", "foo"]
+    assert reloaded.get_provider().account == Account(
+        "env", "http://env.example", "env-token"
+    )
+    assert "env-token" not in mock_tergiterc.read_text()
+
+
+def test_environment_account_replaces_a_saved_one_of_its_name(
+    mock_tergiterc, monkeypatch
+):
+    """An account saved as env gives way to the environment's"""
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
+    _tergite.use_provider_account("env", url="http://saved.example", save=True)
+    monkeypatch.setenv("TERGITE_API_URL", "http://env.example")
+
+    reloaded = factory.ProviderFactory(rc_file=mock_tergiterc)
+
+    assert reloaded.get_provider("env").account.url == "http://env.example"
+
+
 def test_save_creates_missing_folder(tmp_path):
     """use_provider_account with save option creates the rc file's folder if missing"""
     rc_file = tmp_path / ".qiskit" / "tergiterc"

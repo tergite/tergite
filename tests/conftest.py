@@ -22,8 +22,11 @@ else:
 
 @pytest.fixture(autouse=True)
 def isolate_default_factory(monkeypatch, tmp_path):
-    """Gives the default Tergite factory a temporary rc file and no providers, so that no
-    test reads or writes the user's own ~/.qiskit/tergiterc"""
+    """Gives the default Tergite factory a temporary rc file and no providers, and clears
+    the environment's account, so that no test reads or writes the user's own accounts
+    """
+    monkeypatch.delenv("TERGITE_API_URL", raising=False)
+    monkeypatch.delenv("TERGITE_API_TOKEN", raising=False)
     monkeypatch.setattr(Tergite, "_rc_file", tmp_path / ".qiskit" / "tergiterc")
     monkeypatch.setattr(Tergite, "_providers", {})
     monkeypatch.setattr(Tergite, "_is_loaded", False)

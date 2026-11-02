@@ -17,7 +17,7 @@
 #
 # Martin Ahindura, 2023
 # Chalmers Next Labs, 2025, 2026
-"""The accounts at Tergite services, as saved in the rc file"""
+"""The accounts at Tergite services, as saved in the rc file or set in the environment"""
 import os
 import re
 import stat
@@ -25,7 +25,7 @@ import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 TERGITERC_FILE = Path.home() / ".qiskit" / "tergiterc"
 # each account is the section "[service <name>]"; spaces may pad the brackets
@@ -34,6 +34,10 @@ SECTION_REGEX = re.compile(r"\[ *(?P<header>[^]]+?) *\]")
 # the file holds tokens, so it is its owner's alone, as ssh keys and ~/.netrc are
 RC_FILE_MODE = 0o600
 RC_FOLDER_MODE = 0o700
+# as qiskit-ibm-runtime's QISKIT_IBM_URL and QISKIT_IBM_TOKEN, an account with nothing on disk
+URL_ENV_VAR = "TERGITE_API_URL"
+TOKEN_ENV_VAR = "TERGITE_API_TOKEN"
+ENVIRONMENT_SERVICE_NAME = "env"
 
 
 @dataclass
@@ -80,6 +84,25 @@ def load_accounts(rc_file: Path) -> List[Account]:
             )
         )
     return accounts
+
+
+def get_environment_account(environ: Mapping[str, str]) -> Optional[Account]:
+    """Gets the account the environment variables TERGITE_API_URL and TERGITE_API_TOKEN set
+
+    Args:
+        environ: the environment variables, such as os.environ
+
+    Returns:
+        the account named "env", of that URL and token, or None if no URL is set
+    """
+    url = environ.get(URL_ENV_VAR)
+    if not url:
+        return None
+    return Account(
+        service_name=ENVIRONMENT_SERVICE_NAME,
+        url=url,
+        token=environ.get(TOKEN_ENV_VAR) or None,
+    )
 
 
 def save_account(rc_file: Path, account: Account) -> None:

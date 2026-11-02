@@ -16,7 +16,12 @@ import warnings
 
 import pytest
 
-from tergite.accounts import Account, load_accounts, save_account
+from tergite.accounts import (
+    Account,
+    get_environment_account,
+    load_accounts,
+    save_account,
+)
 
 _POSIX_ONLY = pytest.mark.skipif(os.name != "posix", reason="Windows has no file modes")
 
@@ -105,3 +110,24 @@ def test_load_accounts_of_a_private_file_is_silent(tmp_path):
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         load_accounts(rc_file)
+
+
+@pytest.mark.parametrize(
+    "environ, expected",
+    [
+        (
+            {"TERGITE_API_URL": "http://foo.example", "TERGITE_API_TOKEN": "t"},
+            Account("env", "http://foo.example", "t"),
+        ),
+        (
+            {"TERGITE_API_URL": "http://foo.example"},
+            Account("env", "http://foo.example"),
+        ),
+        ({"TERGITE_API_TOKEN": "t"}, None),
+        ({}, None),
+    ],
+    ids=["url-and-token", "url-alone", "token-alone", "neither"],
+)
+def test_get_environment_account(environ, expected):
+    """The environment sets the account named env when it sets a URL"""
+    assert get_environment_account(environ) == expected

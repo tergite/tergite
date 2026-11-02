@@ -7,6 +7,11 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Added
+
+- Added an account from the environment variables `TERGITE_API_URL` and `TERGITE_API_TOKEN`, named
+  `env` and returned by `get_provider()` ahead of saved ones, so a token need not be saved to disk
+
 ### Changed
 
 - Changed the `test` and `dev` extras into a `dev` dependency group, installed with `uv sync`;
