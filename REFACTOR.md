@@ -349,11 +349,12 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
 Needs B2 and B4 in the e2e stack.
 
 1. **`tergite/target.py`**: `get_target(device, calibration) -> Target`, pure and
-   table-tested. Instructions come from `device.basis_gates` through a constant
-   `GATES_BY_NAME` (`rz`, `sx`, `x`, `rx`, `cz`, `measure`, `reset`, `delay`), on each qubit
-   or coupled pair, with an `InstructionProperties` duration and error from the calibration,
-   and `qubit_properties` from its T1, T2 and frequency. No schedules. A gate name the SDK does
-   not know is skipped with a warning.
+   table-tested. Its gates are the ones B2 compiles on every device: rz, sx, x and rx on
+   each qubit, cz on each coupled pair whose coupler is calibrated, and measure, reset and
+   delay, each with an `InstructionProperties` duration and error from the calibration,
+   and `qubit_properties` from its T1, T2 and frequency. No schedules. `device.basis_gates`
+   is not read: today's devices list their gate configs there (`['x']`, `['u', 'h', 'x']`),
+   from which the transpiler could not even make an H.
 2. **`tergite/backend.py`**: one `TergiteBackend(BackendV2)`. `run(circuits, **options)` checks
    each circuit uses only the target's instructions, writes it with `qiskit.qasm3.dumps`,
    registers the job at MSS and uploads the gate-level payload. Options: `shots`,
