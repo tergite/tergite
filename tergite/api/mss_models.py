@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 
 class CalibrationUnit(Enum):
@@ -81,24 +81,6 @@ class CreatedJobResponse(BaseModel):
     upload_url: str = Field(..., title="Upload Url")
 
 
-class Coordinate(RootModel[tuple[int, int]]):
-    root: tuple[int, int] = Field(..., max_length=2, min_length=2)
-
-
-class CouplingMapItem(RootModel[tuple[int, int]]):
-    root: tuple[int, int] = Field(..., max_length=2, min_length=2)
-
-
-class QubitIdsCouplerMapItemItem(RootModel[tuple[int, int]]):
-    root: tuple[int, int] = Field(..., max_length=2, min_length=2)
-
-
-class QubitIdsCouplerMapItem(RootModel[tuple[QubitIdsCouplerMapItemItem, int]]):
-    root: tuple[QubitIdsCouplerMapItemItem, int] = Field(
-        ..., max_length=2, min_length=2
-    )
-
-
 class Device(BaseModel):
     """
     The Schema for the devices
@@ -109,15 +91,15 @@ class Device(BaseModel):
     )
     basis_gates: list[str] = Field(..., title="Basis Gates")
     characterized: bool = Field(..., title="Characterized")
-    coordinates: list[Coordinate] = Field(..., title="Coordinates")
+    coordinates: list[tuple[int, int]] = Field(..., title="Coordinates")
     coupling_dict: dict[str, str | list[str]] = Field(..., title="Coupling Dict")
-    coupling_map: list[CouplingMapItem] = Field(..., title="Coupling Map")
+    coupling_map: list[tuple[int, int]] = Field(..., title="Coupling Map")
     created_at: str | None = Field(None, title="Created At")
     description: str | None = Field(None, title="Description")
     dt: float | None = Field(None, title="Dt")
     dtm: float | None = Field(None, title="Dtm")
     gates: dict[str, Any] | None = Field(None, title="Gates")
-    id: str = Field(..., pattern="^[0-9a-f]{24}$", title="Id")
+    id: str = Field(..., title="Id")
     is_active: bool | None = Field(None, title="Is Active")
     is_online: bool = Field(..., title="Is Online")
     is_simulator: bool = Field(..., title="Is Simulator")
@@ -130,20 +112,12 @@ class Device(BaseModel):
     number_of_resonators: int | None = Field(0, title="Number Of Resonators")
     open_pulse: bool = Field(..., title="Open Pulse")
     qubit_ids: list[str] | None = Field([], title="Qubit Ids")
-    qubit_ids_coupler_map: list[QubitIdsCouplerMapItem] | None = Field(
-        [], title="Qubit Ids Coupler Map", validate_default=True
+    qubit_ids_coupler_map: list[tuple[tuple[int, int], int]] | None = Field(
+        [], title="Qubit Ids Coupler Map"
     )
     qubit_lo_freq: list[int] | None = Field(None, title="Qubit Lo Freq")
     updated_at: str | None = Field(None, title="Updated At")
     version: str = Field(..., title="Version")
-
-
-class ProjectId(RootModel[str]):
-    root: str = Field(..., pattern="^[0-9a-f]{24}$", title="Project Id")
-
-
-class UserId(RootModel[str]):
-    root: str = Field(..., pattern="^[0-9a-f]{24}$", title="User Id")
 
 
 class JobCreate(BaseModel):
@@ -155,10 +129,6 @@ class JobCreate(BaseModel):
     device: str = Field(..., title="Device")
 
 
-class MemoryItem(RootModel[tuple[float, float]]):
-    root: tuple[float, float] = Field(..., max_length=2, min_length=2)
-
-
 class JobResult(BaseModel):
     """
     The results of the job
@@ -167,8 +137,8 @@ class JobResult(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
-    memory: list[list[str]] | list[list[list[MemoryItem]]] | None = Field(
-        [], title="Memory", validate_default=True
+    memory: list[list[str]] | list[list[list[tuple[float, float]]]] | None = Field(
+        [], title="Memory"
     )
 
 
@@ -254,7 +224,7 @@ class DeviceCalibration(BaseModel):
 
     couplers: list[CouplersCalibration] | None = Field(None, title="Couplers")
     discriminators: dict[str, Any] | None = Field(None, title="Discriminators")
-    id: str | None = Field(None, pattern="^[0-9a-f]{24}$", title="Id")
+    id: str | None = Field(None, title="Id")
     last_calibrated: str | None = Field(None, title="Last Calibrated")
     name: str = Field(..., title="Name")
     qubits: list[QubitCalibration] = Field(..., title="Qubits")
@@ -291,14 +261,14 @@ class Job(BaseModel):
     device: str = Field(..., title="Device")
     download_url: str | None = Field(None, title="Download Url")
     duration_in_secs: float | None = Field(
-        ..., description="Duration of execution of the job", title="Duration In Secs"
+        None, description="Duration of execution of the job", title="Duration In Secs"
     )
     estimated_duration: float | None = Field(None, title="Estimated Duration")
     failure_reason: str | None = Field(None, title="Failure Reason")
     job_id: str | None = Field(None, title="Job Id")
-    project_id: ProjectId | None = Field(None, title="Project Id")
+    project_id: str | None = Field(None, title="Project Id")
     result: JobResult | None = None
     status: JobStatus | None = "pending"
     timestamps: JobTimestamps | None = None
     updated_at: str | None = Field(None, title="Updated At")
-    user_id: UserId | None = Field(None, title="User Id")
+    user_id: str | None = Field(None, title="User Id")

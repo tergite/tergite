@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import Enum, IntEnum
 from typing import Any
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 
 class CancellationDetails(BaseModel):
@@ -45,10 +45,6 @@ class GeneralMessage(BaseModel):
     status: Status = Field(..., title="Status")
 
 
-class Memory(RootModel[tuple[float, float]]):
-    root: tuple[float, float] = Field(..., max_length=2, min_length=2)
-
-
 class JobResult(BaseModel):
     """
     The results of the job
@@ -57,9 +53,9 @@ class JobResult(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
-    memory: list[list[str]] | list[list[list[Memory | list[float]]]] | None = Field(
-        None, title="Memory"
-    )
+    memory: (
+        list[list[str]] | list[list[list[tuple[float, float] | list[float]]]] | None
+    ) = Field(None, title="Memory")
 
 
 class JobStatus(Enum):
@@ -97,11 +93,11 @@ class TimestampPair(BaseModel):
     """
 
     finish_timestamp: AwareDatetime | None = Field(
-        ..., description="finished, as a datetime", title="Finish Timestamp"
+        None, description="finished, as a datetime", title="Finish Timestamp"
     )
     finished: str | None = Field(None, title="Finished")
     start_timestamp: AwareDatetime | None = Field(
-        ..., description="started, as a datetime", title="Start Timestamp"
+        None, description="started, as a datetime", title="Start Timestamp"
     )
     started: str | None = Field(None, title="Started")
 
@@ -137,7 +133,7 @@ class Job(BaseModel):
         extra="allow",
     )
     actual_duration: float | None = Field(
-        ...,
+        None,
         description="The seconds the job took to execute, once it has",
         title="Actual Duration",
     )

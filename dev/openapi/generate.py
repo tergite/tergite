@@ -101,7 +101,8 @@ def render_models(contract: Contract) -> str:
             use_union_operator=True,
             use_schema_description=True,
             use_double_quotes=True,
-            field_constraints=True,
+            collapse_root_models=True,
+            use_tuple_for_fixed_items=True,
             disable_timestamp=True,
             # formatted below, as this repository's black and isort settings would format it
             formatters=[],
@@ -118,8 +119,36 @@ def _prune_spec(spec: Dict[str, Any], schemas: Iterable[str]) -> Dict[str, Any]:
         "openapi": spec["openapi"],
         "info": spec["info"],
         "paths": {},
-        "components": {"schemas": {name: all_schemas[name] for name in sorted(kept)}},
+        "components": {
+            "schemas": {name: _make_lenient(all_schemas[name]) for name in sorted(kept)}
+        },
     }
+
+
+def _make_lenient(node: Any) -> Any:
+    """The schema node, and every node in it, as lenient as a client reading it should be:
+
+    - a read-only field is optional: the services dump with exclude_none, so a null one,
+      such as a job's duration_in_secs, is left out though the schema requires it;
+    - a string has no pattern: the service validates its own ids, and the SDK only passes
+      them back.
+    """
+    if isinstance(node, list):
+        return [_make_lenient(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+
+    schema = {
+        key: _make_lenient(value) for key, value in node.items() if key != "pattern"
+    }
+    if "required" in schema and isinstance(schema.get("properties"), dict):
+        properties = schema["properties"]
+        schema["required"] = [
+            name
+            for name in schema["required"]
+            if not properties.get(name, {}).get("readOnly")
+        ]
+    return schema
 
 
 def _get_referred_schemas(all_schemas: Dict[str, Any], names: Set[str]) -> Set[str]:
