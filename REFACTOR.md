@@ -287,10 +287,13 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
      per characterized device, step 6.3); building a target; `backend.run` up to the upload
      (time and payload bytes); `job.result()` for 1, 10 and 100 circuits of 10,000 shots;
      and peak memory for each, from `tracemalloc`.
-   - **The round trip**, against the native stack of item 6: jobs of each kind on each
-     simulator, from `run()` to `result()`. It records p50 and p95 latency, jobs per minute,
-     HTTP calls and bytes uploaded per job, and the CPU and peak memory of the SDK, MSS and
-     backend processes, sampled with psutil.
+   - **The round trip**, against the native stack of item 6: `dev/perf/test_roundtrip.py`,
+     which `record.sh` runs through `dev/e2e_native_test.sh` with `PYTEST_TARGET`. Five jobs
+     of each kind (one and two qubits, counts and IQ points, Loke) from `run()` to
+     `result()`: p50 and p95 latency, jobs per minute, the HTTP calls `run()` and `result()`
+     make (the status polls between them vary with timing, so they are left out), the
+     bytes uploaded, and the CPU time and peak memory of the SDK, MSS and backend
+     processes, children included, sampled with psutil.
    - **HTTP calls are compared exactly**: one call more is a regression, whatever the
      timings say.
    - The baselines are recorded at the end of this step, of the code after step 0 and

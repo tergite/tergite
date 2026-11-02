@@ -31,6 +31,7 @@
 #   BACKEND_REPO="https://github.com/tergite/tergite-backend.git" \
 #   BACKEND_BRANCH="main" \ # the branch or tag of BACKEND_REPO to clone, or main where it has none
 #   DEBUG="True" \ # Set 'True' to keep the services running and temp-native/ after the tests, default: ''
+#   PYTEST_TARGET="tests/e2e" \ # what pytest runs against the stack, default: 'tests/e2e'
 #   ./dev/e2e_native_test.sh
 
 set -e # exit if any step fails
@@ -40,6 +41,8 @@ ROOT_PATH="$(cd "$(dirname "$0")/.." && pwd)"
 export UV_PYTHON="${UV_PYTHON:-3.13}"
 WORK_PATH="$ROOT_PATH/temp-native"
 SDK_FIXTURES_PATH="$ROOT_PATH/tests/fixtures"
+# what pytest runs against the stack; dev/perf/record.sh runs its round trip this way
+PYTEST_TARGET="${PYTEST_TARGET:-tests/e2e}"
 FRONTEND_BRANCH="${FRONTEND_BRANCH:-main}"
 BACKEND_BRANCH="${BACKEND_BRANCH:-main}"
 OPENID_CONFIG_URL="${OPENID_CONFIG_URL:-https://samples.auth0.com/.well-known/openid-configuration}"
@@ -263,11 +266,12 @@ for backend in "${SIMULATORS[@]}"; do
   wait_for_url simulators "http://127.0.0.1:$MSS_PORT/calibrations/$name" $simulators_pid 300
 done
 
-echo "Running end-to-end test suite..."
+echo "Running $PYTEST_TARGET..."
 cd "$ROOT_PATH"
 IS_END_TO_END="True" \
   API_URL="http://127.0.0.1:$MSS_PORT" \
   API_TOKEN="$APP_TOKEN" \
-  "$WORK_PATH/venvs/sdk/bin/python" -m pytest tests/e2e "$@"
+  MSS_PID=$mss_pid SIMULATORS_PID=$simulators_pid LOKE_PID=$loke_pid \
+  "$WORK_PATH/venvs/sdk/bin/python" -m pytest "$PYTEST_TARGET" "$@"
 
 echo "Script completed."
