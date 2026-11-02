@@ -35,8 +35,9 @@ ONLY="$2"
 cd "$ROOT_PATH"
 if [[ -z "$ONLY" || "$ONLY" = "client" ]]; then
   echo "Recording the client benchmarks"
+  # at least 20 rounds, as one slow round moved the median of run's 10 past the noise floor
   uv run --frozen pytest -q -p no:cacheprovider dev/perf/test_client.py \
-    --benchmark-json="$OUT_PATH/client.json"
+    --benchmark-min-rounds=20 --benchmark-json="$OUT_PATH/client.json"
 fi
 if [[ -z "$ONLY" || "$ONLY" = "roundtrip" ]]; then
   echo "Recording the round trip"
