@@ -45,6 +45,11 @@ from .dtos import (
 if TYPE_CHECKING:
     from ..configs import AccountInfo
 
+# seconds before a call that sends or receives no file gives up waiting for the server
+REQUEST_TIMEOUT = 30
+# seconds for the calls that upload a job or download a logfile
+TRANSFER_TIMEOUT = 300
+
 
 def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
     """Retrieves the backend configs from the remote API
@@ -66,7 +71,7 @@ def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
     url = f"{account.url}/devices/"
     headers = _get_auth_headers(account)
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     if not response.ok:
         error_msg = _get_err_text(response)
         raise RuntimeError(f"Error retrieving backends: {error_msg}")
@@ -101,7 +106,7 @@ def get_latest_calibration(
     """
     url = f"{account.url}/calibrations/{backend_name}"
     headers = _get_auth_headers(account)
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
 
     if not response.ok:
         error_msg = _get_err_text(response)
@@ -135,7 +140,9 @@ def register_job(
     url = f"{account.url}/jobs/"
     headers = _get_auth_headers(account)
     payload = {"device": backend_name, "calibration_date": calibration_date}
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(
+        url, headers=headers, json=payload, timeout=REQUEST_TIMEOUT
+    )
     if not response.ok:
         err_msg = _get_err_text(response)
         raise RuntimeError(f"unable to register job at the remote API: {err_msg}")
@@ -172,7 +179,12 @@ def send_job_file(
         # Send temporary file to url
         with path.open("rb") as src:
             headers = {"Authorization": f"Bearer {access_token}"}
-            response = requests.post(url, files={"upload_file": src}, headers=headers)
+            response = requests.post(
+                url,
+                files={"upload_file": src},
+                headers=headers,
+                timeout=TRANSFER_TIMEOUT,
+            )
 
             # FIXME: Can the backend update the MSS when a job is queued i.e. after this request?
             if not response.ok:
@@ -204,7 +216,7 @@ def cancel_job(upload_url: str, job_id: str, access_token: str) -> Response:
     """
     url = f"{upload_url}/{job_id}/cancel"
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(url, json={}, headers=headers)
+    resp = requests.post(url, json={}, headers=headers, timeout=REQUEST_TIMEOUT)
     if not resp.ok:
         error_msg = _get_err_text(resp)
         raise RuntimeError(f"Failed to cancel job '{job_id}': {error_msg}")
@@ -227,7 +239,9 @@ def download_job_logfile(job_id: str, url: str, access_token: str) -> Path:
         RuntimeError: Failed to GET logfile of job '{job_id}': {detail}
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    file_response = requests.get(url, stream=True, headers=headers)
+    file_response = requests.get(
+        url, stream=True, headers=headers, timeout=TRANSFER_TIMEOUT
+    )
     if not file_response.ok:
         error_msg = _get_err_text(file_response)
         raise RuntimeError(f"Failed to GET logfile of job '{job_id}': {error_msg}")
@@ -255,7 +269,7 @@ def get_remote_job_data(account: "AccountInfo", job_id: str) -> RemoteJob:
     """
     url = f"{account.url}/jobs/{job_id}"
     headers = _get_auth_headers(account)
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     if response.ok:
         raw_data = response.json()
         return RemoteJob.model_validate(raw_data)

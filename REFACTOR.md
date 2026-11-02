@@ -304,7 +304,9 @@ Needs B2 and B4 in the e2e stack.
 3. **The provider stops caching forever.** `available_backends` is a `cached_property`, so a
    long session never sees a device come online. `backends()` fetches the devices each call;
    a backend refreshes its target when MSS reports a newer `last_calibrated` than the one it
-   was built from.
+   was built from. `get_backend(name)` stops fetching the calibration of every characterized
+   device: `filter_backends` reads each backend's configuration, which builds its target, so
+   asking for one backend costs a call per device. Filtering reads the device data alone.
 4. **Long functions become compositions**, one per commit, with unit tests for the pure steps:
    every function still over 30 lines once steps 3 to 5 have landed.
 

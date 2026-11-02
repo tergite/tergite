@@ -18,6 +18,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   already saved, and an account saved without a token being read back with the token "None"
 - Fixed `import tergite` reading `~/.qiskit/tergiterc` and printing warnings; the file is read
   on first use, and warnings and the job submission notice go through `warnings` and `logging`
+- Fixed calls to MSS and the backends waiting forever on a server that never answers; they now
+  time out after 30 seconds, or 300 for uploading a job and downloading its logfile
 
 ## [2026.06.0] - 2026-06-26
 

@@ -551,6 +551,31 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     assert requests_made == expected_requests
 
 
+def test_every_call_has_a_timeout(api, tmp_results_file):
+    """Every call to MSS or BCC gives up after a timeout, so an unresponsive server cannot hang the caller"""
+    provider = Tergite.use_provider_account(service_name="test", url=API_URL)
+    backend = provider.get_backend("loke")
+    calibrations = _get_calibrations("loke")
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    assert job.logfile == tmp_results_file
+    job.cancel()
+
+    timeouts = {
+        (req.method, req.netloc, req.path): req.timeout for req in api.request_history
+    }
+    assert {
+        ("GET", "api.tergite.example", "/devices/"),
+        ("GET", "api.tergite.example", "/calibrations/loke"),
+        ("POST", "api.tergite.example", "/jobs/"),
+        ("GET", "api.tergite.example", "/jobs/test_job_id"),
+        ("POST", "loke.tergite.example", "/jobs"),
+        ("GET", "loke.tergite.example", "/test_file.hdf5"),
+        ("POST", "loke.tergite.example", "/jobs/test_job_id/cancel"),
+    } <= timeouts.keys()
+    assert None not in timeouts.values()
+
+
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_provider_job(api_with_logfile, backend_name):
     """Test that Provider.job() returns the correct Job object."""
