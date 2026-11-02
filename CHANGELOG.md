@@ -7,6 +7,11 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed the `test` and `dev` extras into a `dev` dependency group, installed with `uv sync`;
+  `pip install tergite[test]` and `tergite[dev]` no longer exist
+
 ### Fixed
 
 - Fixed installing tergite failing on current setuptools, by dropping the unused
