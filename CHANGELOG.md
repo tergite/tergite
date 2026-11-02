@@ -28,6 +28,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   MSS does not keep a job's circuits; the SDK no longer needs h5py or sympy
 - Changed to Qiskit 2.1 and later, from Qiskit 1.2, which kept the SDK from installing beside
   current Qiskit packages; each experiment result's `header` is a dict, as in Qiskit 2
+- Changed `tergite.services.configs.AccountInfo` to `tergite.accounts.Account`, with the rc file
+  read and written by `load_accounts` and `save_account`; the file's format is unchanged
 
 ### Fixed
 
@@ -39,6 +41,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Fixed backends being unhashable, which made them unusable as set members or dict keys
 - Fixed saving a provider account failing when `~/.qiskit` did not exist or the account was
   already saved, and an account saved without a token being read back with the token "None"
+- Fixed saving an account whose URL or token holds a `%` failing, and saving an account again
+  moving it to the end of the rc file, which could change the account `get_provider()` defaults to
 - Fixed `import tergite` reading `~/.qiskit/tergiterc` and printing warnings; the file is read
   on first use, and warnings and the job submission notice go through `warnings` and `logging`
 - Fixed calls to MSS and the backends waiting forever on a server that never answers; they now

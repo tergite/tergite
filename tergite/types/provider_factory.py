@@ -16,12 +16,11 @@
 #
 # Martin Ahindura, 2023
 """Defines the ProviderFactory class that contains multiple Tergite Providers."""
-import pathlib
-from collections import OrderedDict
-from typing import List, Optional
+from pathlib import Path
+from typing import Dict, List, Optional
 
+from ..accounts import TERGITERC_FILE, Account, load_accounts, save_account
 from ..exc import TergiteError
-from ..services.configs import TERGITERC_FILE, AccountInfo, Tergiterc
 from .provider import Provider
 
 
@@ -31,10 +30,10 @@ class ProviderFactory:
     It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`
     """
 
-    def __init__(self, rc_file: pathlib.Path = TERGITERC_FILE):
+    def __init__(self, rc_file: Path = TERGITERC_FILE):
         self._rc_file = rc_file
-        self._providers = OrderedDict()
-        self._tergiterc: Optional[Tergiterc] = None
+        self._providers: Dict[str, Provider] = {}
+        self._is_loaded = False
 
     def use_provider_account(
         self,
@@ -56,10 +55,10 @@ class ProviderFactory:
                 :class:`~tergite.providers.tergite.provider.Provider`
                 for the given account
         """
-        tergiterc = self._load_saved_providers()
-        account = AccountInfo(service_name=service_name, url=url, token=token)
+        self._load_saved_providers()
+        account = Account(service_name=service_name, url=url, token=token)
         if save:
-            tergiterc.save_accounts([account])
+            save_account(self._rc_file, account)
 
         new_provider = Provider(account)
         self._providers[account.service_name] = new_provider
@@ -96,15 +95,9 @@ class ProviderFactory:
         # get by name or default to the first entry
         return providers.get(service_name, next(iter(providers.values())))
 
-    def _load_saved_providers(self) -> Tergiterc:
-        """Loads the providers saved in the rc file, on the first call only
-
-        Returns:
-            the Tergiterc of the rc file
-        """
-        if self._tergiterc is None:
-            self._tergiterc = Tergiterc(rc_file=self._rc_file)
-            for account in self._tergiterc.load_accounts():
+    def _load_saved_providers(self) -> None:
+        """Loads the providers saved in the rc file, on the first call only"""
+        if not self._is_loaded:
+            self._is_loaded = True
+            for account in load_accounts(self._rc_file):
                 self._providers[account.service_name] = Provider(account)
-
-        return self._tergiterc

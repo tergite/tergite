@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from tergite.services.configs import AccountInfo
+from tergite.accounts import Account
 from tergite.types import provider_factory as factory
 from tests.utils.fixtures import load_json_fixture
 
@@ -18,7 +18,7 @@ def test_use_provider_account(account_data, mock_tergiterc):
     """use_provider_account without save option returns the given provider account"""
     _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
     provider = _tergite.use_provider_account(**account_data)
-    assert provider.account == AccountInfo(**account_data)
+    assert provider.account == Account(**account_data)
 
 
 @pytest.mark.parametrize("account_data", _PROVIDER_ACCOUNTS)
@@ -40,7 +40,7 @@ def test_use_provider_account_save(account_data, mock_tergiterc):
         actual_config = file.read()
 
     assert expected_config in actual_config
-    assert provider.account == AccountInfo(**account_data)
+    assert provider.account == Account(**account_data)
 
 
 @pytest.mark.parametrize("account_data", _PROVIDER_ACCOUNTS)

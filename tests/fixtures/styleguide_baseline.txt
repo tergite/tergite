@@ -1,7 +1,6 @@
 # Code that broke the styleguide when tests/test_styleguide.py was added.
 # Fix one, then delete its line; the tests fail until you do.
 boolean: tergite/types/provider_factory.py::ProviderFactory.use_provider_account(save)
-license-header: tergite/services/__init__.py
 license-header: tergite/types/__init__.py
 license-header: tests/__init__.py
 license-header: tests/e2e/__init__.py
@@ -10,7 +9,6 @@ license-header: tests/e2e/test_job_execution.py
 license-header: tests/integration/__init__.py
 license-header: tests/integration/test_provider.py
 license-header: tests/utils/__init__.py
-type-hints: tergite/services/configs/__init__.py::Tergiterc.save_accounts
 type-hints: tergite/types/provider.py::Provider.backends
 type-hints: tergite/types/provider.py::Provider.__str__
 type-hints: tergite/types/provider.py::Provider.__repr__

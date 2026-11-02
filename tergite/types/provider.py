@@ -26,24 +26,22 @@ from typing import Any, Callable, Dict, List
 
 from qiskit.providers.providerutils import filter_backends
 
+from ..accounts import Account
 from ..api import mss
 from ..api.client import create_bcc_client, create_mss_client
 from ..backend import TergiteBackend
 from ..exc import BackendNotFoundError
 from ..job import STATUS_MAP, Job
-from ..services.configs import AccountInfo
 
 
 class Provider:
     """The Qiskit Provider with which to access the Tergite quantum computers"""
 
-    def __init__(self, /, account: "AccountInfo"):
+    def __init__(self, /, account: Account):
         """Initializes the Provider
 
         Args:
-            account: the instance of the
-                :class:tergite.providers.tergite.account.AccountInfo`
-                with which to connect to the Tergite API
+            account: the account at the Tergite service to connect to
         """
         super().__init__()
         self.account = account
