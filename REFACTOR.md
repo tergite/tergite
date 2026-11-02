@@ -232,8 +232,9 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
    - runs the backends from `BACKEND_PATH`, or a clone, with `main.py start`, so their
      workers execute jobs: `qiskit_pulse_1q` and `qiskit_pulse_2q` in one process, from the
      backend's qiskit extra, and Loke on a dummy Qblox cluster in another, from its quantify
-     extra, as the two extras conflict. Loke's quantify config stays in this repo, as the
-     frontend never executes on it;
+     extra, as the two extras conflict. Loke's settings, quantify and calibration configs
+     stay in this repo: the frontend's Loke has 8 qubits and is never recalibrated, as its
+     e2e runs no worker;
    - binds everything to 127.0.0.1, so the upload URLs work as they are and the proxy in
      `tests/e2e/conftest.py`, `is_in_docker` and `IS_IN_DOCKER` go;
    - keeps its data in `temp-native/`, fresh each run, keeps the services up with

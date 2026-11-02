@@ -12,10 +12,9 @@ on:
       job:
         description: 'Job to run'
         required: true
-        default: 'e2e'
+        default: 'release'
         type: choice
         options:
-          - e2e
           - release
 jobs:
   tests:
@@ -40,38 +39,33 @@ jobs:
         run: uv run pytest
 
   e2e:
-    runs-on: ubuntu-latest
-    if: |
-      startsWith(github.ref, 'refs/heads/main') || 
-      startsWith(github.ref, 'refs/tags/') || 
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'e2e')
-    needs: tests
-    strategy:
-      matrix:
-        python-version: ["3.12", "3.13"]
-
+    # noble, as the MongoDB repository below names it
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-        with:
-          version: 'latest'
+      - uses: astral-sh/setup-uv@v6
+      - name: Install MongoDB
+        run: |
+          curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc |
+            sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" |
+            sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-org
       - name: Run end-to-end-tests
         env:
           DEBUG: ${{ vars.DEBUG || 'false' }}
           FRONTEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-frontend.git
           BACKEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-backend.git
-          BACKEND_BRANCH: ${{ github.ref_name }}
-          FRONTEND_BRANCH: ${{ github.ref_name }}
-          PYTHON_IMAGE: python:${{ matrix.python-version }}-slim
-        run: ./e2e_test.sh
-#      - name: Dump container logs on failure
-#        if: always()
-#        run: |
-#          for container in $(docker ps -a --filter "name=tergite-e2e" --format "{{.Names}}"); do
-#            echo "===== $container ====="
-#            docker logs "$container" 2>&1 || true
-#          done
+          # a pull request's source branch, as its ref_name is N/merge
+          FRONTEND_BRANCH: ${{ github.head_ref || github.ref_name }}
+          BACKEND_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: ./dev/e2e_native_test.sh
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-logs
+          path: temp-native/logs/
 
   release:
     name: Release

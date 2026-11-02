@@ -119,25 +119,28 @@ uv run --with jupyter jupyter lab examples/notebooks
 
 ## How to Run End-to-end Tests
 
-- Ensure you have [docker](https://docs.docker.com/engine/install/) and [python](https://www.python.org/downloads/) installed
-- Ensure nothing is running on ports:
-  - 27018
-  - 8000
-  - 8002
-  - 8001
-  - 6378
+`dev/e2e_native_test.sh` runs `tests/e2e` against MSS and the backends, all running natively
+from checkouts of [tergite-frontend](https://github.com/tergite/tergite-frontend) and
+[tergite-backend](https://github.com/tergite/tergite-backend), with fresh data in
+`temp-native/`.
 
-- Run the tests command
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/), MongoDB (`mongod` and
+  `mongosh`), git and curl.
+- Ensure nothing is running on ports 8201, 8202, 8203 and 27218.
+- Run it against local checkouts, or clones of the given repositories and branches:
+
+``` shell
+FRONTEND_PATH="../tergite-frontend" BACKEND_PATH="../tergite-backend" ./dev/e2e_native_test.sh
+```
 
 ``` shell
 FRONTEND_REPO="https://github.com/tergite/tergite-frontend.git" \
   BACKEND_REPO="https://github.com/tergite/tergite-backend.git" \
-# BACKEND_BRANCH="main" \ # you can set a different backend branch; default is 'main'
-# FRONTEND_BRANCH="main" \ # you can set a different frontend branch; default is 'main'
-# DEBUG="True" \ # Set 'True' to avoid cleaning up the containers, env, and repos after test, default: ''
-# PYTHON_IMAGE="python:3.12-slim" \ # Set the docker image to run the tests. If not provided, it runs on the host machine
-./e2e_test.sh
+  ./dev/e2e_native_test.sh
 ```
+
+Its arguments go to pytest, e.g. `./dev/e2e_native_test.sh -k quantify`. Set `DEBUG=True` to
+keep the services running afterwards; their logs are in `temp-native/logs/`.
 
 ## References
 
