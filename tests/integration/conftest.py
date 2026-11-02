@@ -143,6 +143,7 @@ def mock_tergiterc() -> Path:
     tergiterc_file.parent.mkdir(parents=True, exist_ok=True)
 
     tergiterc_file.write_text("")
+    tergiterc_file.chmod(0o600)
 
     yield tergiterc_file
     tergiterc_file.unlink(missing_ok=True)

@@ -18,7 +18,9 @@
 # Martin Ahindura, 2023
 # Chalmers Next Labs, 2025, 2026
 """The accounts at Tergite services, as saved in the rc file"""
+import os
 import re
+import stat
 import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass
@@ -29,6 +31,9 @@ TERGITERC_FILE = Path.home() / ".qiskit" / "tergiterc"
 # each account is the section "[service <name>]"; spaces may pad the brackets
 SECTION_PREFIX = "service "
 SECTION_REGEX = re.compile(r"\[ *(?P<header>[^]]+?) *\]")
+# the file holds tokens, so it is its owner's alone, as ssh keys and ~/.netrc are
+RC_FILE_MODE = 0o600
+RC_FOLDER_MODE = 0o700
 
 
 @dataclass
@@ -43,7 +48,8 @@ class Account:
 def load_accounts(rc_file: Path) -> List[Account]:
     """Loads the accounts saved in the rc file
 
-    A section without a url is skipped with a warning.
+    A section without a url is skipped with a warning, and a file other users of the
+    computer can read is warned of, to be made its owner's alone.
 
     Args:
         rc_file: the rc file, which need not exist
@@ -51,6 +57,11 @@ def load_accounts(rc_file: Path) -> List[Account]:
     Returns:
         the accounts, in the order of the file; none if it does not exist
     """
+    if _is_readable_by_others(rc_file):
+        warnings.warn(
+            f"The rc file {rc_file} can be read by other users of this computer; "
+            f"make it yours alone with: chmod 600 {rc_file}"
+        )
     parser = _read_rc_file(rc_file)
     accounts = []
     for section in parser.sections():
@@ -75,7 +86,8 @@ def save_account(rc_file: Path, account: Account) -> None:
     """Saves the account into the rc file, replacing one saved under the same name
 
     The file and its folder are created if missing; the other accounts in it are kept, and
-    each account keeps its place in the file.
+    each account keeps its place in the file. The file is made its owner's alone (0600), and
+    a folder it creates too (0700).
 
     Args:
         rc_file: the rc file
@@ -89,9 +101,21 @@ def save_account(rc_file: Path, account: Account) -> None:
     # replaces the section's values where it is, so the accounts keep their order
     parser[SECTION_PREFIX + account.service_name] = values
 
-    rc_file.parent.mkdir(parents=True, exist_ok=True)
-    with rc_file.open("w") as dest:
+    rc_file.parent.mkdir(mode=RC_FOLDER_MODE, parents=True, exist_ok=True)
+    # created with its mode, so that no other user can read it even while it is written
+    fd = os.open(rc_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, RC_FILE_MODE)
+    with os.fdopen(fd, "w") as dest:
+        # as the mode applies only to a file os.open creates; the file is empty by now
+        os.fchmod(dest.fileno(), RC_FILE_MODE)
         parser.write(dest)
+
+
+def _is_readable_by_others(rc_file: Path) -> bool:
+    """Whether the rc file exists and its group or other users can read it, on systems
+    whose file modes say so: Windows' do not"""
+    if os.name != "posix" or not rc_file.exists():
+        return False
+    return bool(rc_file.stat().st_mode & (stat.S_IRGRP | stat.S_IROTH))
 
 
 def _read_rc_file(rc_file: Path) -> ConfigParser:

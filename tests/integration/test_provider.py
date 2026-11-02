@@ -125,6 +125,7 @@ def test_invalid_saved_account_warns(tmp_path):
     """A saved account without a url is skipped with a warning"""
     rc_file = tmp_path / "tergiterc"
     rc_file.write_text("[service broken]\ntoken = some-token\n")
+    rc_file.chmod(0o600)
     _tergite = factory.ProviderFactory(rc_file=rc_file)
 
     with pytest.warns(UserWarning, match="Skipping account provider 'service broken'"):

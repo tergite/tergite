@@ -36,6 +36,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 ### Fixed
 
 - Fixed a logfile served with `Content-Encoding: gzip` being saved still compressed
+- Fixed the rc file, which holds account tokens, being readable by every user of the computer; it
+  is saved for its owner alone (0600), and loading one that others can read warns how to fix it
 - Fixed installing tergite failing on current setuptools, by dropping the unused
   `qiskit-ibm-runtime` and `pandas` dependencies
 - Fixed listing backends crashing when any device takes no pulse jobs; running on such a
