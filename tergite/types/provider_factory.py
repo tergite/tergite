@@ -74,15 +74,19 @@ class ProviderFactory:
         self._load_saved_providers()
         return list(self._providers.keys())
 
-    def get_provider(self, service_name=None) -> Optional[Provider]:
-        """Retrieves a given provider by service name
+    def get_provider(self, service_name: Optional[str] = None) -> Provider:
+        """Gets the provider of the given service name, or the first if none is given
 
         Args:
-            service_name: the name by which the given provider is saved
+            service_name: the name the provider's account is saved or used under
 
         Returns:
-            the provider of the given service name
-                if it exists or None if it doesn't
+            the provider of that name, or the first saved or used if no name is given
+
+        Raises:
+            TergiteError: No provider account is available. Provide one via
+                Tergite.use_provider_account(..).
+            TergiteError: No provider account is named '{service_name}'; there are: {names}
         """
         self._load_saved_providers()
         providers = self._providers
@@ -91,9 +95,14 @@ class ProviderFactory:
             raise TergiteError(
                 "No provider account is available. Provide one via Tergite.use_provider_account(..)."
             )
-
-        # get by name or default to the first entry
-        return providers.get(service_name, next(iter(providers.values())))
+        if service_name is None:
+            return next(iter(providers.values()))
+        if service_name not in providers:
+            raise TergiteError(
+                f"No provider account is named '{service_name}'; there are: "
+                f"{', '.join(providers)}"
+            )
+        return providers[service_name]
 
     def _load_saved_providers(self) -> None:
         """Loads the providers saved in the rc file, on the first call only"""

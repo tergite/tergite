@@ -13,4 +13,3 @@ type-hints: tergite/types/provider.py::Provider.backends
 type-hints: tergite/types/provider.py::Provider.__str__
 type-hints: tergite/types/provider.py::Provider.__repr__
 type-hints: tergite/types/provider.py::Provider.get_backend
-type-hints: tergite/types/provider_factory.py::ProviderFactory.get_provider

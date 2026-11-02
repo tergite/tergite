@@ -1,12 +1,11 @@
 import os
-import re
 import subprocess
 import sys
-from datetime import datetime
 
 import pytest
 
 from tergite.accounts import Account
+from tergite.exc import TergiteError
 from tergite.types import provider_factory as factory
 from tests.utils.fixtures import load_json_fixture
 
@@ -52,18 +51,26 @@ def test_get_provider(account_data, mock_tergiterc):
     assert got == expected
 
 
-@pytest.mark.parametrize("account_data", _PROVIDER_ACCOUNTS)
-def test_get_provider_non_existing(account_data, mock_tergiterc):
-    """get_provider for non-existing service returns first provider"""
+def test_get_provider_non_existing(mock_tergiterc):
+    """get_provider for a service of no account raises, naming those there are"""
     _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
-    _tergite.use_provider_account(**account_data, save=True)
-    provider = _tergite.get_provider(datetime.now().isoformat())
+    _tergite.use_provider_account("foo", url="http://foo.example")
+    _tergite.use_provider_account("bar", url="http://bar.example")
 
-    with open(mock_tergiterc, "r") as file:
-        conf = file.read()
+    with pytest.raises(
+        TergiteError, match="No provider account is named 'fo'; there are: foo, bar"
+    ):
+        _tergite.get_provider("fo")
 
-    first_service_name = re.search(r"\[service\s+(.+?)]\n", conf).group(1)
-    assert provider.account.service_name == first_service_name
+
+def test_get_provider_without_name(mock_tergiterc):
+    """get_provider without a name returns the first saved account's provider"""
+    _tergite = factory.ProviderFactory(rc_file=mock_tergiterc)
+    _tergite.use_provider_account("foo", url="http://foo.example", save=True)
+    _tergite.use_provider_account("bar", url="http://bar.example", save=True)
+
+    reloaded = factory.ProviderFactory(rc_file=mock_tergiterc)
+    assert reloaded.get_provider().account.service_name == "foo"
 
 
 def test_save_creates_missing_folder(tmp_path):

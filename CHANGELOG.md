@@ -30,6 +30,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   current Qiskit packages; each experiment result's `header` is a dict, as in Qiskit 2
 - Changed `tergite.services.configs.AccountInfo` to `tergite.accounts.Account`, with the rc file
   read and written by `load_accounts` and `save_account`; the file's format is unchanged
+- Changed `get_provider(name)` to raise a `TergiteError` for a name no account has, rather than
+  return the first account's provider, which sent a misspelt service's jobs to another service
 
 ### Fixed
 
