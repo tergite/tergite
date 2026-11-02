@@ -45,6 +45,7 @@ from qiskit.transpiler.coupling import CouplingMap
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
 from ..compat.qiskit_ibm_runtime.models import BackendConfiguration
+from ..exc import TergiteError
 from ..services import api_client, device_compiler
 from ..utils.qobj import (
     derive_reg_len_from_qobj_experiment,
@@ -606,6 +607,21 @@ class OpenPulseBackend(TergiteBackend):
 
 class OpenQASMBackend(TergiteBackend):
     open_pulse = False
+
+    @property
+    def device_properties(self) -> None:
+        """None, as a device that takes no pulse jobs has no calibration the SDK reads"""
+        return None
+
+    def run(self, experiments, /, **kwargs) -> Job:
+        """Refuses the experiments, before any job is registered.
+
+        Raises:
+            TergiteError: Backend '{name}' cannot run jobs: Tergite backends accept pulse jobs only
+        """
+        raise TergiteError(
+            f"Backend '{self.name}' cannot run jobs: Tergite backends accept pulse jobs only"
+        )
 
     @functools.cached_property
     def target(self) -> Target:

@@ -79,6 +79,7 @@ RAW_TEST_JOB_RESULTS = json.dumps(TEST_JOB_RESULTS).encode("utf-8")
 GOOD_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_1q", "qiskit_pulse_2q"]
 TWO_QUBIT_BACKENDS = ["Well-formed", "loke", "qiskit_pulse_2q"]
 MALFORMED_BACKEND = "Malformed"
+NON_PULSE_BACKEND = "OpenQASM"
 INVALID_API_TOKENS = ["foo", "bar", "mayo", "API_USERNAME"]
 
 _CALIBRATIONS = load_json_fixture("calibrations.json")

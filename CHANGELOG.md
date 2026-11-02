@@ -11,6 +11,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 - Fixed installing tergite failing on current setuptools, by dropping the unused
   `qiskit-ibm-runtime` and `pandas` dependencies
+- Fixed listing backends crashing when any device takes no pulse jobs; running on such a
+  backend now raises before a job is registered, rather than after
 
 ## [2026.06.0] - 2026-06-26
 

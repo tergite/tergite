@@ -11,9 +11,11 @@
 # that they have been altered from the originals.
 """tests for the get_backend method on tergite backend"""
 import pytest
+from qiskit import QuantumCircuit
 from qiskit.providers import QiskitBackendNotFoundError
 
-from tergite import OpenPulseBackend, Provider, Tergite
+from tergite import OpenPulseBackend, OpenQASMBackend, Provider, Tergite
+from tergite.exc import TergiteError
 from tergite.services.api_client.dtos import TergiteBackendConfig
 from tests.utils.records import get_record
 
@@ -24,6 +26,7 @@ from .conftest import (
     GOOD_BACKENDS,
     INVALID_API_TOKENS,
     MALFORMED_BACKEND,
+    NON_PULSE_BACKEND,
 )
 
 _INVALID_PARAMS = [
@@ -51,6 +54,27 @@ def test_get_malformed_backend(api):
         QiskitBackendNotFoundError, match="No backend matches the criteria"
     ):
         provider.get_backend(MALFORMED_BACKEND)
+
+
+def test_get_non_pulse_backend(api):
+    """Retrieves a backend whose device takes no pulse jobs"""
+    provider = _get_test_provider(url=API_URL)
+    got = provider.get_backend(NON_PULSE_BACKEND)
+    assert isinstance(got, OpenQASMBackend)
+
+
+def test_run_on_non_pulse_backend(api):
+    """run() on a backend whose device takes no pulse jobs raises before registering a job"""
+    provider = _get_test_provider(url=API_URL)
+    backend = provider.get_backend(NON_PULSE_BACKEND)
+    qc = QuantumCircuit(1, 1)
+    qc.x(0)
+    qc.measure(0, 0)
+
+    with pytest.raises(TergiteError, match="accept pulse jobs only"):
+        backend.run(qc)
+
+    assert [req for req in api.request_history if req.method == "POST"] == []
 
 
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)

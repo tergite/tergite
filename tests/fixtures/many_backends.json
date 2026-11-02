@@ -120,10 +120,11 @@
   },
   {
     "name": "OpenQASM",
-    "num_qubits": 5,
-    "timelog": {
-      "REGISTERED": "2023-05-23T11:06:05.686Z"
-    },
+    "number_of_qubits": 5,
+    "is_online": true,
+    "basis_gates": [],
+    "coordinates": [],
+    "is_simulator": false,
     "coupling_map": [
       [0, 0],
       [1, 0],
