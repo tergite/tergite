@@ -7,6 +7,11 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed installing tergite failing on current setuptools, by dropping the unused
+  `qiskit-ibm-runtime` and `pandas` dependencies
+
 ## [2026.06.0] - 2026-06-26
 
 This is part of the tergite release v2026.06.0.
