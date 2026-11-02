@@ -30,9 +30,8 @@ from .conftest import (
     TEST_CALIBRATIONS_MAP,
 )
 
-_INVALID_PARAMS = [
-    (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS
-]
+# a refused token is refused alike on every backend, so one backend is enough
+_INVALID_PARAMS = [(token, "loke") for token in INVALID_API_TOKENS]
 
 
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)

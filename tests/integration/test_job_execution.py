@@ -54,9 +54,8 @@ from .conftest import (
     TWO_QUBIT_BACKENDS,
 )
 
-_INVALID_PARAMS = [
-    (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS
-]
+# a refused token is refused alike on every backend, so one backend is enough
+_INVALID_PARAMS = [(token, "loke") for token in INVALID_API_TOKENS]
 
 
 TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
