@@ -22,6 +22,7 @@ import numpy as np
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Provider
+from tests.utils.jobs import wait_for_final_state
 
 SHOTS = 200
 # the share of shots the expected outcomes must reach
@@ -84,7 +85,7 @@ def test_two_circuits_in_one_job(backend_provider: Provider):
     backend.set_options(shots=SHOTS)
 
     job = backend.run(transpile([flipped, idle], backend=backend), meas_level=2)
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
     result = job.result()
 
     assert _get_share(result.get_counts(0), "01") >= MAJORITY
@@ -99,7 +100,7 @@ def test_iq_points_averaged(backend_provider: Provider):
     backend.set_options(shots=SHOTS)
 
     job = backend.run(transpile(qc, backend=backend), meas_level=1, meas_return="avg")
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
 
     assert np.asarray(job.result().get_memory()).shape == (2,)
 
@@ -109,7 +110,7 @@ def _run(provider: Provider, qc: QuantumCircuit) -> Dict[str, int]:
     backend = provider.get_backend("qiskit_pulse_2q")
     backend.set_options(shots=SHOTS)
     job = backend.run(transpile(qc, backend=backend), meas_level=2)
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
     return job.result().get_counts()
 
 

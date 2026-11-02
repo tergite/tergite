@@ -19,12 +19,13 @@ from qiskit.providers import JobStatus
 
 from tergite import Provider, Tergite
 from tergite.exc import JobFailedError
+from tests.utils.jobs import wait_for_final_state
 
 
 def test_job_reaches_done(backend_provider: Provider):
     """A submitted job's status ends at DONE, with a result"""
     job = _run_x(backend_provider)
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
 
     assert job.status() == JobStatus.DONE
     assert sum(job.result().get_counts().values()) == 100
@@ -33,7 +34,7 @@ def test_job_reaches_done(backend_provider: Provider):
 def test_provider_job_from_a_new_provider(backend_provider: Provider):
     """provider.job(job_id) on a provider of its own returns the job and its result"""
     job = _run_x(backend_provider)
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
     other_provider = Tergite.use_provider_account(
         service_name="other", url=os.environ["API_URL"], token=os.environ["API_TOKEN"]
     )
@@ -47,7 +48,7 @@ def test_provider_job_from_a_new_provider(backend_provider: Provider):
 def test_logfile_downloads(backend_provider: Provider):
     """job.logfile is the job's HDF5 logfile, downloaded"""
     job = _run_x(backend_provider)
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
 
     with h5py.File(job.logfile, "r") as logfile:
         assert "header" in logfile
@@ -57,7 +58,7 @@ def test_cancelled_job_result_raises(backend_provider: Provider):
     """A job cancelled before it ran raises JobFailedError from result(); one that ran first has counts"""
     job = _run_x(backend_provider)
     job.cancel()
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
 
     if job.status() == JobStatus.CANCELLED:
         with pytest.raises(JobFailedError, match="was cancelled"):
