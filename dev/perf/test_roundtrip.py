@@ -33,7 +33,8 @@ from qiskit import QuantumCircuit, transpile
 from tergite import Provider, Tergite
 from tests.utils.jobs import wait_for_final_state
 
-JOBS_PER_KIND = 5
+# 20, so that p95 is not the slowest job alone, which one stall of a backend moved by 20%
+JOBS_PER_KIND = 20
 SAMPLE_SECONDS = 0.2
 # name: (backend, qubits, meas_level, meas_return)
 JOB_KINDS = {
