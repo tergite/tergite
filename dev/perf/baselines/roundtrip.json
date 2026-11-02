@@ -1,50 +1,50 @@
 {
   "kinds": {
     "1q_counts": {
-      "p50_ms": 508.9597500009404,
-      "p95_ms": 552.0027417995152,
-      "jobs_per_minute": 115.68797559796994,
+      "p50_ms": 474.7436249999737,
+      "p95_ms": 485.59493299835594,
+      "jobs_per_minute": 126.37442720801475,
       "http_calls_per_job": 3.0,
-      "upload_bytes_per_job": 1803.0
+      "upload_bytes_per_job": 576.0
     },
     "2q_counts": {
-      "p50_ms": 960.0167499993404,
-      "p95_ms": 1142.2384327990585,
-      "jobs_per_minute": 59.88195720084933,
+      "p50_ms": 914.0207499985991,
+      "p95_ms": 917.9982331996143,
+      "jobs_per_minute": 65.71663713938798,
       "http_calls_per_job": 3.0,
-      "upload_bytes_per_job": 2162.0
+      "upload_bytes_per_job": 596.0
     },
     "2q_iq": {
-      "p50_ms": 943.9999580026779,
-      "p95_ms": 965.7641998011968,
-      "jobs_per_minute": 63.29560264878124,
+      "p50_ms": 929.8464580024302,
+      "p95_ms": 935.4290336013946,
+      "jobs_per_minute": 64.64644083917862,
       "http_calls_per_job": 3.0,
-      "upload_bytes_per_job": 2162.0
+      "upload_bytes_per_job": 596.0
     },
     "loke_counts": {
-      "p50_ms": 287.80224999718484,
-      "p95_ms": 1004.4508243991004,
-      "jobs_per_minute": 128.974390611426,
+      "p50_ms": 253.68600000001607,
+      "p95_ms": 793.1437833976815,
+      "jobs_per_minute": 154.41570031922853,
       "http_calls_per_job": 3.0,
-      "upload_bytes_per_job": 1842.0
+      "upload_bytes_per_job": 576.0
     }
   },
   "processes": {
     "sdk": {
-      "cpu_seconds": 1.5894440319999998,
-      "peak_rss_mib": 167.5
+      "cpu_seconds": 1.4824609599999998,
+      "peak_rss_mib": 125.53125
     },
     "mss": {
-      "cpu_seconds": 1.623232496,
-      "peak_rss_mib": 86.625
+      "cpu_seconds": 1.4242466159999998,
+      "peak_rss_mib": 104.53125
     },
     "simulators": {
-      "cpu_seconds": 11.047021456000007,
-      "peak_rss_mib": 924.25
+      "cpu_seconds": 10.668820320000002,
+      "peak_rss_mib": 1292.484375
     },
     "loke": {
-      "cpu_seconds": 1.0161077120000002,
-      "peak_rss_mib": 587.4375
+      "cpu_seconds": 0.786172416000003,
+      "peak_rss_mib": 953.4375
     }
   }
 }
