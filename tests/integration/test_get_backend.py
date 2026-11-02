@@ -56,6 +56,16 @@ def test_get_malformed_backend(api):
         provider.get_backend(MALFORMED_BACKEND)
 
 
+def test_malformed_backend_warns(api):
+    """Listing backends skips a malformed device with a warning naming its invalid fields"""
+    provider = _get_test_provider(url=API_URL)
+
+    with pytest.warns(
+        UserWarning, match=f"Skipping malformed device '{MALFORMED_BACKEND}': version"
+    ):
+        provider.backends()
+
+
 @pytest.mark.parametrize("backend_name", [*GOOD_BACKENDS, NON_PULSE_BACKEND])
 def test_backend_hash(api, backend_name):
     """Equal backends hash alike, so backends can be set members and dict keys"""

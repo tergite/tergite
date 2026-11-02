@@ -23,6 +23,7 @@
 import json
 import shutil
 import tempfile
+import warnings
 from json import JSONDecodeError
 from pathlib import Path
 from textwrap import indent
@@ -55,7 +56,7 @@ def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
     """Retrieves the backend configs from the remote API
 
     These configs are used to construct Backend objects
-    It ignores any malformed configs.
+    It skips any malformed config, with a warning naming its invalid fields.
     The expectation is no malformed config is sent over to the client.
 
     Args:
@@ -81,8 +82,9 @@ def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
     for item in records:
         try:
             parsed_records.append(TergiteBackendConfig.model_validate(item))
-        except ValidationError:
-            pass
+        except ValidationError as exp:
+            fields = ", ".join(".".join(map(str, err["loc"])) for err in exp.errors())
+            warnings.warn(f"Skipping malformed device '{item.get('name')}': {fields}")
 
     return parsed_records
 
