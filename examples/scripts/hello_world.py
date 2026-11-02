@@ -14,6 +14,7 @@
 #
 # This code was refactored from the original on 22nd September, 2023 by Martin Ahindura
 """A sample script doing a very simple quantum operation"""
+import os
 
 import qiskit.circuit as circuit
 import qiskit.compiler as compiler
@@ -22,9 +23,9 @@ from tergite import Job, Tergite
 
 if __name__ == "__main__":
     # the Tergite API URL e.g. "https://api.tergite.example"
-    API_URL = "https://api.qal9000.se"
+    API_URL = os.environ.get("TERGITE_API_URL", "https://api.qal9000.se")
     # API token for connecting to tergite
-    API_TOKEN = "<your Tergite API key >"
+    API_TOKEN = os.environ.get("TERGITE_API_TOKEN", "<your Tergite API key >")
     # The name of the Quantum Computer to use from the available quantum computers
     BACKEND_NAME = "qiskit_pulse_2q"
     # the name of this service. For your own bookkeeping.
@@ -46,7 +47,9 @@ if __name__ == "__main__":
         service_name=SERVICE_NAME, url=API_URL, token=API_TOKEN
     )
     # to save this account to the `~/.qiskit/tergiterc` file, add the `save=True`
-    # provider = Tergite.use_provider_account(account, save=True)
+    # provider = Tergite.use_provider_account(
+    #     service_name=SERVICE_NAME, url=API_URL, token=API_TOKEN, save=True
+    # )
 
     # Get the tergite backend in case you skipped provider account creation
     # provider = Tergite.get_provider(service_name=SERVICE_NAME)
@@ -57,7 +60,7 @@ if __name__ == "__main__":
     tc = compiler.transpile(qc, backend=backend)
 
     # run the circuit
-    job: Job = backend.run(tc, meas_level=2, meas_return="single")
+    job: Job = backend.run(tc)
     job.wait_for_final_state(timeout=POLL_TIMEOUT)
     result = job.result()
 
