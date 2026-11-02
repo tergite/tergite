@@ -25,6 +25,7 @@ import qiskit.pulse as pulse
 from qiskit.pulse.library import SymbolicPulse
 from sympy import symbols
 
+from ...exc import UncalibratedCouplerError
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
@@ -145,16 +146,21 @@ def cz(
         control_qubit = device_properties.qubits[cz_control_qubit_idx]
         target_qubit = device_properties.qubits[cz_target_qubit_idx]
 
-        # Get control channels between control and target qubits
-
-        control_channels = backend.control_channel((control_qubit.id, target_qubit.id))
+        qubit_ids = (control_qubit.id, target_qubit.id)
+        if qubit_ids not in backend.data.qubit_ids_coupler_dict:
+            raise UncalibratedCouplerError(f"qubits {qubit_ids} have no coupler")
+        control_channels = backend.control_channel(qubit_ids)
 
         c_props = [
-            x for x in device_properties.couplers if x.id == control_channels[0].index
+            x
+            for x in device_properties.couplers or []
+            if x.id == control_channels[0].index
         ]
-        c_props = c_props[0] if c_props else None
-
-        # TODO: raise error if c_props is none
+        if not c_props:
+            raise UncalibratedCouplerError(
+                f"the coupler of qubits {qubit_ids} has no calibration"
+            )
+        c_props = c_props[0]
 
         f1 = min(_val(target_qubit.frequency), _val(control_qubit.frequency))
         f0 = max(_val(target_qubit.frequency), _val(control_qubit.frequency))

@@ -27,6 +27,7 @@ from .conftest import (
     INVALID_API_TOKENS,
     MALFORMED_BACKEND,
     NON_PULSE_BACKEND,
+    TEST_CALIBRATIONS_MAP,
 )
 
 _INVALID_PARAMS = [
@@ -75,6 +76,34 @@ def test_backend_hash(api, backend_name):
     assert first == second
     assert hash(first) == hash(second)
     assert len({first, second}) == 1
+
+
+def test_get_backend_with_uncalibrated_couplers(api):
+    """Pairs whose couplers have no calibration get no CZ, and every backend still loads"""
+    calibration = {**TEST_CALIBRATIONS_MAP["loke"], "couplers": []}
+    api.get(f"{API_URL}/calibrations/loke", json=calibration)
+    provider = _get_test_provider(url=API_URL)
+
+    with pytest.warns(UserWarning, match="Backend 'loke' has no CZ on"):
+        backend = provider.get_backend("loke")
+
+    assert "cz" not in backend.target.operation_names
+    assert provider.get_backend("qiskit_pulse_2q").target.instruction_supported("cz")
+
+
+def test_get_backend_with_pairs_without_couplers(api):
+    """Coupled pairs that have no coupler get no CZ, and every backend still loads"""
+    devices = [
+        {**device, "qubit_ids_coupler_map": []} if device["name"] == "loke" else device
+        for device in BACKENDS_LIST
+    ]
+    api.get(f"{API_URL}/devices/", json={"data": devices, "skip": 0, "limit": None})
+    provider = _get_test_provider(url=API_URL)
+
+    with pytest.warns(UserWarning, match="Backend 'loke' has no CZ on"):
+        backend = provider.get_backend("loke")
+
+    assert "cz" not in backend.target.operation_names
 
 
 def test_get_non_pulse_backend(api):

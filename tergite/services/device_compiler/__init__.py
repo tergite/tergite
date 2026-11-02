@@ -16,11 +16,13 @@
 #
 # Martin Ahindura, 2023
 """Handles the compilation of device properties into qiskit target"""
-from typing import TYPE_CHECKING
+import warnings
+from typing import TYPE_CHECKING, Dict, Tuple
 
 import qiskit.circuit as circuit
 from qiskit.transpiler import InstructionProperties, Target
 
+from ...exc import UncalibratedCouplerError
 from ..device_compiler import schedules as templates
 
 if TYPE_CHECKING:
@@ -112,20 +114,46 @@ def add_instructions(
     }
     target.add_instruction(measure_instruction, measure_props)
 
-    if coupled_qubit_idxs:
-        cz_props = {
-            (control_qubit_idx, target_qubit_idx): InstructionProperties(
-                error=0.0,
-                calibration=templates.cz(
-                    backend,
-                    control_qubit_idxs=[control_qubit_idx],
-                    target_qubit_idxs=[target_qubit_idx],
-                    device_properties=device_properties,
-                ),
-            )
-            for control_qubit_idx, target_qubit_idx in coupled_qubit_idxs
-        }
-
+    cz_props = _get_cz_props(backend, coupled_qubit_idxs, device_properties)
+    if cz_props:
         target.add_instruction(circuit.library.CZGate(), cz_props)
 
     return target
+
+
+def _get_cz_props(
+    backend: "TergiteBackend",
+    coupled_qubit_idxs: tuple,
+    device_properties: "DeviceCalibration",
+) -> Dict[Tuple[int, int], InstructionProperties]:
+    """Gets the CZ of each coupled pair whose coupler is calibrated, warning of the others
+
+    Args:
+        backend: the backend whose CZs they are
+        coupled_qubit_idxs: the pairs of coupled qubit indexes
+        device_properties: the calibration of the backend's device
+
+    Returns:
+        the CZ's instruction properties of each pair that has one
+    """
+    cz_props = {}
+    uncalibrated_pairs = []
+    for pair in coupled_qubit_idxs:
+        try:
+            schedule = templates.cz(
+                backend,
+                control_qubit_idxs=[pair[0]],
+                target_qubit_idxs=[pair[1]],
+                device_properties=device_properties,
+            )
+        except UncalibratedCouplerError:
+            uncalibrated_pairs.append(pair)
+            continue
+        cz_props[pair] = InstructionProperties(error=0.0, calibration=schedule)
+
+    if uncalibrated_pairs:
+        warnings.warn(
+            f"Backend '{backend.name}' has no CZ on {uncalibrated_pairs}, "
+            "whose couplers are not calibrated"
+        )
+    return cz_props

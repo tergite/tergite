@@ -29,6 +29,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   time out after 30 seconds, or 300 for uploading a job and downloading its logfile
 - Fixed `job.result()` of a failed or cancelled job raising "failed to GET memory"; it raises a
   `JobFailedError` with the job's failure or cancellation reason
+- Fixed every `get_backend()` call failing whenever any device had a coupled pair without a
+  coupler or without its calibration; such pairs get no CZ, with a warning
 - Fixed a device MSS sends in a shape the SDK cannot read vanishing from the backends without a
   word; it is still skipped, with a warning naming the device and its invalid fields
 

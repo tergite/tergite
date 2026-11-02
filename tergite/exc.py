@@ -18,3 +18,7 @@ class TergiteError(Exception):
 
 class JobFailedError(TergiteError):
     """A job asked for its result failed or was cancelled"""
+
+
+class UncalibratedCouplerError(TergiteError):
+    """Two coupled qubits have no coupler, or no calibration of it, to make a CZ from"""
