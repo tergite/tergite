@@ -279,5 +279,3 @@ green.
   shots and measurement level are read from its memory.
 - **The SDK needs a tergite-backend that runs gate-level jobs**; an older backend refuses the
   job file.
-- **The two-qubit simulator's CZ does not entangle** with its fixture calibration, so the e2e
-  golden tests use X gates only.
