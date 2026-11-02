@@ -170,8 +170,8 @@ fix and gets a `Fixed` changelog entry.
    fields that failed validation.
 9. **The logfile is copied from `response.raw`** (`api_client/__init__.py:237`), which skips
    decoding, so a response sent with `Content-Encoding: gzip` is saved compressed and `h5py`
-   cannot open it. Reproduce against the e2e stack first; the fix is `iter_bytes()`, which
-   step 3's httpx client does anyway.
+   cannot open it. Not reproduced: neither BCC nor MSS compresses a response, so nothing in
+   the stack sends one. Left to step 3, whose httpx client decodes what it reads.
 
 ## Step 1: pin behaviour with tests, and the tooling to run them
 
