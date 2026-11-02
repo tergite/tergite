@@ -27,6 +27,7 @@ from tergite import Job, OpenPulseBackend, Provider, Tergite
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
+from tergite.exc import JobFailedError
 from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
 from tergite.services.device_compiler.schedules import cz
 from tergite.utils.qobj import (
@@ -549,6 +550,34 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     )[1:5]
 
     assert requests_made == expected_requests
+
+
+@pytest.mark.parametrize(
+    "status, reason_field, message",
+    [
+        ("failed", "failure_reason", "failed: out of memory"),
+        ("cancelled", "cancellation_reason", "was cancelled: out of memory"),
+    ],
+)
+def test_job_result_of_unsuccessful_job(api, status, reason_field, message):
+    """job.result() of a failed or cancelled job raises with the job's reason"""
+    backend = _get_backend("loke")
+    calibrations = _get_calibrations("loke")
+    tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
+    job = backend.run(tc, meas_level=2)
+    api.get(
+        f"{API_URL}/jobs/{TEST_JOB_ID}",
+        json={
+            "job_id": TEST_JOB_ID,
+            "device": "loke",
+            "calibration_date": calibrations.last_calibrated,
+            "status": status,
+            reason_field: "out of memory",
+        },
+    )
+
+    with pytest.raises(JobFailedError, match=f"Job {TEST_JOB_ID} {message}"):
+        job.result()
 
 
 def test_every_call_has_a_timeout(api, tmp_results_file):

@@ -14,3 +14,7 @@
 
 class TergiteError(Exception):
     """The base of every error the SDK raises"""
+
+
+class JobFailedError(TergiteError):
+    """A job asked for its result failed or was cancelled"""

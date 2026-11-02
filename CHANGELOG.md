@@ -20,6 +20,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   on first use, and warnings and the job submission notice go through `warnings` and `logging`
 - Fixed calls to MSS and the backends waiting forever on a server that never answers; they now
   time out after 30 seconds, or 300 for uploading a job and downloading its logfile
+- Fixed `job.result()` of a failed or cancelled job raising "failed to GET memory"; it raises a
+  `JobFailedError` with the job's failure or cancellation reason
 
 ## [2026.06.0] - 2026-06-26
 

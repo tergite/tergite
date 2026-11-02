@@ -29,6 +29,7 @@ from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from ..compat.qiskit.qobj import PulseQobj
+from ..exc import JobFailedError
 from ..services import api_client as client
 from ..services.api_client import JobFile
 from ..services.api_client.dtos import RemoteJobStatus
@@ -208,6 +209,8 @@ class Job(JobV1):
                 if it has completed
 
         Raises:
+            JobFailedError: Job {job_id} failed: {failure_reason}
+            JobFailedError: Job {job_id} was cancelled: {cancellation_reason}
             RuntimeError: failed to GET memory of job: {job_id}
             RuntimeError: unexpected number of results; expected {num}, got: {num}
         """
@@ -215,6 +218,14 @@ class Job(JobV1):
         if status not in JOB_FINAL_STATES:
             logging.info(f"Job {self.job_id()} is not DONE. Status: {status}.")
             return
+
+        if status == JobStatus.ERROR:
+            reason = self.remote_data.failure_reason
+            raise JobFailedError(f"Job {self.job_id()} failed: {reason}")
+
+        if status == JobStatus.CANCELLED:
+            reason = self.remote_data.cancellation_reason
+            raise JobFailedError(f"Job {self.job_id()} was cancelled: {reason}")
 
         if self._result is None:
             backend: TergiteBackend = self.backend()
