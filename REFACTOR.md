@@ -1,0 +1,324 @@
+# Refactor plan
+
+Nine steps, in order. Each numbered item is one commit, verified before the next. Steps 4 and 5
+need tergite-backend to accept the gate-level payload (B2 below) in the stack the e2e runs
+against; steps 0 to 3 do not wait for it.
+
+The SDK today is a Qiskit provider that turns circuits into pulse schedules on the user's
+machine, from the calibration MSS publishes, and uploads them as a `PulseQobj` with sampled
+waveforms. Qiskit removed pulse and Qobj in 2.0, so the SDK pins `qiskit>1,<1.3` and vendors
+5,639 lines of Qiskit (`tergite/compat/`) to keep them. The backend then translates those
+pulses back into quantify-scheduler operations. This plan moves the gate-to-pulse step to the
+backend, where the calibration lives, and makes the SDK send OpenQASM 3: the same design
+`tergite-qpu-driver` uses, built in tergite-backend's own code. The SDK then depends on
+current Qiskit and nothing vendored, and its wire models come from the OpenAPI specs of MSS and
+BCC instead of being transcribed by hand.
+
+## Decisions to confirm
+
+Each has a recommendation; the plan is written as if it were taken.
+
+- **D1. OpenPulse goes.** Qiskit 2 has no `qiskit.pulse`, so pulse schedules cannot be a user
+  input on current Qiskit. Users submit circuits; pulse-level work is the calibration's, on
+  the backend. `OpenPulseBackend` and `OpenQASMBackend` become one `TergiteBackend`, with the
+  two names kept as deprecated aliases for one release.
+- **D2. `get_provider(name)` raises for an unknown name.** Today it silently returns the first
+  saved provider (`types/provider_factory.py:103`), which `test_get_provider_non_existing`
+  pins, so a typo sends jobs to another service. `get_provider()` without a name still
+  returns the first.
+- **D3. The backend's simulators run gates, not pulses.** The `qiskit_pulse_1q`/`2q`
+  simulators need `qiskit.pulse`, which is what pins the backend to `qiskit~=0.45`.
+  Recommended: qiskit-aer with a noise model from the calibration (T1, T2, readout error),
+  and, for `meas_level=1`, IQ points sampled around the calibrated discriminator's centroids,
+  so the e2e's clustering tests keep a meaningful input.
+- **D4. `Provider.job(job_id)` rebuilds a result from MSS, not from the HDF5 logfile.** Today
+  it downloads the logfile only to read the qobj back out of it, the one use of `h5py`.
+  Recommended: MSS's `JobResult` gains optional `shots`, `meas_level` and per-circuit
+  `name`/`num_clbits` (F1), so the SDK keeps no payload to rebuild a result from.
+- **D5. One coordinated release.** The backend accepts both payloads for one release (B2),
+  the SDK of that release sends only the new one, and the next backend release deletes the
+  qobj path (B5).
+
+## What the other repos do first
+
+Each of these belongs in that repo's own plan; the SDK steps name the one they need.
+
+| Id | Repo | Change |
+| --- | --- | --- |
+| B1 | tergite-backend | Commit its OpenAPI spec as MSS does: `dev/openapi/export.py` writes `dev/openapi/openapi.json`, every route declares its response, and `tests/test_openapi.py` fails when the file is stale. |
+| B2 | tergite-backend | `POST /jobs` also accepts the gate-level payload below. The heavy worker parses each circuit with `qiskit.qasm3`, maps each instruction to quantify-scheduler gate-level operations (`Rxy`, `Rz`, `CZ`, `Measure`, `Reset`, `IdlePulse`; CX, SWAP and the rest decomposed into them) and compiles the schedule with `SerialCompiler` against a `QuantumDevice` built from the backend's calibration. Pulses are then quantify's parametric ones (DRAG from `amp180`/`motzoi`/`duration`, dispersive measurement, square CZ), sampled on the backend. It follows `tergite-qpu-driver`'s design, without depending on qpi. Results keep today's `Job.result.memory` shapes, with clbits ordered as Qiskit orders them (clbit 0 rightmost). |
+| B3 | tergite-backend | The simulators per D3, which lets the qiskit extra leave `qiskit~=0.45` and `qiskit-dynamics`. |
+| B4 | tergite-backend | `Device.basis_gates` lists the gates B2 compiles, and `DeviceCalibration` keeps the durations and errors the SDK's `Target` reads: `pi_pulse_duration`, `readout_assignment_error`, the resonator's pulse and integration times, and T1/T2. |
+| B5 | tergite-backend | One release after B2: delete the `PulseQobj` path, `libs/qiskit/`, the vendored Qobj encoder and decoder, and `PulseLibInstruction`. |
+| F1 | tergite-frontend | MSS's `JobResult` gains the optional fields of D4, which the backend fills in its `job_updated` event. |
+
+**The gate-level payload**, uploaded to the `upload_url` as today's multipart `upload_file`.
+Its shape follows qpi's `JobPayload` on purpose, so the two stacks read alike:
+
+```json
+{
+  "job_id": "…",
+  "params": {
+    "circuits": [{"name": "bell", "qasm": "OPENQASM 3.0; …", "num_clbits": 2, "metadata": {}}],
+    "shots": 1024,
+    "meas_level": 2,
+    "meas_return": "single"
+  }
+}
+```
+
+## Conventions
+
+The code reads like an article: the overview first, the detail below it. These are the
+conventions of tergite-frontend's `DESIGN.md`, adapted to a library; every step applies them to
+the code it touches, and step 7 moves them into this repo's own `DESIGN.md`.
+
+1. **A function is a composition of functions.** A public function's body is a short sequence
+   of calls, each to a function that does one thing and is named for it. Each step is built
+   the same way until it is a single operation.
+2. **Two exceptions.** Do not extract a step that would be a one-line function. Do not split a
+   performance-critical path where the extra calls cost something measurable.
+3. **Callees sit below their callers.** A file runs: constants, public functions in the order
+   a caller uses them, then private helpers in the order they are first called.
+4. **A comment that labels a phase is a missing function.** `# capture circuit-level classical
+   register metadata` becomes the name of the function that does it.
+5. **Data is a struct; state gets a class.** Data is a Pydantic model, a frozen `@dataclass`,
+   an `Enum` or an `Exception`; its only methods are derived views of its own fields and
+   `from_*`/`to_*` conversions. What owns state across calls (an HTTP client, a backend's
+   cached target, a job's last-known status) is a class. Qiskit's base classes are the one
+   place we inherit: `TergiteBackend(BackendV2)` and `Job(JobV1)` are the contract users
+   program against.
+6. **Stateless behaviour is a module-level function**, taking explicit arguments and returning
+   data, the HTTP client first when it does I/O. No `Protocol` or ABC with one implementation,
+   no inheritance used to share behaviour.
+7. **Dependencies arrive as arguments.** Importing `tergite` does no I/O and prints nothing.
+   The `Provider` owns its HTTP client and hands it to the functions that call the API; no
+   function reads `~/.qiskit/tergiterc` except the accounts module, when asked to.
+8. **One home per kind of thing.** HTTP lives in `tergite/api/`. Errors subclass
+   `tergite.exc.TergiteError`. The public surface is `tergite/__init__.py`, with `__all__`.
+   Development and test tooling (the OpenAPI generator, the e2e runner) lives in `dev/`.
+9. **A reputable library beats our own code, and nothing is vendored.** When Qiskit removes
+   something, we stop needing it rather than copy it. The commit that adds our own code says
+   why no library did the job.
+10. **A name says what the thing is.** Variables are nouns that name their content, functions
+    are verbs, booleans start with `is_`/`should_`, and no function is named `build_*`.
+11. **Obvious beats clever.** An `if`/`else` returning each whole literal, one explicit `if`
+    per optional field; not loops over tuples of fields or helpers returning two things to
+    pull apart.
+12. **The wire is generated, not transcribed.** Models of what MSS and BCC send and receive
+    come from their committed OpenAPI specs (step 2), so a change on either side fails a test
+    here, not a user's job.
+13. **A value that is only defined stays where it is used.** No function that only returns a
+    literal.
+14. **The public API holds.** `Tergite.use_provider_account`, `Tergite.get_provider`,
+    `provider.backends`, `provider.get_backend`, `provider.job`, `backend.run`,
+    `backend.target`, `backend.set_options`, `job.status`, `job.result`, `job.cancel`,
+    `job.download_url` and `job.logfile` keep their signatures. A break happens only where a
+    decision above says, with a `Changed` changelog entry and, where it can, a deprecation
+    warning for one release.
+15. **Unchanged:** the Apache 2.0 licence header on every file, with a line per contributing
+    party; constants at the top; no banner comments; Google-style docstrings saying what a
+    function does for its caller; comments only for what the code cannot say.
+
+**Every commit is verified the same way:** `black` and `isort` with no flags, `pyflakes tergite
+tests dev`, then `pytest > "$LOG" 2>&1; echo "exit=$?" >> "$LOG"`. `dev/e2e_native_test.sh`
+(step 1.6) runs at the end of steps 1, 4, 5 and 6. `tests/test_styleguide.py` (step 1.5) has a
+baseline of the violations that existed when it was added; a commit that fixes one deletes its
+line, and no commit adds one.
+
+**Every step ends with a sign-off.** Its last commit adds `docs/prototypes/<NN>-<step>.md`: a
+script a user or an agent runs against the e2e stack (install, submit the example circuits,
+what should come back), and the go-ahead is given before the next step starts.
+
+## Step 0: fix the bugs
+
+The only behaviour changes outside the decisions. Each commit adds a test that fails before the
+fix and gets a `Fixed` changelog entry.
+
+1. **A fresh install fails.** `qiskit-ibm-runtime` pulls in `ibm-platform-services`, whose
+   build needs `pkg_resources`, which current setuptools no longer has. Nothing imports
+   `qiskit_ibm_runtime` (its models are vendored in `compat/`), and nothing imports `pandas`:
+   both leave `pyproject.toml`. `sympy`, imported by `device_compiler`, is declared until
+   step 5 deletes it.
+2. **Any device with `open_pulse = false` breaks `provider.backends()`.** `OpenQASMBackend`
+   (`types/backend.py:607`) never implements the abstract `device_properties`, so building
+   it raises `TypeError`, and `Job.submit` (`types/job.py:134`) refuses the `QasmQobj` it
+   would make anyway. Until step 4 merges the two, it gets `device_properties = None`, and its
+   `run` raises a `TergiteError` saying the backend accepts pulse jobs only.
+3. **Backends are unhashable.** `OpenPulseBackend` defines `__eq__` (`:590`) without
+   `__hash__`, which makes Python drop the inherited one, and that one (`:268`) reads a
+   `backend_name` no backend has. Hash on `(name, backend_version, base_url)`, defined once on
+   the base class, and delete the copies of `meas_map`, `last_calibrated`, `coupling_map`,
+   `_default_options`, `_as_dict`, `__repr__` and `__eq__` that `OpenPulseBackend` repeats.
+4. **`save=True` fails twice over.** It raises `FileNotFoundError` when `~/.qiskit` does not
+   exist, and `DuplicateSectionError` when the service name is already saved
+   (`services/configs/__init__.py:100`), so running the README's snippet a second time
+   crashes. Create the folder, and replace the section.
+5. **`import tergite` reads `~/.qiskit/tergiterc` and prints** (`types/provider_factory.py:40`),
+   at import time. The factory loads the file on first use, and both warnings, here and at
+   `configs/__init__.py:67`, go through `warnings.warn`. The `print` in `backend.run` (`:179`)
+   becomes a `logging.info`.
+6. **No HTTP call has a timeout** (`services/api_client/__init__.py:69-258`), so a backend
+   that accepts the connection and never answers hangs the user's session for good. Every
+   call gets one: 30 s, and 300 s for the upload and the logfile download.
+7. **`job.result()` on a failed or cancelled job** raises "failed to GET memory" rather than
+   the job's `failure_reason` or `cancellation_reason`, and builds every `Result` with
+   `success=True` (`types/job.py:250, 255`). It raises a `JobFailedError` carrying the reason.
+8. **A malformed device disappears without a word** (`api_client/__init__.py:79`). It is still
+   skipped, as `test_get_malformed_backend` pins, but with a warning naming the device and the
+   fields that failed validation.
+9. **The logfile is copied from `response.raw`** (`api_client/__init__.py:237`), which skips
+   decoding, so a response sent with `Content-Encoding: gzip` is saved compressed and `h5py`
+   cannot open it. Reproduce against the e2e stack first; the fix is `iter_bytes()`, which
+   step 3's httpx client does anyway.
+
+## Step 1: pin behaviour with tests, and the tooling to run them
+
+Tests and tooling only. After this step, a refactor commit that changes behaviour fails a test.
+
+1. **The public API contract** (convention 14). Every name in it has a test of its signature
+   and behaviour in `tests/integration/`, against the mocked API; most exist already.
+2. **Golden results.** For `meas_level` 1 and 2, the `Result` of: a Bell pair measured into
+   `c`, `measure_all()`, a partial measurement, measurements into permuted clbits, and two
+   circuits in one job. These pin what `normalise_classical_registers` and the
+   `header.metadata.tergite` patching do today, so step 4 can delete both and prove the
+   gate-level path gives the same counts and memory.
+3. **uv for everything a contributor or CI runs**, as tergite-frontend and tergite-backend do;
+   end users still `pip install tergite` (or `uv add tergite`) from PyPI. One commit per
+   surface:
+   - **The project.** `uv.lock` committed; the dev and test extras become one `dev`
+     `[dependency-groups]` group, so they stop shipping as installable extras. The setuptools
+     build backend stays.
+   - **Python as the rest of the stack has it:** `requires-python = ">=3.13"` and a
+     `.python-version` of 3.13, as in tergite-frontend and tergite-backend. Users on 3.12 keep
+     the last release that supports it; a `Changed` changelog entry says so, and the README's
+     dependencies list says 3.13.
+   - **Local development.** CONTRIBUTING's conda, `python -m venv` and `pip install .[test]`
+     instructions become `uv sync` and `uv run pytest`.
+   - **CI.** GitLab and GitHub install uv and run `uv sync --locked`, then `uv run` for the
+     linters and pytest, on Python 3.13 alone, with `UV_PYTHON: "3.13"` in the release jobs,
+     as the other two repos do. The `apt install libopenblas-dev gfortran` steps, needed
+     today only on 3.13 for packages that ship no wheel, go if the locked wheels need no
+     build, which `uv sync --locked` shows.
+   - **Releases.** `uv build` and `uv publish` replace `pip install build twine`. That also
+     fixes two broken release steps. GitLab's staging upload passes `r` where it means `-r`
+     (`.gitlab-ci.yml:113`), so twine takes `r` for a file and never reaches TestPyPI.
+     GitHub's "Deploy docs" sources a `.venv` that nothing creates and runs `mkdocs`, which
+     nothing installs, for a `mkdocs.yml` the repo does not have; it is deleted. The
+     release regenerates `uv.lock` with the version bump, as tergite-backend's does.
+   - **The e2e.** `dev/e2e_native_test.sh` (item 6) installs with `uv sync` and starts MSS
+     and the backends with `uv run`.
+4. **Lint the whole tree.** `black`, `isort` (`profile = "black"`) and `pyflakes` over
+   `tergite tests dev`, in GitLab CI and GitHub Actions alike; GitHub's lint stops depending
+   on `SHOULD_LINT`.
+5. **`tests/test_styleguide.py`**, ported from tergite-frontend's: verbs for functions, no
+   `build_*`, no banner comments, licence headers, `__all__` in `tergite/__init__.py`, with a
+   baseline of today's violations.
+6. **A native e2e.** `dev/e2e_native_test.sh` runs MSS and the backends from local checkouts
+   or clones (`FRONTEND_PATH`, `BACKEND_PATH`), natively, as tergite-frontend's
+   `dev/e2e_native_test.sh` does, seeds them, and runs `pytest tests/e2e`. It replaces
+   `e2e_test.sh`, `e2e-runner.sh` and the Docker Compose fixtures in `tests/fixtures/`, and
+   runs in CI on every merge request rather than by hand.
+7. **Housekeeping.** Delete `archive/` (the 2022 and 2023 demos; the history keeps them) and
+   check `examples/` runs against the e2e stack, which step 7 then updates.
+
+## Step 2: the wire contract, from OpenAPI
+
+1. **MSS.** `dev/openapi/mss.json` is a copy of tergite-frontend's `dev/openapi/openapi.json`
+   at the release the SDK targets. `dev/openapi/generate.py` runs datamodel-code-generator on
+   it into `tergite/api/mss_models.py`, keeping only the schemas the SDK reads (`Device`,
+   `DeviceCalibration` and its parts, `JobCreate`, `CreatedJobResponse`, `Job`, `JobResult`,
+   `JobStatus`). `tests/test_openapi.py` fails when the generated file no longer matches the
+   spec, and `dev/openapi/sync.sh` copies the spec from `FRONTEND_PATH`.
+2. **BCC**, once B1 lands: the same for `dev/openapi/bcc.json` into
+   `tergite/api/bcc_models.py`, for the upload, cancel and logfile routes.
+3. **The hand-written DTOs go.** `services/api_client/dtos.py` is replaced by the generated
+   models, apart from the derived views `TergiteBackendConfig.model_post_init` computes
+   (`coupled_qubit_idxs`, `qubit_ids_coupler_dict`), which become functions beside their one
+   user. `JobFile` stays hand-written until B1 publishes the upload body's schema.
+4. **The e2e checks the copy.** `dev/e2e_native_test.sh` fails when the MSS it starts serves a
+   spec that differs from `dev/openapi/mss.json`, so a drift between the pinned copy and the
+   real server shows on the merge request that causes it.
+
+## Step 3: one HTTP client
+
+1. **`tergite/api/`** replaces `services/api_client/`. `client.py` makes the `httpx.Client` a
+   `Provider` owns: base URL, bearer token, timeouts, and one response hook that raises an
+   `ApiError(status, detail)` from the `{"detail": …}` body. `mss.py` holds `get_devices`,
+   `get_calibration`, `create_job` and `get_job`; `bcc.py` holds `upload_job`, `cancel_job`
+   and `download_logfile`, each taking the client first and returning generated models.
+2. **`tergite/exc.py`**: `TergiteError`, `ApiError`, `JobFailedError`,
+   `BackendNotFoundError` (a `QiskitBackendNotFoundError` too, so existing `except` clauses
+   still catch it). Every `RuntimeError` and bare `Exception` the package raises today becomes
+   one of these.
+3. **The upload is made in memory.** `send_job_file` writes the job to a temporary file only
+   to read it back (`api_client/__init__.py:157-185`); httpx sends the bytes.
+4. **`requests` leaves**, and `requests-mock` with it; the tests mock with `respx`.
+
+## Step 4: one backend, sending circuits
+
+Needs B2 and B4 in the e2e stack.
+
+1. **`tergite/target.py`**: `get_target(device, calibration) -> Target`, pure and
+   table-tested. Instructions come from `device.basis_gates` through a constant
+   `GATES_BY_NAME` (`rz`, `sx`, `x`, `rx`, `cz`, `measure`, `reset`, `delay`), on each qubit
+   or coupled pair, with an `InstructionProperties` duration and error from the calibration,
+   and `qubit_properties` from its T1, T2 and frequency. No schedules. A gate name the SDK does
+   not know is skipped with a warning.
+2. **`tergite/backend.py`**: one `TergiteBackend(BackendV2)`. `run(circuits, **options)` checks
+   each circuit uses only the target's instructions, writes it with `qiskit.qasm3.dumps`,
+   registers the job at MSS and uploads the gate-level payload. Options: `shots`,
+   `meas_level`, `meas_return`. `OpenPulseBackend` and `OpenQASMBackend` remain as aliases
+   that warn (D1).
+3. **`tergite/results.py`**: `get_result(job, circuits) -> Result`, pure: counts and memory per
+   circuit from `Job.result.memory`, with the clbit widths the circuits carry. The golden
+   results of step 1.2 pass unchanged.
+4. **Delete the patching the qobj needed:** `utils/quantum_circuit.normalise_classical_registers`,
+   `extract_q_to_clbit_map`, `utils/qobj.derive_reg_len_from_qobj_experiment`,
+   `rewrite_acquire_memory_slots` and the `header.metadata.tergite` keys. The backend reads
+   the clbits from the QASM.
+5. **`provider.job(job_id)`** rebuilds its result from MSS's job (D4, needs F1), so
+   `utils/job_file.py` and `h5py` leave. `job.logfile` still downloads the file for those who
+   want the raw data.
+
+## Step 5: current Qiskit
+
+1. **Delete what only the pulse path used:** `tergite/compat/` (the vendored Qobj, assembler,
+   disassembler, pulse instruction converters and IBM runtime models, 5,639 lines),
+   `services/device_compiler/` (573 lines, with the unused numpy `delta_t_function`) and
+   `utils/qobj.py`. `sympy` leaves `pyproject.toml`.
+2. **`qiskit>=2.1,<3`**, at the latest 2.x when the step lands (tergite-qpu-driver already
+   resolves 2.5). The tests' `DeprecationWarning` count is zero, and `pytest` turns one into an
+   error from here on.
+3. **Python stays `>=3.13`** (step 1.3), and `tests/e2e` runs on the same version as MSS and
+   the backends it starts.
+
+## Step 6: accounts and the provider
+
+1. **`tergite/accounts.py`**: `load_accounts(rc_file)` and `save_account(rc_file, account)`,
+   functions over an `Account` model, replacing the `Tergiterc` class, which holds a parser
+   only to write it back. The file format stays.
+2. **`ProviderFactory`** keeps its methods, loads the rc file on first use (step 0.5), and
+   `get_provider` raises for an unknown name (D2).
+3. **The provider stops caching forever.** `available_backends` is a `cached_property`, so a
+   long session never sees a device come online. `backends()` fetches the devices each call;
+   a backend refreshes its target when MSS reports a newer `last_calibrated` than the one it
+   was built from.
+4. **Long functions become compositions**, one per commit, with unit tests for the pure steps:
+   every function still over 30 lines once steps 3 to 5 have landed.
+
+## Step 7: docs
+
+1. **`DESIGN.md`**: what the SDK is, its place in the stack (MSS for devices, calibrations and
+   jobs; BCC for the upload and the logfile), the job flow, the package layout, the wire
+   contract and how it is regenerated, testing, CI and releasing, and these conventions.
+2. **README and CONTRIBUTING**: Qiskit 2, `transpile(circuit, backend)` before `run`, the
+   options, no OpenPulse; the contact address matches tergite-frontend's.
+3. **`examples/`**: the notebooks and `hello_world.py` run against the e2e stack, and
+   `tests/e2e` executes `hello_world.py`.
+
+## Step 8: close out
+
+1. Read `DESIGN.md` against the tree: every path it names exists.
+2. Run `dev/e2e_native_test.sh` against the backend release that ships B2.
+3. Delete `docs/prototypes/` and this file; the history keeps both.
