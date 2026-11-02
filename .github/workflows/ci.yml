@@ -32,8 +32,10 @@ jobs:
           UV_PYTHON: ${{ matrix.python-version }}
         run: uv sync --locked
       - name: Lint
-        if: ${{ vars.SHOULD_LINT == 'true' }}
-        run: uv run black tergite --check
+        run: |
+          uv run black --check tergite tests
+          uv run isort --check-only tergite tests
+          uv run pyflakes tergite tests
       - name: Run tests
         run: uv run pytest
 

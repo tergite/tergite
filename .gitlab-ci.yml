@@ -24,7 +24,9 @@ test:
     - export PATH="$HOME/.local/bin:$PATH"
     - uv sync --locked
   script:
-    - uv run black --check tergite
+    - uv run black --check tergite tests
+    - uv run isort --check-only tergite tests
+    - uv run pyflakes tergite tests
     - uv run pytest
   parallel:
     matrix:

@@ -644,6 +644,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyflakes"
+version = "4.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/43/f4566b992ab97abd18426aeba516a83c7a833230614a2c3f4d3e9d8ff0f0/pyflakes-4.1.0.tar.gz", hash = "sha256:592beb57058eb82eb190fb7514f2081c555c51000b029ff71286a681e6cf2f83", size = 67243, upload-time = "2026-10-28T20:10:02.469Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/52/98c9a0e4718abe887121279457bc7140115df22d714b7183880eb61e359f/pyflakes-4.1.0-py2.py3-none-any.whl", hash = "sha256:b2e05e6bac8e49b67be2a6ffa63422c60f7193fc72e8180255907b41ec997dc1", size = 66258, upload-time = "2026-10-28T20:10:01.109Z" },
+]
+
+[[package]]
 name = "pygments"
 version = "2.21.0"
 source = { registry = "https://pypi.org/simple" }
@@ -926,6 +935,7 @@ dependencies = [
 dev = [
     { name = "black", extra = ["jupyter"] },
     { name = "isort" },
+    { name = "pyflakes" },
     { name = "pytest" },
     { name = "requests-mock" },
     { name = "scikit-learn" },
@@ -945,6 +955,7 @@ requires-dist = [
 dev = [
     { name = "black", extras = ["jupyter"], specifier = "~=25.1.0" },
     { name = "isort", specifier = "~=6.0.1" },
+    { name = "pyflakes", specifier = ">=3.2" },
     { name = "pytest", specifier = ">=7.4.2" },
     { name = "requests-mock", specifier = ">=1.11.0" },
     { name = "scikit-learn", specifier = "~=1.7.0" },

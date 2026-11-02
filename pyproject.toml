@@ -40,7 +40,8 @@ dev = [
     "requests-mock>=1.11.0",
     "scikit-learn~=1.7.0",
     "black[jupyter]~=25.1.0",
-    "isort~=6.0.1"
+    "isort~=6.0.1",
+    "pyflakes>=3.2",
 ]
 
 [project.urls]
@@ -54,6 +55,7 @@ Changelog = "https://github.com/tergite/tergite/blob/main/CHANGELOG.md"
 packages = ["tergite"]
 
 [tool.isort]
+profile = "black"
 skip_gitignore = true
 
 [tool.pytest.ini_options]
