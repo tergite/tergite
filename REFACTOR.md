@@ -400,7 +400,10 @@ Needs B2 and B4 in the e2e stack.
    fixed in step 1, as the native e2e showed one device's incomplete calibration failing
    every `get_backend()`; filtering by other criteria than the name still builds targets.
 4. **Long functions become compositions**, one per commit, with unit tests for the pure steps:
-   every function still over 30 lines once steps 3 to 5 have landed.
+   every function still over 30 lines once steps 3 to 5 have landed. As built: none was. The
+   longest bodies, docstrings aside, are `TergiteBackend.run` (29 lines), `Job.result` and
+   `get_result` (28): each a flat run of guard clauses or one constructor call, which splitting
+   would make no clearer, so none was split.
 
 ## Step 7: docs
 
