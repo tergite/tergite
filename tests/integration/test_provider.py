@@ -62,3 +62,34 @@ def test_get_provider_non_existing(account_data, mock_tergiterc):
 
     first_service_name = re.search(r"\[service\s+(.+?)]\n", conf).group(1)
     assert provider.account.service_name == first_service_name
+
+
+def test_save_creates_missing_folder(tmp_path):
+    """use_provider_account with save option creates the rc file's folder if missing"""
+    rc_file = tmp_path / ".qiskit" / "tergiterc"
+    _tergite = factory.ProviderFactory(rc_file=rc_file)
+    _tergite.use_provider_account("foo", url="http://example.com", save=True)
+
+    reloaded = factory.ProviderFactory(rc_file=rc_file)
+    assert reloaded.providers() == ["foo"]
+
+
+def test_save_replaces_saved_account(tmp_path):
+    """use_provider_account with save option replaces an account saved under the same name"""
+    rc_file = tmp_path / "tergiterc"
+    _tergite = factory.ProviderFactory(rc_file=rc_file)
+    _tergite.use_provider_account("foo", url="http://old.example", save=True)
+    _tergite.use_provider_account("foo", url="http://new.example", save=True)
+
+    reloaded = factory.ProviderFactory(rc_file=rc_file)
+    assert reloaded.get_provider("foo").account.url == "http://new.example"
+
+
+def test_save_without_token(tmp_path):
+    """An account saved without a token is read back without one"""
+    rc_file = tmp_path / "tergiterc"
+    _tergite = factory.ProviderFactory(rc_file=rc_file)
+    _tergite.use_provider_account("foo", url="http://example.com", save=True)
+
+    reloaded = factory.ProviderFactory(rc_file=rc_file)
+    assert reloaded.get_provider("foo").account.token is None

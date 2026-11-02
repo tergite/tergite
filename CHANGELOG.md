@@ -14,6 +14,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Fixed listing backends crashing when any device takes no pulse jobs; running on such a
   backend now raises before a job is registered, rather than after
 - Fixed backends being unhashable, which made them unusable as set members or dict keys
+- Fixed saving a provider account failing when `~/.qiskit` did not exist or the account was
+  already saved, and an account saved without a token being read back with the token "None"
 
 ## [2026.06.0] - 2026-06-26
 

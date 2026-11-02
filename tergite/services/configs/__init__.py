@@ -78,7 +78,7 @@ class Tergiterc:
         return accounts
 
     def save_accounts(self, accounts: List["AccountInfo"]):
-        """Saves the accounts into the tergiterc file
+        """Saves the accounts into the tergiterc file, replacing any saved under the same name
 
         Args:
             accounts: the list of instances of
@@ -97,6 +97,7 @@ class Tergiterc:
         for account in accounts:
             # section
             section_name = "service " + account.service_name
+            self._parser.remove_section(section_name)
             self._parser.add_section(section_name)
 
             # account configuration
@@ -104,8 +105,11 @@ class Tergiterc:
             config.pop("service_name")  # remove 'service_name'
 
             for key, value in config.items():
-                self._parser.set(section_name, str(key), str(value))
+                # a None would be written as "None" and read back as that string
+                if value is not None:
+                    self._parser.set(section_name, str(key), str(value))
 
+        self._file_path.parent.mkdir(parents=True, exist_ok=True)
         with self._file_path.open("w") as dest:
             self._parser.write(dest)
 
