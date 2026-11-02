@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The transpiler target of a device: its gates, their durations and errors, its qubits"""
+import warnings
 from typing import Dict, List, Optional, Tuple
 
 from qiskit.circuit import Delay, Measure, Parameter, Reset
@@ -113,15 +114,23 @@ def _get_cz_props(
         tuple(sorted(pair)): index for pair, index in device.qubit_ids_coupler_map or []
     }
     cz_props = {}
+    uncalibrated_pairs = []
     for control, target in device.coupling_map:
         if control == target:
             continue
         qubit_ids = (calibration.qubits[control].id, calibration.qubits[target].id)
         coupler = couplers.get(coupler_ids.get(tuple(sorted(qubit_ids))))
         if coupler is None:
+            uncalibrated_pairs.append((control, target))
             continue
         cz_props[(control, target)] = InstructionProperties(
             duration=_get_cz_duration(coupler)
+        )
+
+    if uncalibrated_pairs:
+        warnings.warn(
+            f"Backend '{device.name}' has no CZ on {uncalibrated_pairs}, "
+            "whose couplers are not calibrated"
         )
     return cz_props
 

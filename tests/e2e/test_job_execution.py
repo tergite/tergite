@@ -14,7 +14,7 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
     backend = backend_provider.get_backend("qiskit_pulse_1q")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(1, 1)
+    qc = circuit.QuantumCircuit(1)
     qc.x(0)
     qc.h(0)
     qc.measure_all()
@@ -37,7 +37,7 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
     backend = backend_provider.get_backend("qiskit_pulse_2q")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(2, 2)
+    qc = circuit.QuantumCircuit(2)
     qc.h(0)
     qc.h(1)
     qc.cx(0, 1)
@@ -62,7 +62,7 @@ def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
     backend = backend_provider.get_backend("qiskit_pulse_2q")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(2, 2)
+    qc = circuit.QuantumCircuit(2)
     qc.h(0)
     qc.h(1)
     qc.cx(0, 1)
@@ -102,7 +102,7 @@ def test_dummy_quantify_device(backend_provider: Provider):
     backend = backend_provider.get_backend("Loke")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(1, 1)
+    qc = circuit.QuantumCircuit(1)
     qc.x(0)
     qc.h(0)
     qc.measure_all()

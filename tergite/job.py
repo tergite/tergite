@@ -16,39 +16,45 @@
 # This code was refactored from the original by:
 #
 # Martin Ahindura, 2023
-"""Defines the asynchronous job that executes the experiments."""
+# Chalmers Next Labs, 2026
+"""The asynchronous job that runs circuits on a backend"""
 import logging
-from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
-from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from ..api import bcc, mss, mss_models
-from ..api.job_file import JobFile
-from ..compat.qiskit.qobj import PulseQobj
-from ..exc import ApiError, JobFailedError
-from ..utils.qobj import compress_qobj_dict
+from .api import bcc, mss, mss_models
+from .api.job_file import JobFile
+from .exc import ApiError, JobFailedError
+from .results import CircuitHeader, get_result
 
 if TYPE_CHECKING:
     from .backend import TergiteBackend
-    from .provider import Provider
 
-_JOB_FINAL_OR_INITIAL_STATES = (*JOB_FINAL_STATES, JobStatus.INITIALIZING)
+STATUS_MAP = {
+    mss_models.JobStatus.pending: JobStatus.QUEUED,
+    mss_models.JobStatus.successful: JobStatus.DONE,
+    mss_models.JobStatus.executing: JobStatus.RUNNING,
+    mss_models.JobStatus.cancelled: JobStatus.CANCELLED,
+    mss_models.JobStatus.failed: JobStatus.ERROR,
+}
 
 
 class Job(JobV1):
-    """A representation of the asynchronous job that handles experiments on a backend"""
+    """A job of circuits on a backend, whose status and result MSS keeps"""
 
     def __init__(
         self,
         *,
         backend: "TergiteBackend",
         job_id: str,
-        payload: Optional[PulseQobj] = None,
+        headers: Optional[List[CircuitHeader]] = None,
+        shots: Optional[int] = None,
+        meas_level: int = 2,
+        meas_return: str = "single",
         upload_url: Optional[str] = None,
         remote_data: Optional[mss_models.Job] = None,
         logfile: Optional[Path] = None,
@@ -56,15 +62,19 @@ class Job(JobV1):
         download_url: Optional[str] = None,
         calibration_date: Optional[str] = None,
         access_token: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """Initializes the job instance for the given backend
 
         Args:
-            backend: the backed where the job is to run
+            backend: the backend where the job is to run
             job_id: the unique id of the job
-            upload_url: URL where the jobs will be uploaded
-            payload: the qobj representing the experiments
+            headers: the header of each circuit, or None where they are unknown, as for a
+                job got by its id
+            shots: the shots of each circuit
+            meas_level: 2 for counts, 1 for IQ points
+            meas_return: single for each shot's, avg for their average
+            upload_url: URL where the job is uploaded
             remote_data: the job data from the remote API
             logfile: the HDF5 logfile for this job
             status: the JobStatus of the current job; defaults to `JobStatus.INITIALIZING`
@@ -76,48 +86,37 @@ class Job(JobV1):
         super().__init__(
             backend=backend, job_id=job_id, upload_url=upload_url, **kwargs
         )
-        self.payload = payload
+        self.headers = headers
+        self.shots = shots
+        self.meas_level = meas_level
+        self.meas_return = meas_return
         self.upload_url = upload_url
         self._status = status
         self._logfile = logfile
-        self._provider: Provider = backend.provider
+        self._provider = backend.provider
         self._download_url = download_url
         self._calibration_date = calibration_date
         self._result: Optional[Result] = None
         self._remote_data = remote_data
-        self._account = backend.provider.account
         self._access_token = access_token
-
-    @property
-    def _is_in_final_state(self):
-        """Whether this job has reached the end of the line or not
-
-        It returns True if the job status is in `CANCELLED`, `ERROR`, `DONE`
-        """
-        try:
-            return self._status in JOB_FINAL_STATES
-        except RuntimeError:
-            return False
 
     @property
     def remote_data(self) -> Optional[mss_models.Job]:
         """The representation of the job in the remote API"""
-        if not self._is_in_final_state:
+        if self._status not in JOB_FINAL_STATES:
             self._remote_data = mss.get_job(self._provider.mss_client, self.job_id())
-
         return self._remote_data
 
     def status(self) -> JobStatus:
-        if not self._is_in_final_state:
-            try:
-                self._status = STATUS_MAP[self.remote_data.status]
-            except (KeyError, AttributeError):
-                pass
-
+        if self._status not in JOB_FINAL_STATES:
+            self._status = STATUS_MAP.get(self.remote_data.status, self._status)
         return self._status
 
-    def submit(self) -> None:
-        """Submit the job to the backend for execution.
+    def submit(self, job_file: JobFile) -> None:
+        """Uploads the job file to the backend, which runs it
+
+        Args:
+            job_file: the circuits, and how to run and measure them
 
         Raises:
             ValueError: This job was already submitted, or is not submittable
@@ -125,28 +124,15 @@ class Job(JobV1):
         """
         if self._status != JobStatus.INITIALIZING:
             raise ValueError("This job was already submitted")
-
         if self.upload_url is None:
             raise ValueError("This job is not submittable. It lacks an upload_url")
-
-        if not isinstance(self.payload, PulseQobj):
-            raise ValueError(f"Unprocessable payload type: {type(self.payload)}")
-
         if self._access_token is None:
             raise ValueError("This job is not submittable. It lacks an access token")
-
-        payload = compress_qobj_dict(self.payload.to_dict())
-        job_entry = JobFile.model_validate(
-            {
-                "job_id": self.job_id(),
-                "params": {"qobj": payload},
-            }
-        )
 
         bcc.upload_job(
             self._provider.bcc_client,
             url=self.upload_url,
-            job_file=job_entry,
+            job_file=job_file,
             access_token=self._access_token,
         )
 
@@ -155,7 +141,6 @@ class Job(JobV1):
         """The download_url of this job when it is completed"""
         if self._download_url is None and self.status() in JOB_FINAL_STATES:
             self._download_url = self.remote_data.download_url
-
         return self._download_url
 
     @property
@@ -169,10 +154,9 @@ class Job(JobV1):
                     job_id=self.job_id(),
                     access_token=self._access_token,
                 )
-
         return self._logfile
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Attempt to cancel the job.
 
         Raises:
@@ -207,7 +191,7 @@ class Job(JobV1):
         status = self.status()
         if status not in JOB_FINAL_STATES:
             logging.info(f"Job {self.job_id()} is not DONE. Status: {status}.")
-            return
+            return None
 
         if status == JobStatus.ERROR:
             reason = self.remote_data.failure_reason
@@ -218,79 +202,20 @@ class Job(JobV1):
             raise JobFailedError(f"Job {self.job_id()} was cancelled: {reason}")
 
         if self._result is None:
-            backend: TergiteBackend = self.backend()
-            n_qubits = self.payload.config.n_qubits
-
-            try:
-                memory = self.remote_data.result.memory
-            except AttributeError:
+            if self.remote_data.result is None:
                 raise ApiError(f"failed to GET memory of job: {self.job_id()}")
-
-            # Sanity check
-            if len(memory) != len(self.payload.experiments):
-                raise ApiError(
-                    f"unexpected number of results;"
-                    f"expected {len(self.payload.experiments)}, got: {len(memory)}"
-                )
-            meas_level = self.payload.config.meas_level
-            meas_return = self.payload.config.meas_return
-            has_counts = meas_level == 2
-            # the backend sends an average as one shot, where Qiskit reads a point per slot
-            is_averaged = not has_counts and meas_return == "avg"
-
-            # Prefer the experiment header width, then qobj config, then n_qubits
-            default_slots = (
-                getattr(self.payload.config, "memory_slots", None) or n_qubits
-            )
-            for exp in self.payload.experiments:
-                if getattr(exp.header, "memory_slots", None) is None:
-                    setattr(exp.header, "memory_slots", default_slots)
-
-            self._result = Result(
+            backend = self.backend()
+            self._result = get_result(
+                job_id=self.job_id(),
                 backend_name=backend.name,
                 backend_version=backend.backend_version,
-                qobj_id=self.payload.qobj_id,
-                job_id=self.job_id(),
-                success=True,
-                results=[
-                    ExperimentResult(
-                        header=self.payload.experiments[idx].header,
-                        shots=self.payload.config.shots,
-                        success=True,
-                        meas_level=meas_level,
-                        meas_return=meas_return,
-                        data=ExperimentResultData(
-                            counts=dict(Counter(v)) if has_counts else None,
-                            memory=v[0] if is_averaged else v,
-                        ),
-                    )
-                    for idx, v in enumerate(memory)
-                ],
+                headers=self.headers,
+                shots=self.shots,
+                meas_level=self.meas_level,
+                meas_return=self.meas_return,
+                memory=self.remote_data.result.memory,
             )
-
         return self._result
 
-    def __repr__(self):
-        kwargs = [f"{k}={repr(v)}" for k, v in self.__dict__.items()]
-        kwargs_str = ",\n".join(kwargs)
-        return f"{self.__class__.__name__}({kwargs_str})"
-
-    def __eq__(self, other):
-        if not isinstance(other, Job):
-            return False
-
-        for k, v in self.__dict__.items():
-            other_v = getattr(other, k, None)
-            if other_v != v:
-                return False
-
-        return True
-
-
-STATUS_MAP = {
-    mss_models.JobStatus.pending: JobStatus.QUEUED,
-    mss_models.JobStatus.successful: JobStatus.DONE,
-    mss_models.JobStatus.executing: JobStatus.RUNNING,
-    mss_models.JobStatus.cancelled: JobStatus.CANCELLED,
-    mss_models.JobStatus.failed: JobStatus.ERROR,
-}
+    def __repr__(self) -> str:
+        return f"<Job {self.job_id()} on {self.backend().name}: {self._status.name}>"

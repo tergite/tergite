@@ -11,12 +11,10 @@
 # that they have been altered from the originals.
 """tests for the get_backend method on tergite backend"""
 import pytest
-from qiskit import QuantumCircuit
 from qiskit.providers import QiskitBackendNotFoundError
 
-from tergite import OpenPulseBackend, OpenQASMBackend, Provider, Tergite
+from tergite import OpenPulseBackend, OpenQASMBackend, Provider, Tergite, TergiteBackend
 from tergite.api.mss_models import Device
-from tergite.exc import TergiteError
 from tests.utils.records import get_record
 
 from .conftest import (
@@ -39,8 +37,8 @@ def test_get_backend(api, backend_name):
     """Retrieves the right backend"""
     provider = _get_test_provider(url=API_URL)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": backend_name})
-    expected = OpenPulseBackend(
-        data=Device(**expected_json), provider=provider, base_url=API_URL
+    expected = TergiteBackend(
+        data=Device.model_validate(expected_json), provider=provider, base_url=API_URL
     )
     got = provider.get_backend(backend_name)
     assert got == expected
@@ -64,6 +62,18 @@ def test_malformed_backend_warns(api):
         UserWarning, match=f"Skipping malformed device '{MALFORMED_BACKEND}': version"
     ):
         provider.backends()
+
+
+@pytest.mark.parametrize("alias", [OpenPulseBackend, OpenQASMBackend])
+def test_deprecated_backend_names(api, alias):
+    """OpenPulseBackend and OpenQASMBackend still make a TergiteBackend, with a warning"""
+    provider = _get_test_provider(url=API_URL)
+    device = Device.model_validate(get_record(BACKENDS_LIST, _filter={"name": "loke"}))
+
+    with pytest.warns(DeprecationWarning, match="use TergiteBackend"):
+        backend = alias(data=device, provider=provider, base_url=API_URL)
+
+    assert backend == provider.get_backend("loke")
 
 
 @pytest.mark.parametrize("backend_name", [*GOOD_BACKENDS, NON_PULSE_BACKEND])
@@ -123,34 +133,13 @@ def test_get_backend_with_pairs_without_couplers(api):
     assert "cz" not in target.operation_names
 
 
-def test_get_non_pulse_backend(api):
-    """Retrieves a backend whose device takes no pulse jobs"""
-    provider = _get_test_provider(url=API_URL)
-    got = provider.get_backend(NON_PULSE_BACKEND)
-    assert isinstance(got, OpenQASMBackend)
-
-
-def test_run_on_non_pulse_backend(api):
-    """run() on a backend whose device takes no pulse jobs raises before registering a job"""
-    provider = _get_test_provider(url=API_URL)
-    backend = provider.get_backend(NON_PULSE_BACKEND)
-    qc = QuantumCircuit(1, 1)
-    qc.x(0)
-    qc.measure(0, 0)
-
-    with pytest.raises(TergiteError, match="accept pulse jobs only"):
-        backend.run(qc)
-
-    assert [call for call in api.calls if call.request.method == "POST"] == []
-
-
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_bearer_auth(bearer_auth_api, backend_name):
     """Retrieves the data if backend is shielded with basic auth"""
     provider = _get_test_provider(url=API_URL, token=API_TOKEN)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": backend_name})
-    expected = OpenPulseBackend(
-        data=Device(**expected_json), provider=provider, base_url=API_URL
+    expected = TergiteBackend(
+        data=Device.model_validate(expected_json), provider=provider, base_url=API_URL
     )
     got = provider.get_backend(backend_name)
     assert got == expected

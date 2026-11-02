@@ -28,9 +28,7 @@ classifiers = [
 dependencies = [
     "qiskit>1,<1.3",
     "numpy>=1.26.0",
-    "h5py>=3.8.0",
     "pydantic>=2.5.0",
-    "sympy>=1.3",
     "httpx>=0.27",
 ]
 
@@ -45,6 +43,7 @@ dev = [
     "psutil>=7.0",
     "datamodel-code-generator>=0.34",
     "respx>=0.22",
+    "h5py>=3.8.0",
 ]
 
 [project.urls]

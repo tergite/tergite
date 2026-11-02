@@ -367,9 +367,12 @@ Needs B2 and B4 in the e2e stack.
    `extract_q_to_clbit_map`, `utils/qobj.derive_reg_len_from_qobj_experiment`,
    `rewrite_acquire_memory_slots` and the `header.metadata.tergite` keys. The backend reads
    the clbits from the QASM.
-5. **`provider.job(job_id)`** rebuilds its result from MSS's job (D4, needs F1), so
-   `utils/job_file.py` and `h5py` leave. `job.logfile` still downloads the file for those who
-   want the raw data.
+5. **`provider.job(job_id)`** builds its job from MSS's alone, so `utils/job_file.py` and
+   `h5py` leave the SDK's dependencies (the tests keep h5py). MSS does not keep how a job was
+   run, so its measurement level and shots are taken from the memory, and its counts come
+   without register names or leading zeros; F1 would give them back. `job.logfile` still
+   downloads the file. Counts now keep a classical register a circuit never measures into,
+   as Qiskit's own backends do, where the qobj patching dropped it.
 
 ## Step 5: current Qiskit
 

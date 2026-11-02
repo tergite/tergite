@@ -19,7 +19,7 @@ from typing import Callable
 
 import pytest
 
-from tergite import Job, OpenPulseBackend, Provider, ProviderFactory, Tergite
+from tergite import Job, Provider, ProviderFactory, Tergite, TergiteBackend
 
 from .conftest import API_URL, GOOD_BACKENDS
 
@@ -33,15 +33,15 @@ SIGNATURES = [
     (Provider.backends, "(self, /, name=None, filters=None, **kwargs)"),
     (Provider.get_backend, "(self, name=None, **kwargs)"),
     (Provider.job, "(self, job_id)"),
-    (OpenPulseBackend.run, "(self, experiments, /, **kwargs)"),
-    (OpenPulseBackend.set_options, "(self, **fields)"),
+    (TergiteBackend.run, "(self, run_input, /, **options)"),
+    (TergiteBackend.set_options, "(self, **fields)"),
     (Job.status, "(self)"),
     (Job.result, "(self)"),
     (Job.cancel, "(self)"),
 ]
 PROPERTIES = [
-    (OpenPulseBackend, "target"),
-    (OpenPulseBackend, "options"),
+    (TergiteBackend, "target"),
+    (TergiteBackend, "options"),
     (Job, "download_url"),
     (Job, "logfile"),
 ]
@@ -126,7 +126,7 @@ def test_target_has_the_calibrated_gates(api, backend_name):
         assert set(target.qargs_for_operation_name("cz")) == pairs
 
 
-def _get_backend(name: str) -> OpenPulseBackend:
+def _get_backend(name: str) -> TergiteBackend:
     """Retrieves the backend of the given name through a test provider"""
     provider = Tergite.use_provider_account(service_name="test", url=API_URL)
     return provider.get_backend(name)

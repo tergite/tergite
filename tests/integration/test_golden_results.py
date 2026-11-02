@@ -15,14 +15,14 @@ The backend returns each shot's bits in the circuit's clbit order, clbit 0 right
 cases pin what the user then reads from job.result(), so that the gate-level payload of
 REFACTOR.md's step 4 can be shown to answer exactly as the pulse payload does.
 """
-from typing import Any, Dict, List
+from typing import Any, List
 
 import numpy as np
 import pytest
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Tergite
-from tests.utils.qobj_tools import extract_uploaded_qobj_from_request
+from tests.utils.uploads import get_uploaded_job_file
 
 from .conftest import API_URL, TEST_CALIBRATIONS_MAP, TEST_JOB_ID
 
@@ -63,7 +63,7 @@ def test_partial_measurement(api):
     result = _run_with_memory(api, [qc], memory=[["0x1", "0x1", "0x0"]])
 
     assert result.get_counts() == {"1": 2, "0": 1}
-    assert _get_uploaded_q_to_c(api) == [{"1": 0}]
+    assert "c[0] = measure $1;" in _get_uploaded_qasm(api)
 
 
 def test_permuted_clbits(api):
@@ -76,7 +76,8 @@ def test_permuted_clbits(api):
     result = _run_with_memory(api, [qc], memory=[["0x2", "0x2"]])
 
     assert result.get_counts() == {"10": 2}
-    assert _get_uploaded_q_to_c(api) == [{"0": 1, "1": 0}]
+    qasm = _get_uploaded_qasm(api)
+    assert "c[1] = measure $0;" in qasm and "c[0] = measure $1;" in qasm
 
 
 def test_two_circuits_in_one_job(api):
@@ -135,7 +136,7 @@ def test_counts_ask_for_every_shot(api, meas_return):
 
     _run_with_memory(api, [qc], memory=[["0x0", "0x1"]], **options)
 
-    assert _get_uploaded_qobj(api)["config"]["meas_return"] == "single"
+    assert get_uploaded_job_file(api).params.meas_return == "single"
 
 
 def _run_with_memory(
@@ -164,21 +165,7 @@ def _run_with_memory(
     return job.result()
 
 
-def _get_uploaded_q_to_c(api) -> List[Dict[str, int]]:
-    """The qubit-to-clbit map of each experiment, as the pulse payload carries it"""
-    qobj = _get_uploaded_qobj(api)
-    return [
-        exp["header"]["metadata"]["tergite"]["q_to_c"] for exp in qobj["experiments"]
-    ]
-
-
-def _get_uploaded_qobj(api) -> Dict[str, Any]:
-    """The qobj the job uploaded to the backend"""
-    upload = next(
-        req
-        for req in (call.request for call in api.calls)
-        if req.method == "POST"
-        and req.url.path == "/jobs"
-        and b"upload_file" in req.content
-    )
-    return extract_uploaded_qobj_from_request(upload)
+def _get_uploaded_qasm(api) -> str:
+    """The OpenQASM 3 of the one circuit the job uploaded to the backend"""
+    [circuit] = get_uploaded_job_file(api).params.circuits
+    return circuit.qasm

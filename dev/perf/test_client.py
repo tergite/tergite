@@ -25,8 +25,9 @@ import respx
 from qiskit import QuantumCircuit, transpile
 from qiskit.providers import JobStatus
 
-from tergite import Job, OpenPulseBackend, Tergite
+from tergite import Job, Tergite, TergiteBackend
 from tergite.api.mss_models import Job as MssJob
+from tergite.results import CircuitHeader
 from tests.utils.fixtures import load_json_fixture
 
 API_URL = "https://api.perf.example"
@@ -110,7 +111,7 @@ def test_result(benchmark, api, num_circuits: int):
     benchmark(get_result)
 
 
-def _get_backend() -> OpenPulseBackend:
+def _get_backend() -> TergiteBackend:
     """Gets the benchmarked backend through a new provider"""
     provider = Tergite.use_provider_account(service_name="perf", url=API_URL)
     return provider.get_backend(BACKEND_NAME)
@@ -128,10 +129,9 @@ def _get_circuits(count: int) -> List[QuantumCircuit]:
     return circuits
 
 
-def _get_finished_job(backend: OpenPulseBackend, num_circuits: int) -> Job:
+def _get_finished_job(backend: TergiteBackend, num_circuits: int) -> Job:
     """Gets a job of that many circuits that MSS reports successful, with its memory"""
     circuits = transpile(_get_circuits(num_circuits), backend=backend)
-    backend.set_options(shots=SHOTS)
     remote_data = MssJob(
         device=BACKEND_NAME,
         calibration_date="2024-01-01T00:00:00Z",
@@ -142,7 +142,8 @@ def _get_finished_job(backend: OpenPulseBackend, num_circuits: int) -> Job:
     return Job(
         backend=backend,
         job_id="perf",
-        payload=backend.make_qobj(circuits, meas_level=2),
+        headers=[CircuitHeader.from_circuit(circuit) for circuit in circuits],
+        shots=SHOTS,
         status=JobStatus.DONE,
         remote_data=remote_data,
     )

@@ -22,17 +22,16 @@
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
 import functools
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List
 
 from qiskit.providers.providerutils import filter_backends
 
-from ..api import bcc, mss
+from ..api import mss
 from ..api.client import create_bcc_client, create_mss_client
-from ..exc import ApiError, BackendNotFoundError
+from ..backend import TergiteBackend
+from ..exc import BackendNotFoundError
+from ..job import STATUS_MAP, Job
 from ..services.configs import AccountInfo
-from ..utils.job_file import extract_job_metadata, extract_job_qobj
-from .backend import OpenPulseBackend, OpenQASMBackend
-from .job import STATUS_MAP, Job
 
 
 class Provider:
@@ -53,7 +52,7 @@ class Provider:
 
     def backends(
         self, /, name: str = None, filters: Callable[[Any], bool] = None, **kwargs
-    ) -> List[Union[OpenPulseBackend, OpenQASMBackend]]:
+    ) -> List[TergiteBackend]:
         """Filters the available backends of this provider.
 
         Args:
@@ -62,7 +61,7 @@ class Provider:
             kwargs: kwargs to match the available backends with
 
         Returns:
-            A list of instantiated and available OpenPulseBackend, or OpenPulseBackend backends,
+            A list of the available backends
                 that match the given filter
         """
         available_backends = list(self.available_backends.values())
@@ -73,87 +72,48 @@ class Provider:
         return filter_backends(available_backends, filters=filters, **kwargs)
 
     @functools.cached_property
-    def available_backends(
-        self, /
-    ) -> Dict[str, Union[OpenPulseBackend, OpenQASMBackend]]:
+    def available_backends(self, /) -> Dict[str, TergiteBackend]:
         """Dictionary of all available backends got from the API"""
-        backends = dict()
-        backend_configs = mss.get_devices(self.mss_client)
-
-        for backend_conf in backend_configs:
-            if backend_conf.open_pulse:
-                obj = OpenPulseBackend(
-                    data=backend_conf, provider=self, base_url=self.account.url
-                )
-            else:
-                obj = OpenQASMBackend(
-                    data=backend_conf, provider=self, base_url=self.account.url
-                )
-            backends[obj.name] = obj
-
-        return backends
+        return {
+            device.name: TergiteBackend(
+                data=device, provider=self, base_url=self.account.url
+            )
+            for device in mss.get_devices(self.mss_client)
+        }
 
     def job(self, job_id: str) -> Job:
         """Retrieve a runtime job given a job id
+
+        MSS does not keep how a job was run, so its measurement level and shots are taken
+        from the memory it returns, and its circuits' registers are unknown: counts come
+        keyed by their bits, without register names or leading zeros.
 
         Args:
             job_id: the ID of the job
 
         Returns:
             an instance of `Job` corresponding to the given job id
-
-        Raises:
-            ApiError: Job: {job_id} has no download_url
         """
         remote_data = mss.get_job(self.mss_client, job_id)
-        if remote_data.download_url is None:
-            raise ApiError(f"Job: {job_id} has no download_url")
-
-        download_url = remote_data.download_url
-        access_token = remote_data.access_token
-        backend = self.get_backend(name=remote_data.device)
-        logfile = bcc.download_logfile(
-            self.bcc_client, url=download_url, job_id=job_id, access_token=access_token
-        )
-        raw_status = remote_data.status
-        status = STATUS_MAP.get(raw_status)
-        calibration_date = remote_data.calibration_date
-
-        metadata = extract_job_metadata(logfile)
-        payload = extract_job_qobj(logfile)
-
-        job = Job(
-            backend=backend,
+        memory = remote_data.result.memory if remote_data.result else []
+        is_counts = bool(memory) and bool(memory[0]) and isinstance(memory[0][0], str)
+        return Job(
+            backend=self.get_backend(name=remote_data.device),
             job_id=job_id,
-            payload=payload,
-            upload_url=None,
-            download_url=download_url,
-            logfile=logfile,
-            status=status,
+            shots=len(memory[0]) if memory else None,
+            meas_level=2 if is_counts else 1,
+            status=STATUS_MAP.get(remote_data.status),
             remote_data=remote_data,
-            calibration_date=calibration_date,
-            access_token=access_token,
-            **metadata,
+            download_url=remote_data.download_url,
+            calibration_date=remote_data.calibration_date,
+            access_token=remote_data.access_token,
         )
-        self._sync_backend_options_from_job(job)
-        return job
 
     def __str__(self, /):
         return "Tergite: Provider"
 
     def __repr__(self, /):
         return "<{} from Tergite Qiskit>".format(self.__class__.__name__)
-
-    def _sync_backend_options_from_job(self, job):
-        # Prefer payload (source of truth), fallback to metadata
-        shots = None
-        if getattr(job, "payload", None) is not None:
-            shots = getattr(getattr(job.payload, "config", None), "shots", None)
-        if shots is None:
-            shots = job.metadata.get("shots")
-
-        if shots is not None:
-            job.backend().set_options(shots=int(shots))
 
     # The below code is part of Qiskit.
     #
@@ -182,9 +142,7 @@ class Provider:
     # ---------------- ALTERATION NOTICE ---------------- #
     # This code has been derived from the Qiskit abstract ProviderV1 class
 
-    def get_backend(
-        self, name=None, **kwargs
-    ) -> Union[OpenPulseBackend, OpenQASMBackend]:
+    def get_backend(self, name=None, **kwargs) -> TergiteBackend:
         """Return a single backend matching the specified filtering.
 
         Args:
