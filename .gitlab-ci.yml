@@ -101,18 +101,15 @@ deploy staging:
     - test
     - e2e
   environment: staging
-  image: python:3.12-slim
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
   rules:
     - if: $SHOULD_PUBLISH_TO_STAGING == "true" && $CI_COMMIT_TAG =~ /^v.*$/
   script:
-    - python -m pip install --upgrade pip
-    - python --version
-    - pip install .
-    - pip install build twine
-    # build package
-    - python -m build
-    # upload to test pypi
-    - twine upload --skip-existing -u __token__ -p "$TEST_PYPI_API_TOKEN" r https://test.pypi.org/legacy/ dist/*;
+    - uv build
+    - uv publish
+      --publish-url https://test.pypi.org/legacy/
+      --check-url https://test.pypi.org/simple/
+      --token "$TEST_PYPI_API_TOKEN"
 
 deploy production:
   stage: release
@@ -120,15 +117,9 @@ deploy production:
     - test
     - e2e
   environment: production
-  image: python:3.12-slim
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
   rules:
     - if: $SHOULD_PUBLISH_TO_PROD == "true" && $CI_COMMIT_TAG =~ /^v.*$/
   script:
-    - python -m pip install --upgrade pip
-    - python --version
-    - pip install .
-    - pip install build twine
-    # build package
-    - python -m build
-    # upload official pypi
-    - twine upload --skip-existing -u __token__ -p "$PYPI_API_TOKEN" dist/*;
+    - uv build
+    - uv publish --check-url https://pypi.org/simple/ --token "$PYPI_API_TOKEN"

@@ -78,38 +78,24 @@ jobs:
       startsWith(github.ref, 'refs/tags/') || 
       (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'release')
     needs: tests
+    env:
+      UV_PYTHON: "3.13"
     steps:
       - name: Checkout the commit
         uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          cd $GITHUB_WORKSPACE
-          python -m pip install --upgrade pip
-          python --version
-          pip install .
-          pip install build twine
-      - name: Deploy docs
-        if: ${{ vars.SHOULD_PUBLISH_DOCS == 'true' }}
-        run: |
-          source .venv/bin/activate
-          mkdocs gh-deploy --force
+      - uses: astral-sh/setup-uv@v6
       - name: Build
-        run: python -m build
+        run: uv build
       - name: Publish to Test pypi
         if: ${{ vars.SHOULD_PUBLISH_TO_STAGING == 'true' }}
         run: |
-          twine upload --skip-existing \
-            -u __token__ \
-            -p ${{ secrets.TEST_PYPI_API_TOKEN }} \
-            -r https://test.pypi.org/legacy/ dist/*;
+          uv publish \
+            --publish-url https://test.pypi.org/legacy/ \
+            --check-url https://test.pypi.org/simple/ \
+            --token ${{ secrets.TEST_PYPI_API_TOKEN }}
       - name: Publish to pypi
         if: ${{ vars.SHOULD_PUBLISH_TO_PROD == 'true' }}
         run: |
-          twine upload --skip-existing \
-            -u __token__ \
-            -p ${{ secrets.PYPI_API_TOKEN }} dist/*;
+          uv publish \
+            --check-url https://pypi.org/simple/ \
+            --token ${{ secrets.PYPI_API_TOKEN }}
