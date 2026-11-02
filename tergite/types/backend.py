@@ -265,12 +265,6 @@ class TergiteBackend(BackendV2):
             repr_list.append(f"  {attr}:\t{value}".expandtabs(30))
         return "\n".join(repr_list)
 
-    @property
-    def backend_id(self) -> tuple:
-        # fields that uniquely identify the remote backend
-        # FIXME: backend_name is unresolved reference.
-        return self.backend_name, self.backend_version, self.base_url
-
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TergiteBackend):
             return False
@@ -282,13 +276,19 @@ class TergiteBackend(BackendV2):
         self_dict["coupling_map"] = f"{self_dict['coupling_map']}"
         other_dict["coupling_map"] = f"{other_dict['coupling_map']}"
 
-        self_dict["supported_instructions"] = f"{self_dict['supported_instructions']}"
-        other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
+        # an OpenQASMBackend's configuration has no supported_instructions
+        self_dict["supported_instructions"] = (
+            f"{self_dict.get('supported_instructions')}"
+        )
+        other_dict["supported_instructions"] = (
+            f"{other_dict.get('supported_instructions')}"
+        )
 
         return self_dict == other_dict
 
     def __hash__(self) -> int:
-        return hash(self.backend_id)
+        # only fields __eq__ compares, so that equal backends hash alike
+        return hash((self.name, self.backend_version))
 
 
 class OpenPulseBackend(TergiteBackend):
@@ -533,76 +533,6 @@ class OpenPulseBackend(TergiteBackend):
 
         logging.info(f"Refreshed the target for '{self.name}' backend")
         self._target = gmap
-
-    @property
-    def meas_map(self) -> list:
-        return self.data.meas_map
-
-    @property
-    def last_calibrated(self) -> Optional[str]:
-        """The timestamp for when this backed was last calibrated"""
-        try:
-            return self.device_properties.last_calibrated
-        except AttributeError:
-            pass
-
-    @functools.cached_property
-    def coupling_map(self) -> CouplingMap:
-        # It is required that nodes are contiguously indexed starting at 0.
-        # Missed nodes will be added as isolated nodes in the coupling map.
-        #
-        # Also for some reason the graph has to be connected in Qiskit? Not sure why that is..
-        edges = sorted(
-            sorted(self.data.coupling_map, key=lambda i: i[1]), key=lambda i: i[0]
-        )
-        return CouplingMap(couplinglist=list(edges))
-
-    @classmethod
-    def _default_options(cls, /) -> Options:
-        """This defines the default user configurable settings of this backend.
-
-        See: help(backend.set_options)
-
-         Returns:
-            qiskit.providers.Options: A options object with
-                default values set
-        """
-        options = Options(shots=2000)
-        options.set_validator("shots", (1, TergiteBackend.max_shots))
-        return options
-
-    def _as_dict(self):
-        """Converts this backend into a dictionary representation
-
-        Returns:
-            dict: a dictionary representation of this backend
-        """
-        obj = self.configuration().to_dict()
-        obj["characterized"] = self.data.characterized
-        return obj
-
-    def __repr__(self) -> str:
-        repr_list = [f"TergiteBackend object @ {hex(id(self))}:"]
-        config = self._as_dict()
-        for attr, value in config.items():
-            repr_list.append(f"  {attr}:\t{value}".expandtabs(30))
-        return "\n".join(repr_list)
-
-    def __eq__(self, other: Any):
-        if not isinstance(other, TergiteBackend):
-            return False
-
-        self_dict = self._as_dict().copy()
-        other_dict = other._as_dict().copy()
-
-        # serialize a few items that are hard to serialize
-        self_dict["coupling_map"] = f"{self_dict['coupling_map']}"
-        other_dict["coupling_map"] = f"{other_dict['coupling_map']}"
-
-        self_dict["supported_instructions"] = f"{self_dict['supported_instructions']}"
-        other_dict["supported_instructions"] = f"{other_dict['supported_instructions']}"
-
-        return self_dict == other_dict
 
 
 class OpenQASMBackend(TergiteBackend):

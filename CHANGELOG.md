@@ -13,6 +13,7 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   `qiskit-ibm-runtime` and `pandas` dependencies
 - Fixed listing backends crashing when any device takes no pulse jobs; running on such a
   backend now raises before a job is registered, rather than after
+- Fixed backends being unhashable, which made them unusable as set members or dict keys
 
 ## [2026.06.0] - 2026-06-26
 

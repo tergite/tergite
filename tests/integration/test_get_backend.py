@@ -56,6 +56,17 @@ def test_get_malformed_backend(api):
         provider.get_backend(MALFORMED_BACKEND)
 
 
+@pytest.mark.parametrize("backend_name", [*GOOD_BACKENDS, NON_PULSE_BACKEND])
+def test_backend_hash(api, backend_name):
+    """Equal backends hash alike, so backends can be set members and dict keys"""
+    first = _get_test_provider(url=API_URL).get_backend(backend_name)
+    second = _get_test_provider(url=API_URL).get_backend(backend_name)
+
+    assert first == second
+    assert hash(first) == hash(second)
+    assert len({first, second}) == 1
+
+
 def test_get_non_pulse_backend(api):
     """Retrieves a backend whose device takes no pulse jobs"""
     provider = _get_test_provider(url=API_URL)

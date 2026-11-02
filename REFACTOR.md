@@ -147,8 +147,8 @@ fix and gets a `Fixed` changelog entry.
    `run` raises a `TergiteError` saying the backend accepts pulse jobs only.
 3. **Backends are unhashable.** `OpenPulseBackend` defines `__eq__` (`:590`) without
    `__hash__`, which makes Python drop the inherited one, and that one (`:268`) reads a
-   `backend_name` no backend has. Hash on `(name, backend_version, base_url)`, defined once on
-   the base class, and delete the copies of `meas_map`, `last_calibrated`, `coupling_map`,
+   `backend_name` no backend has. Hash on `(name, backend_version)`, fields `__eq__` compares,
+   defined once on the base class, and delete the copies of `meas_map`, `last_calibrated`, `coupling_map`,
    `_default_options`, `_as_dict`, `__repr__` and `__eq__` that `OpenPulseBackend` repeats.
 4. **`save=True` fails twice over.** It raises `FileNotFoundError` when `~/.qiskit` does not
    exist, and `DuplicateSectionError` when the service name is already saved
