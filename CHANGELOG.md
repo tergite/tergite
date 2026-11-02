@@ -59,6 +59,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   passed; counts always ask for every shot, as `meas_return` applies only to levels 0 and 1
 - Fixed averaged IQ points (`meas_level=1`, `meas_return="avg"`) coming back as one shot of points
   rather than one point per measured qubit
+- Fixed a provider never seeing a device that came online after it first listed the backends; it
+  lists them from MSS on each call, and a backend rebuilds its target when its device is recalibrated
 - Fixed a device MSS sends in a shape the SDK cannot read vanishing from the backends without a
   word; it is still skipped, with a warning naming the device and its invalid fields
 

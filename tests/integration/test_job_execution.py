@@ -11,6 +11,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """tests for running circuits on a tergite backend, and for the jobs that run them"""
+import json
+
 import pytest
 from qiskit import QuantumCircuit, qasm3, transpile
 from qiskit.providers import JobStatus
@@ -91,6 +93,35 @@ def test_run_refuses_what_is_not_a_circuit(api):
 
     with pytest.raises(TergiteError, match="run circuits, not str"):
         backend.run(["not a circuit"])
+
+
+def test_run_keeps_the_target_of_the_same_calibration(api):
+    """run() rebuilds no target while the device's calibration is the one it was built from"""
+    backend = _get_backend("loke")
+    target = backend.target
+
+    backend.run(_get_x_circuit(backend))
+
+    assert backend.target is target
+
+
+def test_run_rebuilds_the_target_of_a_new_calibration(api, monkeypatch):
+    """run() rebuilds the target once the device is calibrated again, and registers the job
+    as compiled with that calibration"""
+    backend = _get_backend("loke")
+    target = backend.target
+    circuit = _get_x_circuit(backend)
+    calibration = {
+        **TEST_CALIBRATIONS_MAP["loke"],
+        "last_calibrated": "2099-01-01T00:00",
+    }
+    monkeypatch.setitem(TEST_CALIBRATIONS_MAP, "loke", calibration)
+
+    backend.run(circuit)
+
+    assert backend.target is not target
+    [created] = [c.request for c in api.calls if c.request.url.path == "/jobs/"]
+    assert json.loads(created.content)["calibration_date"] == "2099-01-01T00:00"
 
 
 def test_run_bearer_auth(bearer_auth_api):

@@ -56,13 +56,15 @@ class TergiteBackend(BackendV2):
         self.base_url = base_url
         self.data = data
         self._target: Optional[Target] = None
+        self._target_calibrated: Optional[str] = None
         self._device_properties: Optional["DeviceCalibration"] = None
 
     @property
     def target(self) -> Target:
-        """The transpiler target of the device, from its latest calibration"""
+        """The transpiler target of the device, from its latest calibration as of when it
+        was first read or a job last run"""
         if self._target is None:
-            self._refresh_target()
+            self._compute_target()
         return self._target
 
     @property
@@ -120,7 +122,7 @@ class TergiteBackend(BackendV2):
             ApiError: MSS or the backend refused the job
         """
         circuits = _get_circuit_list(run_input)
-        self._refresh_target()
+        self._refresh_calibration()
         for circuit in circuits:
             self._check_supported(circuit)
         settings = {**self.options.__dict__, **options}
@@ -149,11 +151,17 @@ class TergiteBackend(BackendV2):
         logging.info(f"Tergite: Job {job.job_id()} has been successfully submitted")
         return job
 
-    def _refresh_target(self) -> None:
-        """Rebuilds the target from a fresh calibration"""
+    def _refresh_calibration(self) -> None:
+        """Fetches the latest calibration, and rebuilds a target built from another"""
         self._device_properties = None
+        if self._target is not None and self.last_calibrated != self._target_calibrated:
+            self._compute_target()
+
+    def _compute_target(self) -> None:
+        """Computes the target from the latest calibration fetched"""
         self._target = get_target(self.data, self.device_properties)
-        logging.info(f"Refreshed the target for '{self.name}' backend")
+        self._target_calibrated = self.last_calibrated
+        logging.info(f"Computed the target of the '{self.name}' backend")
 
     def _check_supported(self, circuit: QuantumCircuit) -> None:
         """Raises if the circuit uses an instruction the target lacks"""

@@ -21,7 +21,6 @@
 # Adilet Tuleuov, 2024
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
-import functools
 from typing import Any, Callable, Dict, List
 
 from qiskit.providers.providerutils import filter_backends
@@ -69,9 +68,10 @@ class Provider:
 
         return filter_backends(available_backends, filters=filters, **kwargs)
 
-    @functools.cached_property
+    @property
     def available_backends(self, /) -> Dict[str, TergiteBackend]:
-        """Dictionary of all available backends got from the API"""
+        """The backends of the devices MSS lists, by name, fetched on each read so that a
+        device coming online is seen"""
         return {
             device.name: TergiteBackend(
                 data=device, provider=self, base_url=self.account.url

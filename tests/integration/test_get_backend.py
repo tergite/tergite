@@ -133,6 +133,19 @@ def test_get_backend_with_pairs_without_couplers(api):
     assert "cz" not in target.operation_names
 
 
+def test_backends_sees_a_device_come_online(api):
+    """A provider lists the devices MSS lists now, not those it listed first"""
+    offline = [device for device in BACKENDS_LIST if device["name"] != "loke"]
+    devices_route = api.get(f"{API_URL}/devices/")
+    devices_route.respond(json={"data": offline, "skip": 0, "limit": None})
+    provider = _get_test_provider(url=API_URL)
+    assert provider.backends(name="loke") == []
+
+    devices_route.respond(json={"data": BACKENDS_LIST, "skip": 0, "limit": None})
+
+    assert provider.get_backend("loke").name == "loke"
+
+
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
 def test_bearer_auth(bearer_auth_api, backend_name):
     """Retrieves the data if backend is shielded with basic auth"""
