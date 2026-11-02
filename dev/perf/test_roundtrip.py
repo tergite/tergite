@@ -73,6 +73,8 @@ def http_log(monkeypatch) -> List[httpx.Request]:
     send = httpx.Client.send
 
     def logged_send(client, request, **kwargs):
+        # read so the multipart upload's size is known; its stream is in memory, so re-readable
+        request.read()
         log.append(request)
         return send(client, request, **kwargs)
 
@@ -113,9 +115,9 @@ def _measure_kind(
         calls += len(run_requests) + len(http_log) - calls_before_result
         # the upload goes to the backend's /jobs; MSS registers jobs at /jobs/
         upload_bytes += sum(
-            len(r.body)
+            len(r.content)
             for r in run_requests
-            if r.method == "POST" and r.url.endswith("/jobs")
+            if r.method == "POST" and r.url.path.endswith("/jobs")
         )
     elapsed = time.perf_counter() - started
 
