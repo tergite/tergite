@@ -11,14 +11,13 @@
 # that they have been altered from the originals.
 """The qiskit Result of a job, from the memory the backend returned"""
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Sequence
 
 from qiskit import QuantumCircuit
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from .compat.qiskit.qobj import QobjExperimentHeader
 from .exc import ApiError
 
 
@@ -92,7 +91,6 @@ def get_result(
         backend_name=backend_name,
         backend_version=backend_version,
         job_id=job_id,
-        qobj_id=job_id,
         success=True,
         results=[
             ExperimentResult(
@@ -100,7 +98,7 @@ def get_result(
                 success=True,
                 meas_level=meas_level,
                 meas_return=meas_return,
-                header=None if headers is None else _to_qobj_header(headers[index]),
+                header=None if headers is None else asdict(headers[index]),
                 data=ExperimentResultData(
                     counts=dict(Counter(values)) if has_counts else None,
                     memory=values[0] if is_averaged else values,
@@ -108,14 +106,4 @@ def get_result(
             )
             for index, values in enumerate(memory)
         ],
-    )
-
-
-def _to_qobj_header(header: CircuitHeader) -> QobjExperimentHeader:
-    """The header as Qiskit 1's Result reads it"""
-    return QobjExperimentHeader(
-        name=header.name,
-        creg_sizes=header.creg_sizes,
-        memory_slots=header.memory_slots,
-        metadata=header.metadata,
     )

@@ -26,6 +26,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   `meas` of `measure_all()`, to include that register, as Qiskit's own backends do; the SDK dropped it before
 - Changed `provider.job(job_id)` counts to come without register names or leading zeros, as
   MSS does not keep a job's circuits; the SDK no longer needs h5py or sympy
+- Changed to Qiskit 2.1 and later, from Qiskit 1.2, which kept the SDK from installing beside
+  current Qiskit packages; each experiment result's `header` is a dict, as in Qiskit 2
 
 ### Fixed
 

@@ -146,13 +146,16 @@ def _run_with_memory(
     meas_level: int = 2,
     **options: Any,
 ):
-    """Runs the circuits on the mocked backend, which answers with the given memory"""
+    """Runs the circuits, each qubit i on the device's qubit i, on the mocked backend, which
+    answers with the given memory"""
     backend = Tergite.use_provider_account(
         service_name="test", url=API_URL
     ).get_backend(BACKEND_NAME)
-    job = backend.run(
-        transpile(circuits, backend=backend), meas_level=meas_level, **options
-    )
+    transpiled = [
+        transpile(circuit, backend=backend, initial_layout=range(circuit.num_qubits))
+        for circuit in circuits
+    ]
+    job = backend.run(transpiled, meas_level=meas_level, **options)
     api.get(f"{API_URL}/jobs/{TEST_JOB_ID}").respond(
         json={
             "job_id": TEST_JOB_ID,

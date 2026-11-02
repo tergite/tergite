@@ -30,8 +30,6 @@ BASELINE_FILE = Path(__file__).parent / "fixtures" / "styleguide_baseline.txt"
 SOURCE_ROOTS = ("tergite",)
 ALL_ROOTS = SOURCE_ROOTS + ("tests", "dev")
 EXCLUDED_PREFIXES = (
-    # Qiskit's code, vendored to keep what Qiskit 2 removed; step 5 of REFACTOR.md deletes it
-    "tergite/compat/",
     # generated from the services' specs, in their names
     "tergite/api/mss_models.py",
     "tergite/api/bcc_models.py",
