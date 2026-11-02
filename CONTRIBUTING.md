@@ -29,7 +29,7 @@ When versioning we follow the format `{year}.{month}.{patch_number}` e.g. `2023.
 ## Contacting the Tergite Developers
 
 Since the Github repositories are only mirrors, no Github pull requests or Github issue/bug reports
-are looked. Please get in touch via email <quantum.nextlabs@chalmers.se> instead.
+are looked. Please get in touch via email <contact.quantum@chalmersnextlabs.se> instead.
 
 Take note that the maintainers may not answer every email.
 
@@ -39,7 +39,8 @@ Pull requests are the best way to propose changes to the codebase (we
 use [Github Flow](https://docs.github.com/en/get-started/quickstart/github-flow)). We actively welcome your pull
 requests:
 
-1. Clone the repo and create your branch from `main`.
+1. Clone the repo and create your branch from `main`. Read [DESIGN.md](./DESIGN.md) first: it has
+   the SDK's architecture and the conventions code is held to.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
@@ -105,10 +106,14 @@ cd tergite
 uv sync
 ```
 
--   Run the tests
+-   Run the tests, then the linters CI runs
 
 ``` shell
 uv run pytest
+```
+
+``` shell
+uv run black --check tergite tests dev && uv run isort --check-only tergite tests dev && uv run pyflakes tergite tests dev
 ```
 
 -   Run the example notebooks, with Jupyter alongside
@@ -141,6 +146,24 @@ FRONTEND_REPO="https://github.com/tergite/tergite-frontend.git" \
 
 Its arguments go to pytest, e.g. `./dev/e2e_native_test.sh -k quantify`. Set `DEBUG=True` to
 keep the services running afterwards; their logs are in `temp-native/logs/`.
+
+## How to Check Performance
+
+`dev/perf/record.sh` records the client's benchmarks against mocked services, and the round trip
+of jobs against the end-to-end stack, which it starts as above; `compare.py` fails on a measure
+more than 10% and its noise floor worse than the baselines in `dev/perf/baselines`, or on one more
+HTTP call.
+
+``` shell
+FRONTEND_PATH="../tergite-frontend" BACKEND_PATH="../tergite-backend" ./dev/perf/record.sh /tmp/perf
+```
+
+``` shell
+uv run python dev/perf/compare.py dev/perf/baselines /tmp/perf
+```
+
+The numbers are the machine's own, so compare runs made on one machine. `./dev/perf/record.sh
+/tmp/perf client` records the client's alone, without the stack.
 
 ## References
 

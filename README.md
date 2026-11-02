@@ -14,7 +14,8 @@ It includes:
 ## Version Control
 
 The tergite stack is developed on a separate version control system and mirrored on Github.
-If you are reading this on GitHub, then you are looking at a mirror.
+If you are reading this on GitHub, then you are looking at a mirror: its pull requests and issues
+are not read. Please get in touch via email <contact.quantum@chalmersnextlabs.se> instead.
 
 ## Installation
 
@@ -27,8 +28,9 @@ pip install tergite
 ## Dependencies
 
 - [Python 3.13+](https://www.python.org/)
-- [Qiskit +v1.0](https://github.com/Qiskit/qiskit)
-- [Tergite Frontend](https://github.com/tergite/tergite-frontend)
+- [Qiskit 2.1+](https://github.com/Qiskit/qiskit)
+- [Tergite Frontend](https://github.com/tergite/tergite-frontend), and a
+  [Tergite Backend](https://github.com/tergite/tergite-backend) that runs circuits
 
 ## Provider Setup
 
@@ -77,6 +79,37 @@ provider = Tergite.use_provider_account(
     token="MY_API_TOKEN",
 )
 ```
+
+## Running Circuits
+
+A backend runs circuits transpiled to it: `transpile(circuit, backend)` maps them to the device's
+qubits and to the gates its calibration provides, and `backend.run()` refuses a circuit with any
+other gate. The backend compiles each circuit to pulses from its latest calibration.
+
+```python
+from qiskit import QuantumCircuit, transpile
+
+qc = QuantumCircuit(2, 2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure([0, 1], [0, 1])
+
+job = backend.run(transpile(qc, backend), shots=1000)
+print(job.result().get_counts())
+```
+
+`backend.run()` takes a circuit or a list of circuits, run as one job, and these options, which
+`backend.set_options()` sets for every job:
+
+| Option | Default | Values |
+| --- | --- | --- |
+| `shots` | 2000 | the shots of each circuit |
+| `meas_level` | 2 | 2 for counts, 1 for each shot's IQ points (`job.result().get_memory()`) |
+| `meas_return` | `"single"` | at `meas_level=1`, `"single"` for each shot's points or `"avg"` for their average |
+
+Pulse schedules are no longer accepted: Qiskit 2 has no `qiskit.pulse`, and the pulses are the
+backend's, from its calibration. `OpenPulseBackend` and `OpenQASMBackend` are deprecated names of
+`TergiteBackend`.
 
 - You can look at the [examples folder](./examples) for more samples.
 
