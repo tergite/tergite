@@ -68,3 +68,5 @@ markers = [
   "e2e: end-to-end tests",
   "integration: integration tests",
 ]
+# what Qiskit or another dependency deprecates is moved off as it is deprecated
+filterwarnings = ["error::DeprecationWarning", "error::PendingDeprecationWarning"]
