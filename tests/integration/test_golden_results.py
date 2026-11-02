@@ -101,11 +101,29 @@ def test_iq_points(api):
     qc = QuantumCircuit(2, 2)
     qc.measure([0, 1], [0, 1])
 
-    result = _run_with_memory(api, [qc], memory=[_IQ_SHOTS], meas_level=1)
+    result = _run_with_memory(
+        api, [qc], memory=[_IQ_SHOTS], meas_level=1, meas_return="single"
+    )
 
     np.testing.assert_array_equal(
         result.get_memory(0), [[0.5 - 0.25j, 1.5 + 2.0j], [-1.0 + 0.75j, 0.125j]]
     )
+
+
+def test_averaged_iq_points(api):
+    """meas_level=1 with meas_return=avg gives one IQ point per measured qubit"""
+    qc = QuantumCircuit(2, 2)
+    qc.measure([0, 1], [0, 1])
+
+    result = _run_with_memory(
+        api,
+        [qc],
+        memory=[[[[0.5, -0.25], [1.5, 2.0]]]],
+        meas_level=1,
+        meas_return="avg",
+    )
+
+    np.testing.assert_array_equal(result.get_memory(0), [0.5 - 0.25j, 1.5 + 2.0j])
 
 
 @pytest.mark.parametrize("meas_return", [None, "avg"])

@@ -35,6 +35,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   incomplete calibration failed every `get_backend()`; it fetches only its own backend's
 - Fixed `backend.run(..., meas_level=2)` returning a single count unless `meas_return="single"` was
   passed; counts always ask for every shot, as `meas_return` applies only to levels 0 and 1
+- Fixed averaged IQ points (`meas_level=1`, `meas_return="avg"`) coming back as one shot of points
+  rather than one point per measured qubit
 - Fixed a device MSS sends in a shape the SDK cannot read vanishing from the backends without a
   word; it is still skipped, with a warning naming the device and its invalid fields
 

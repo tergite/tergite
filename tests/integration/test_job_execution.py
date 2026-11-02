@@ -638,6 +638,7 @@ def _get_expected_job_result(backend: OpenPulseBackend, job: Job) -> Result:
             header=job.payload.experiments[index].header,
             shots=job.metadata["shots"],
             success=True,
+            meas_return=job.payload.config.meas_return,
             data=ExperimentResultData(
                 counts=dict(Counter(result)),
                 memory=result,

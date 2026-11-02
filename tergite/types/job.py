@@ -243,7 +243,10 @@ class Job(JobV1):
                     f"expected {len(self.payload.experiments)}, got: {len(memory)}"
                 )
             meas_level = self.payload.config.meas_level
+            meas_return = self.payload.config.meas_return
             has_counts = meas_level == 2
+            # the backend sends an average as one shot, where Qiskit reads a point per slot
+            is_averaged = not has_counts and meas_return == "avg"
 
             # Prefer the experiment header width, then qobj config, then n_qubits
             default_slots = (
@@ -265,9 +268,10 @@ class Job(JobV1):
                         shots=self.payload.config.shots,
                         success=True,
                         meas_level=meas_level,
+                        meas_return=meas_return,
                         data=ExperimentResultData(
                             counts=dict(Counter(v)) if has_counts else None,
-                            memory=v,
+                            memory=v[0] if is_averaged else v,
                         ),
                     )
                     for idx, v in enumerate(memory)
