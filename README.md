@@ -51,7 +51,7 @@ provider = Tergite.use_provider_account(
 )
 ```
 
-The code above stores your credentials in a configuration file called `tergiterc`, located in `$HOME/.qiskit` folder, `$HOME` being your home directory.
+The code above stores your credentials in a configuration file called `tergiterc`, located in `$HOME/.qiskit` folder, `$HOME` being your home directory. Your token is stored in plain text, in a file only you can read (mode 600).
 
 Once saved, you can retrieve this particular account using the `SERVICE_NAME` from anywhere in your code. From the provider, you can retrieve any backend you wish by name.
 
@@ -96,6 +96,16 @@ from tergite import Tergite
 
 provider = Tergite.get_provider()
 ```
+
+### On a Shared Computer
+
+On a computer whose login others use too, such as a lab's guest account, anyone using that login
+can read a saved token and run jobs with it: `Tergite.get_provider()` would even pick it for them.
+There:
+
+- do not save your account: use a throw-away account or the environment variables above;
+- use an app token with a short lifespan, made for the session, and delete it in the dashboard
+  when you are done.
 
 ## Running Circuits
 
