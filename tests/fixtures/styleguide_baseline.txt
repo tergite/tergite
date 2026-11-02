@@ -13,8 +13,6 @@ verb: tergite/types/backend.py::TergiteBackend._as_dict
 verb: tergite/utils/job_file.py::_np_to_py
 verb: tergite/utils/qobj.py::_iqx_rle
 verb: tergite/utils/quantum_circuit.py::as_circuit_list
-boolean: tergite/services/api_client/dtos.py::TergiteBackendConfig.characterized
-boolean: tergite/services/api_client/dtos.py::TergiteBackendConfig.open_pulse
 boolean: tergite/types/provider_factory.py::ProviderFactory.use_provider_account(save)
 boolean: tergite/utils/quantum_circuit.py::normalise_classical_registers(prefer_c)
 constant-position: tergite/types/job.py::STATUS_MAP
@@ -32,7 +30,6 @@ license-header: tests/integration/__init__.py
 license-header: tests/integration/test_provider.py
 license-header: tests/utils/__init__.py
 type-hints: tergite/services/api_client/__init__.py::register_job
-type-hints: tergite/services/api_client/dtos.py::TergiteBackendConfig.model_post_init
 type-hints: tergite/services/api_client/dtos.py::JobFileParams.serialize_qobj
 type-hints: tergite/services/api_client/dtos.py::JobFileParams.parse_qobj
 type-hints: tergite/services/configs/__init__.py::Tergiterc.save_accounts

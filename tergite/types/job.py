@@ -28,13 +28,11 @@ from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
+from ..api import mss_models
 from ..compat.qiskit.qobj import PulseQobj
 from ..exc import JobFailedError
 from ..services import api_client as client
 from ..services.api_client import JobFile
-from ..services.api_client.dtos import RemoteJobStatus
-
-# from ..services.api_client.dtos import RemoteJobStatus
 from ..utils.qobj import compress_qobj_dict
 
 if TYPE_CHECKING:
@@ -54,7 +52,7 @@ class Job(JobV1):
         job_id: str,
         payload: Optional[PulseQobj] = None,
         upload_url: Optional[str] = None,
-        remote_data: Optional["client.RemoteJob"] = None,
+        remote_data: Optional[mss_models.Job] = None,
         logfile: Optional[Path] = None,
         status: JobStatus = JobStatus.INITIALIZING,
         download_url: Optional[str] = None,
@@ -104,7 +102,7 @@ class Job(JobV1):
             return False
 
     @property
-    def remote_data(self) -> Optional["client.RemoteJob"]:
+    def remote_data(self) -> Optional[mss_models.Job]:
         """The representation of the job in the remote API"""
         if not self._is_in_final_state:
             self._remote_data = client.get_remote_job_data(self._account, self.job_id())
@@ -298,9 +296,9 @@ class Job(JobV1):
 
 
 STATUS_MAP = {
-    RemoteJobStatus.PENDING: JobStatus.QUEUED,
-    RemoteJobStatus.SUCCESSFUL: JobStatus.DONE,
-    RemoteJobStatus.EXECUTING: JobStatus.RUNNING,
-    RemoteJobStatus.CANCELLED: JobStatus.CANCELLED,
-    RemoteJobStatus.FAILED: JobStatus.ERROR,
+    mss_models.JobStatus.pending: JobStatus.QUEUED,
+    mss_models.JobStatus.successful: JobStatus.DONE,
+    mss_models.JobStatus.executing: JobStatus.RUNNING,
+    mss_models.JobStatus.cancelled: JobStatus.CANCELLED,
+    mss_models.JobStatus.failed: JobStatus.ERROR,
 }

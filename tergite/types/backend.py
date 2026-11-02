@@ -59,7 +59,7 @@ from ..utils.quantum_circuit import (
 from .job import Job
 
 if TYPE_CHECKING:
-    from ..services.api_client import DeviceCalibration, TergiteBackendConfig
+    from ..api.mss_models import Device, DeviceCalibration
     from .provider import Provider as TergiteProvider
 
 
@@ -74,7 +74,7 @@ class TergiteBackend(BackendV2):
         self,
         /,
         *,
-        data: "TergiteBackendConfig",
+        data: "Device",
         provider: "TergiteProvider",
         base_url: str,
     ):
@@ -84,7 +84,7 @@ class TergiteBackend(BackendV2):
             provider: An optional backwards reference to the
                 :class:`~qiskit.providers.Provider` object that the backend
                 is from
-            data: An optional config of type :class:`TergiteBackendConfig`
+            data: the device MSS lists
                 from which to construct this backend
             base_url: An optional URL to Tergite API through which
                 jobs are to be run
@@ -92,7 +92,6 @@ class TergiteBackend(BackendV2):
         Raises:
             AttributeError: If a field is specified that's outside the backend's
                 options
-            TypeError: If ``data`` is not a :class:`TergiteBackendConfig` object
         """
         super().__init__(
             provider=provider,
@@ -315,7 +314,7 @@ class OpenPulseBackend(TergiteBackend):
         self,
         /,
         *,
-        data: "TergiteBackendConfig",
+        data: "Device",
         provider: "TergiteProvider",
         base_url: str,
     ):
@@ -397,11 +396,10 @@ class OpenPulseBackend(TergiteBackend):
 
     def control_channel(self, qubits: Tuple[int, int]):
         """Return the control channel for the given qubits."""
-        try:
-            pulse_channel = self.data.qubit_ids_coupler_dict[qubits]
-            return [pulse.ControlChannel(pulse_channel)]
-        except KeyError:
+        coupler_index = device_compiler.schedules.get_coupler_index(self.data, qubits)
+        if coupler_index is None:
             raise ValueError(f"Coupling {qubits} not in coupling map.")
+        return [pulse.ControlChannel(coupler_index)]
 
     def make_qobj(self, experiments: object, /, **kwargs) -> PulseQobj:
         """Constructs a Qobj from a list of user OpenPulse schedules or OpenQASM circuits
@@ -531,7 +529,6 @@ class OpenPulseBackend(TergiteBackend):
             device_compiler.add_instructions(
                 backend=self,
                 qubits=tuple(q for q in range(self.data.number_of_qubits)),
-                coupled_qubit_idxs=self.data.coupled_qubit_idxs,
                 target=gmap,
                 device_properties=self.device_properties,
             )

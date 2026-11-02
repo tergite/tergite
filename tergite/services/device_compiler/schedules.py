@@ -17,7 +17,7 @@
 # - Martin Ahindura 2023
 # - Stefan Hill 2023
 """Handles the creation of schedules for the devices of type TergiteBackend"""
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple
 
 import numpy as np
 import qiskit.circuit as circuit
@@ -29,8 +29,8 @@ from ...exc import UncalibratedCouplerError
 from .functions import delta_t_function_sympy
 
 if TYPE_CHECKING:
+    from ...api.mss_models import Device, DeviceCalibration
     from ...types.backend import TergiteBackend
-    from ..api_client.dtos import DeviceCalibration
 
 
 def rx(
@@ -147,7 +147,7 @@ def cz(
         target_qubit = device_properties.qubits[cz_target_qubit_idx]
 
         qubit_ids = (control_qubit.id, target_qubit.id)
-        if qubit_ids not in backend.data.qubit_ids_coupler_dict:
+        if get_coupler_index(backend.data, qubit_ids) is None:
             raise UncalibratedCouplerError(f"qubits {qubit_ids} have no coupler")
         control_channels = backend.control_channel(qubit_ids)
 
@@ -321,6 +321,22 @@ def delay(
             name=f"{delay_str} q{q}",
         )
     return sched
+
+
+def get_coupler_index(device: "Device", qubit_ids: Tuple[int, int]) -> Optional[int]:
+    """Gets the index of the coupler between the qubits of the given ids
+
+    Args:
+        device: the device the qubits are on
+        qubit_ids: the ids of the two qubits, in the calibration's numbering
+
+    Returns:
+        the coupler's index, or None if the qubits have no coupler
+    """
+    couplers = {
+        tuple(pair): index for pair, index in device.qubit_ids_coupler_map or []
+    }
+    return couplers.get(tuple(qubit_ids))
 
 
 def wacqt_cz_gate(duration, name, numerical_args):

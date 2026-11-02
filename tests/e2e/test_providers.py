@@ -40,6 +40,6 @@ def test_target_follows_the_calibration(backend_provider: Provider):
     for name in ("rx", "rz", "delay", "reset", "measure"):
         assert set(target.qargs_for_operation_name(name)) == {(0,), (1,)}
     assert set(target.qargs_for_operation_name("cz")) == set(
-        backend.data.coupled_qubit_idxs
+        {tuple(p) for p in backend.data.coupling_map if p[0] != p[1]}
     )
     assert backend.last_calibrated is not None

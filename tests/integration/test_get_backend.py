@@ -15,8 +15,8 @@ from qiskit import QuantumCircuit
 from qiskit.providers import QiskitBackendNotFoundError
 
 from tergite import OpenPulseBackend, OpenQASMBackend, Provider, Tergite
+from tergite.api.mss_models import Device
 from tergite.exc import TergiteError
-from tergite.services.api_client.dtos import TergiteBackendConfig
 from tests.utils.records import get_record
 
 from .conftest import (
@@ -40,7 +40,7 @@ def test_get_backend(api, backend_name):
     provider = _get_test_provider(url=API_URL)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": backend_name})
     expected = OpenPulseBackend(
-        data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
+        data=Device(**expected_json), provider=provider, base_url=API_URL
     )
     got = provider.get_backend(backend_name)
     assert got == expected
@@ -146,7 +146,7 @@ def test_bearer_auth(bearer_auth_api, backend_name):
     provider = _get_test_provider(url=API_URL, token=API_TOKEN)
     expected_json = get_record(BACKENDS_LIST, _filter={"name": backend_name})
     expected = OpenPulseBackend(
-        data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
+        data=Device(**expected_json), provider=provider, base_url=API_URL
     )
     got = provider.get_backend(backend_name)
     assert got == expected

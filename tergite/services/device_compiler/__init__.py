@@ -17,7 +17,7 @@
 # Martin Ahindura, 2023
 """Handles the compilation of device properties into qiskit target"""
 import warnings
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import qiskit.circuit as circuit
 from qiskit.transpiler import InstructionProperties, Target
@@ -26,15 +26,14 @@ from ...exc import UncalibratedCouplerError
 from ..device_compiler import schedules as templates
 
 if TYPE_CHECKING:
+    from ...api.mss_models import DeviceCalibration
     from ...types.backend import TergiteBackend
-    from ..api_client.dtos import DeviceCalibration
 
 
 def add_instructions(
     target: Target,
     backend: "TergiteBackend",
     qubits: tuple,
-    coupled_qubit_idxs: tuple,
     device_properties: "DeviceCalibration",
 ) -> Target:
     """Adds Rx, Rz gates and Delay and Measure instructions for each qubit
@@ -48,7 +47,6 @@ def add_instructions(
             :class:`~tergite.providers.tergite.backend:TergiteBackend`
             for which to add the instructions
         qubits: a tuple of qubits on which the instruction is to be run
-        coupled_qubit_idxs: a tuple of tuples of qubit indexes that are coupled
         device_properties: the dynamic device parameters of the device
     """
     # TODO: Fetch error statistics of gates from database
@@ -114,6 +112,10 @@ def add_instructions(
     }
     target.add_instruction(measure_instruction, measure_props)
 
+    # a qubit coupled to itself in coupling_map means the device has no couplers
+    coupled_qubit_idxs = [
+        pair for pair in backend.data.coupling_map if pair[0] != pair[1]
+    ]
     cz_props = _get_cz_props(backend, coupled_qubit_idxs, device_properties)
     if cz_props:
         target.add_instruction(circuit.library.CZGate(), cz_props)
@@ -123,7 +125,7 @@ def add_instructions(
 
 def _get_cz_props(
     backend: "TergiteBackend",
-    coupled_qubit_idxs: tuple,
+    coupled_qubit_idxs: List[Tuple[int, int]],
     device_properties: "DeviceCalibration",
 ) -> Dict[Tuple[int, int], InstructionProperties]:
     """Gets the CZ of each coupled pair whose coupler is calibrated, warning of the others

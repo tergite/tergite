@@ -117,7 +117,7 @@ def test_target_has_the_calibrated_gates(api, backend_name):
     backend = _get_backend(backend_name)
     target = backend.target
     qubits = {(q,) for q in range(backend.data.number_of_qubits)}
-    pairs = set(backend.data.coupled_qubit_idxs)
+    pairs = {tuple(p) for p in backend.data.coupling_map if p[0] != p[1]}
 
     assert target.num_qubits == backend.data.number_of_qubits
     for name in ("rx", "rz", "delay", "reset", "measure"):

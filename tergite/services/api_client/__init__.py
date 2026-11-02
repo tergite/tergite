@@ -32,13 +32,8 @@ import requests
 from pydantic import ValidationError
 from requests import Response
 
-from .dtos import (
-    CreatedJobResponse,
-    DeviceCalibration,
-    JobFile,
-    RemoteJob,
-    TergiteBackendConfig,
-)
+from ...api import mss_models
+from .dtos import JobFile
 
 if TYPE_CHECKING:
     from ..configs import AccountInfo
@@ -49,7 +44,7 @@ REQUEST_TIMEOUT = 30
 TRANSFER_TIMEOUT = 300
 
 
-def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
+def get_backend_configs(account: "AccountInfo") -> List[mss_models.Device]:
     """Retrieves the backend configs from the remote API
 
     These configs are used to construct Backend objects
@@ -61,10 +56,9 @@ def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
 
     Raises:
         RuntimeError: Error retrieving backends: {detail}
-        ValidationError: if records returned does not conform to TergiteBackendConfig schema
 
     Returns:
-        list of TergiteBackendConfig got from the remote API
+        list of the devices got from the remote API
     """
     url = f"{account.url}/devices/"
     headers = _get_auth_headers(account)
@@ -78,7 +72,7 @@ def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
     parsed_records = []
     for item in records:
         try:
-            parsed_records.append(TergiteBackendConfig.model_validate(item))
+            parsed_records.append(mss_models.Device.model_validate(item))
         except ValidationError as exp:
             fields = ", ".join(".".join(map(str, err["loc"])) for err in exp.errors())
             warnings.warn(f"Skipping malformed device '{item.get('name')}': {fields}")
@@ -88,7 +82,7 @@ def get_backend_configs(account: "AccountInfo") -> List[TergiteBackendConfig]:
 
 def get_latest_calibration(
     account: "AccountInfo", backend_name: Optional[str] = None
-) -> DeviceCalibration:
+) -> mss_models.DeviceCalibration:
     """Retrieves the latest backend calibration data and returns Calibration objects
 
     Args:
@@ -96,11 +90,11 @@ def get_latest_calibration(
         backend_name: the name of the backend
 
     Returns:
-        the DeviceCalibration for the given backend
+        the calibration of the given backend
 
     Raises:
         RuntimeError: Failed to get device calibrations for '{backend_name}': {error_msg}
-        ValidationError: if records returned does not conform to DeviceCalibration schema
+        ValidationError: if the record returned is not a DeviceCalibration
         ValueError: Error parsing device calibration data for '{backend_name}': {detail}
     """
     url = f"{account.url}/calibrations/{backend_name}"
@@ -114,7 +108,7 @@ def get_latest_calibration(
         )
 
     raw_data = response.json()
-    return DeviceCalibration.model_validate(raw_data)
+    return mss_models.DeviceCalibration.model_validate(raw_data)
 
 
 def register_job(
@@ -122,7 +116,7 @@ def register_job(
     backend_name: str,
     calibration_date: Optional[str] = None,
     **kwargs,
-) -> CreatedJobResponse:
+) -> mss_models.CreatedJobResponse:
     """Registers the job on the remote API
 
     Args:
@@ -147,7 +141,7 @@ def register_job(
         raise RuntimeError(f"unable to register job at the remote API: {err_msg}")
 
     raw_data = response.json()
-    return CreatedJobResponse.model_validate(raw_data)
+    return mss_models.CreatedJobResponse.model_validate(raw_data)
 
 
 def send_job_file(
@@ -252,7 +246,7 @@ def download_job_logfile(job_id: str, url: str, access_token: str) -> Path:
     return job_logfile
 
 
-def get_remote_job_data(account: "AccountInfo", job_id: str) -> RemoteJob:
+def get_remote_job_data(account: "AccountInfo", job_id: str) -> mss_models.Job:
     """Retrieves the job data from the remote API
 
     Args:
@@ -264,14 +258,14 @@ def get_remote_job_data(account: "AccountInfo", job_id: str) -> RemoteJob:
 
     Raises:
         RuntimeError: error retrieving job data: {detail}
-        ValidationError: response is not a valid RemoteJob instance
+        ValidationError: response is not a valid Job
     """
     url = f"{account.url}/jobs/{job_id}"
     headers = _get_auth_headers(account)
     response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     if response.ok:
         raw_data = response.json()
-        return RemoteJob.model_validate(raw_data)
+        return mss_models.Job.model_validate(raw_data)
 
     error_msg = _get_err_text(response)
     raise RuntimeError(f"error retrieving job data: {error_msg}")

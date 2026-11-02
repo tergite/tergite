@@ -24,11 +24,11 @@ from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from tergite import Job, OpenPulseBackend, Provider, Tergite
+from tergite.api.mss_models import Device, DeviceCalibration
 
 # cross compatibility with future qiskit version where deprecated packages are removed
 from tergite.compat.qiskit.compiler.assembler import assemble
 from tergite.exc import JobFailedError
-from tergite.services.api_client.dtos import DeviceCalibration, TergiteBackendConfig
 from tergite.services.device_compiler.schedules import cz
 from tergite.utils.qobj import (
     derive_reg_len_from_qobj_experiment,
@@ -951,7 +951,7 @@ def _get_backend(name: str, token: str = None, provider: Optional[Provider] = No
 
     expected_json = get_record(BACKENDS_LIST, _filter={"name": name})
     return OpenPulseBackend(
-        data=TergiteBackendConfig(**expected_json), provider=provider, base_url=API_URL
+        data=Device(**expected_json), provider=provider, base_url=API_URL
     )
 
 
