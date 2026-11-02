@@ -18,7 +18,6 @@
 # Chalmers Next Labs, 2025
 
 """Entry into the configuration service"""
-import dataclasses
 import pathlib
 import re
 import warnings
@@ -54,7 +53,6 @@ class Tergiterc:
                 as read from the tergiterc file
         """
 
-        account_fields = {field.name: True for field in dataclasses.fields(AccountInfo)}
         accounts = []
 
         parser = self._parser

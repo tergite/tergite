@@ -8,7 +8,6 @@ import pytest
 
 from tergite.services.configs import AccountInfo
 from tergite.types import provider_factory as factory
-from tests.utils.env import is_end_to_end
 from tests.utils.fixtures import load_json_fixture
 
 _PROVIDER_ACCOUNTS = load_json_fixture("provider_accounts.json")

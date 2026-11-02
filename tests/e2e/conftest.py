@@ -9,8 +9,7 @@ import requests_mock
 from urllib3 import HTTPResponse
 
 from tergite import Provider, Tergite
-from tergite.services.configs import AccountInfo
-from tests.utils.env import is_end_to_end, is_in_docker
+from tests.utils.env import is_in_docker
 
 
 @pytest.fixture

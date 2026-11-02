@@ -32,6 +32,8 @@ import copy
 import datetime
 from typing import Any, Dict, List, Type, TypeVar
 
+from qiskit.exceptions import QiskitError
+
 GateConfigT = TypeVar("GateConfigT", bound="GateConfig")
 UchannelLOT = TypeVar(
     "UchannelLOT", bound="UchannelLO"

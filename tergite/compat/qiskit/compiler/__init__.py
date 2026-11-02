@@ -49,3 +49,5 @@ from qiskit.compiler.sequencer import sequence
 from qiskit.compiler.transpiler import transpile
 
 from .assembler import assemble
+
+__all__ = ["schedule", "sequence", "transpile", "assemble"]

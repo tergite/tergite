@@ -50,10 +50,10 @@ _HALF_NUMBER_OF_SHOTS = int(NUMBER_OF_SHOTS / 2)
 _TMP_RESULTS_PATH = Path(gettempdir()) / f"{TEST_JOB_ID}.hdf5"
 _CALIBRATIONS_REGEX = re.compile(f"^{API_URL}/calibrations/([\\w-]+)")
 _JOBS_REGISTER_URL_REGEX = re.compile(f"^{API_URL}/jobs/")
-_JOBS_UPLOAD_URL_REGEX = re.compile(f"^http://([\\w-]+)\.tergite\.example/jobs")
+_JOBS_UPLOAD_URL_REGEX = re.compile(r"^http://([\w-]+)\.tergite\.example/jobs")
 _JOBS_URL_REGEX = re.compile(f"{API_URL}/jobs/([\\w-]+)")
 _JOBS_CANCEL_URL_REGEX = re.compile(
-    f"^http://([\\w-]+)\.tergite\.example/jobs/([\\w-]+)/cancel"
+    r"^http://([\w-]+)\.tergite\.example/jobs/([\w-]+)/cancel"
 )
 _JOBS_LOGFILE_URL_REGEX = re.compile(
     r"^http://([\w-]+)\.tergite\.example/test_file.hdf5"
@@ -143,7 +143,7 @@ def api(requests_mock):
 def bearer_auth_api(requests_mock):
     """The mock api with bearer auth"""
     mss_request_headers = {"Authorization": f"Bearer {API_TOKEN}"}
-    bcc_request_headers = {"Authorization": f"Bearer ACCESS_TOKEN"}
+    bcc_request_headers = {"Authorization": "Bearer ACCESS_TOKEN"}
 
     no_mss_auth_matcher = _without_headers(mss_request_headers)
     no_bcc_auth_matcher = _without_headers(bcc_request_headers)
@@ -243,8 +243,7 @@ def mock_tergiterc() -> Path:
     tergiterc_file = Path(gettempdir()) / ".qiskit" / "test_tergiterc"
     tergiterc_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(tergiterc_file, mode="w") as file:
-        pass
+    tergiterc_file.write_text("")
 
     yield tergiterc_file
     tergiterc_file.unlink(missing_ok=True)
@@ -416,13 +415,9 @@ def _mock_job_cancellation_handler(request: Request, context: Any):
     Returns:
         the JSON data in dict form to be returned on the given endpoint
     """
-    matcher = _JOBS_CANCEL_URL_REGEX.match(request.url)
-    try:
-        backend = matcher.group(1)
-        job_id = matcher.group(1)
-        return None
-    except (AttributeError, KeyError):
+    if not _JOBS_CANCEL_URL_REGEX.match(request.url):
         raise rq_mock.NoMockAddress(request)
+    return None
 
 
 def _mock_job_upload_handler(request: Request, context, uploaded_qobj_by_backend: dict):

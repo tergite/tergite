@@ -20,21 +20,18 @@
 # Martin Ahindura, 2023
 # Adilet Tuleuov, 2024
 """Client for accessing the API"""
-import json
 import shutil
 import tempfile
 import warnings
 from json import JSONDecodeError
 from pathlib import Path
-from textwrap import indent
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 from uuid import uuid4
 
 import requests
 from pydantic import ValidationError
 from requests import Response
 
-from ...compat.qiskit.qobj.encoder import IQXJsonEncoder
 from .dtos import (
     CreatedJobResponse,
     DeviceCalibration,

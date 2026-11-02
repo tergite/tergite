@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import enum
 import json
-from typing import Any, Dict, List, Literal, Optional, Tuple, TypeAlias, Union
+from typing import Any, Dict, List, Optional, Tuple, TypeAlias, Union
 
 from pydantic import (
     BaseModel,
@@ -23,7 +23,6 @@ from pydantic import (
     field_serializer,
     field_validator,
 )
-from pydantic.main import IncEx
 
 from tergite.compat.qiskit.qobj import PulseQobj
 from tergite.compat.qiskit.qobj.encoder import IQXJsonEncoder

@@ -14,7 +14,7 @@ import json
 import uuid
 import warnings
 from collections import Counter
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pytest
@@ -58,10 +58,6 @@ _INVALID_PARAMS = [
     (token, backend) for backend in GOOD_BACKENDS for token in INVALID_API_TOKENS
 ]
 
-
-import json
-from collections import OrderedDict
-from typing import Any, Dict, List
 
 TOP_ORDER = ["qobj_id", "header", "config", "schema_version", "type", "experiments"]
 HEADER_ORDER = ["backend_name", "backend_version"]
@@ -287,7 +283,7 @@ def test_job_result_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     # change the token to the invalid one
     backend.provider.account.token = token
 
-    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
+    with pytest.raises(RuntimeError, match="error retrieving job data: Unauthorized"):
         _ = job.result()
 
     requests_made = get_request_list(bearer_auth_api)
@@ -348,7 +344,7 @@ def test_job_status_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     # change the token to the invalid one
     backend.provider.account.token = token
 
-    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
+    with pytest.raises(RuntimeError, match="error retrieving job data: Unauthorized"):
         _ = job.status()
 
     requests_made = get_request_list(bearer_auth_api)
@@ -474,7 +470,7 @@ def test_job_download_url_invalid_bearer_auth(token, backend_name, bearer_auth_a
     # change the token to the invalid one
     backend.provider.account.token = token
 
-    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
+    with pytest.raises(RuntimeError, match="error retrieving job data: Unauthorized"):
         _ = job.download_url
 
     requests_made = get_request_list(bearer_auth_api)
@@ -541,7 +537,7 @@ def test_job_logfile_invalid_bearer_auth(token, backend_name, bearer_auth_api):
     # change the token to the invalid one
     backend.provider.account.token = token
 
-    with pytest.raises(RuntimeError, match=f"error retrieving job data: Unauthorized"):
+    with pytest.raises(RuntimeError, match="error retrieving job data: Unauthorized"):
         _ = job.logfile
 
     requests_made = get_request_list(bearer_auth_api)
@@ -991,7 +987,7 @@ def _get_all_mock_requests(
             method="GET",
         ),
         MockRequest(
-            url=f"https://api.tergite.example/jobs/",
+            url="https://api.tergite.example/jobs/",
             method="POST",
             json={"device": backend_name, "calibration_date": calibration_date},
             has_text=True,
