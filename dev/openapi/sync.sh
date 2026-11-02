@@ -17,12 +17,14 @@
 # Usage
 # =====
 #
-#   FRONTEND_PATH=../tergite-frontend ./dev/openapi/sync.sh
+#   FRONTEND_PATH=../tergite-frontend BACKEND_PATH=../tergite-backend ./dev/openapi/sync.sh
 
 set -e # exit if any step fails
 
 ROOT_PATH="$(cd "$(dirname "$0")/../.." && pwd)"
 FRONTEND_PATH="${FRONTEND_PATH:-$ROOT_PATH/../tergite-frontend}"
+BACKEND_PATH="${BACKEND_PATH:-$ROOT_PATH/../tergite-backend}"
 
 cp "$FRONTEND_PATH/dev/openapi/openapi.json" "$ROOT_PATH/dev/openapi/mss.json"
+cp "$BACKEND_PATH/dev/openapi/openapi.json" "$ROOT_PATH/dev/openapi/bcc.json"
 cd "$ROOT_PATH" && uv run --frozen python -m dev.openapi.generate

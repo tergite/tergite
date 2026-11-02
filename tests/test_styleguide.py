@@ -34,6 +34,7 @@ EXCLUDED_PREFIXES = (
     "tergite/compat/",
     # generated from the services' specs, in their names
     "tergite/api/mss_models.py",
+    "tergite/api/bcc_models.py",
 )
 PUBLIC_SURFACE = "tergite/__init__.py"
 

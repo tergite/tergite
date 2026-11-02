@@ -65,6 +65,11 @@ CONTRACTS = (
             "PaginatedListResponse_Device_",
         ),
     ),
+    Contract(
+        spec_file=OPENAPI_DIR / "bcc.json",
+        models_file=ROOT_DIR / "tergite" / "api" / "bcc_models.py",
+        schemas=("CancellationDetails", "GeneralMessage", "Job"),
+    ),
 )
 
 
