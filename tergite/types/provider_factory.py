@@ -20,6 +20,7 @@ import pathlib
 from collections import OrderedDict
 from typing import List, Optional
 
+from ..exc import TergiteError
 from ..services.configs import TERGITERC_FILE, AccountInfo, Tergiterc
 from .provider import Provider
 
@@ -88,7 +89,7 @@ class ProviderFactory:
         providers = self._providers
 
         if not providers:
-            raise Exception(
+            raise TergiteError(
                 "No provider account is available. Provide one via Tergite.use_provider_account(..)."
             )
 

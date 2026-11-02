@@ -24,10 +24,11 @@
 import functools
 from typing import Any, Callable, Dict, List, Union
 
-from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
 
-from ..services import api_client
+from ..api import bcc, mss
+from ..api.client import create_bcc_client, create_mss_client
+from ..exc import ApiError, BackendNotFoundError
 from ..services.configs import AccountInfo
 from ..utils.job_file import extract_job_metadata, extract_job_qobj
 from .backend import OpenPulseBackend, OpenQASMBackend
@@ -47,7 +48,8 @@ class Provider:
         """
         super().__init__()
         self.account = account
-        self._malformed_backends = {}
+        self.mss_client = create_mss_client(account.url, lambda: self.account.token)
+        self.bcc_client = create_bcc_client()
 
     def backends(
         self, /, name: str = None, filters: Callable[[Any], bool] = None, **kwargs
@@ -76,7 +78,7 @@ class Provider:
     ) -> Dict[str, Union[OpenPulseBackend, OpenQASMBackend]]:
         """Dictionary of all available backends got from the API"""
         backends = dict()
-        backend_configs = api_client.get_backend_configs(self.account)
+        backend_configs = mss.get_devices(self.mss_client)
 
         for backend_conf in backend_configs:
             if backend_conf.open_pulse:
@@ -101,18 +103,17 @@ class Provider:
             an instance of `Job` corresponding to the given job id
 
         Raises:
-            RuntimeError: Job: {job_id} has no download_url
+            ApiError: Job: {job_id} has no download_url
         """
-        account = self.account
-        remote_data = api_client.get_remote_job_data(account, job_id=job_id)
+        remote_data = mss.get_job(self.mss_client, job_id)
         if remote_data.download_url is None:
-            raise RuntimeError(f"Job: {job_id} has no download_url")
+            raise ApiError(f"Job: {job_id} has no download_url")
 
         download_url = remote_data.download_url
         access_token = remote_data.access_token
         backend = self.get_backend(name=remote_data.device)
-        logfile = api_client.download_job_logfile(
-            job_id=job_id, url=download_url, access_token=access_token
+        logfile = bcc.download_logfile(
+            self.bcc_client, url=download_url, job_id=job_id, access_token=access_token
         )
         raw_status = remote_data.status
         status = STATUS_MAP.get(raw_status)
@@ -194,7 +195,7 @@ class Provider:
             Backend: a backend matching the filtering.
 
         Raises:
-            QiskitBackendNotFoundError: if no backend could be found or
+            BackendNotFoundError: if no backend could be found or
                 more than one backend matches the filtering criteria.
         """
         # As Qiskit ProviderV1 class was deprecated
@@ -205,10 +206,8 @@ class Provider:
 
         backends = self.backends(name, **kwargs)
         if len(backends) > 1:
-            raise QiskitBackendNotFoundError(
-                "More than one backend matches the criteria"
-            )
+            raise BackendNotFoundError("More than one backend matches the criteria")
         if not backends:
-            raise QiskitBackendNotFoundError("No backend matches the criteria")
+            raise BackendNotFoundError("No backend matches the criteria")
 
         return backends[0]

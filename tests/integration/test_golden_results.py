@@ -152,8 +152,7 @@ def _run_with_memory(
     job = backend.run(
         transpile(circuits, backend=backend), meas_level=meas_level, **options
     )
-    api.get(
-        f"{API_URL}/jobs/{TEST_JOB_ID}",
+    api.get(f"{API_URL}/jobs/{TEST_JOB_ID}").respond(
         json={
             "job_id": TEST_JOB_ID,
             "device": BACKEND_NAME,
@@ -177,7 +176,9 @@ def _get_uploaded_qobj(api) -> Dict[str, Any]:
     """The qobj the job uploaded to the backend"""
     upload = next(
         req
-        for req in api.request_history
-        if req.method == "POST" and req.path == "/jobs" and "upload_file" in req.text
+        for req in (call.request for call in api.calls)
+        if req.method == "POST"
+        and req.url.path == "/jobs"
+        and b"upload_file" in req.content
     )
     return extract_uploaded_qobj_from_request(upload)

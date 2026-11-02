@@ -22,17 +22,15 @@ from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-import requests
 from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from ..api import mss_models
+from ..api import bcc, mss, mss_models
+from ..api.job_file import JobFile
 from ..compat.qiskit.qobj import PulseQobj
-from ..exc import JobFailedError
-from ..services import api_client as client
-from ..services.api_client import JobFile
+from ..exc import ApiError, JobFailedError
 from ..utils.qobj import compress_qobj_dict
 
 if TYPE_CHECKING:
@@ -105,7 +103,7 @@ class Job(JobV1):
     def remote_data(self) -> Optional[mss_models.Job]:
         """The representation of the job in the remote API"""
         if not self._is_in_final_state:
-            self._remote_data = client.get_remote_job_data(self._account, self.job_id())
+            self._remote_data = mss.get_job(self._provider.mss_client, self.job_id())
 
         return self._remote_data
 
@@ -118,11 +116,12 @@ class Job(JobV1):
 
         return self._status
 
-    def submit(self) -> requests.Response:
+    def submit(self) -> None:
         """Submit the job to the backend for execution.
 
-        Returns:
-            requests.Response: the response of the API after submitting the job
+        Raises:
+            ValueError: This job was already submitted, or is not submittable
+            ApiError: Failed to POST job '{job_id}': {detail}
         """
         if self._status != JobStatus.INITIALIZING:
             raise ValueError("This job was already submitted")
@@ -131,7 +130,7 @@ class Job(JobV1):
             raise ValueError("This job is not submittable. It lacks an upload_url")
 
         if not isinstance(self.payload, PulseQobj):
-            raise RuntimeError(f"Unprocessable payload type: {type(self.payload)}")
+            raise ValueError(f"Unprocessable payload type: {type(self.payload)}")
 
         if self._access_token is None:
             raise ValueError("This job is not submittable. It lacks an access token")
@@ -144,27 +143,18 @@ class Job(JobV1):
             }
         )
 
-        return client.send_job_file(
-            self._account,
+        bcc.upload_job(
+            self._provider.bcc_client,
             url=self.upload_url,
-            job_data=job_entry,
+            job_file=job_entry,
             access_token=self._access_token,
         )
 
     @property
     def download_url(self) -> Optional[str]:
-        """The download_url of this job when it is completed
-
-        Raises:
-            RuntimeError: Failed to GET download URL of job: {job_id}. Status: {JobStatus}
-        """
+        """The download_url of this job when it is completed"""
         if self._download_url is None and self.status() in JOB_FINAL_STATES:
-            try:
-                self._download_url = self.remote_data.download_url
-            except KeyError:
-                raise RuntimeError(
-                    f"Failed to GET download URL of job: {self.job_id()}. Status: {self.status()}"
-                )
+            self._download_url = self.remote_data.download_url
 
         return self._download_url
 
@@ -173,9 +163,10 @@ class Job(JobV1):
         """The path to the logfile of this job when it is completed"""
         if self._logfile is None and self.status() in JOB_FINAL_STATES:
             if self.download_url:
-                self._logfile = client.download_job_logfile(
-                    self.job_id(),
+                self._logfile = bcc.download_logfile(
+                    self._provider.bcc_client,
                     url=self.download_url,
+                    job_id=self.job_id(),
                     access_token=self._access_token,
                 )
 
@@ -186,12 +177,13 @@ class Job(JobV1):
 
         Raises:
             ValueError: This job is not cancellable. It lacks an upload_url
-            RuntimeError: Failed to cancel job '{job_id}': {detail}
+            ApiError: Failed to cancel job '{job_id}': {detail}
         """
         if self.upload_url is None:
             raise ValueError("This job is not cancellable. It lacks an upload_url")
 
-        client.cancel_job(
+        bcc.cancel_job(
+            self._provider.bcc_client,
             upload_url=self.upload_url,
             job_id=self.job_id(),
             access_token=self._access_token,
@@ -209,8 +201,8 @@ class Job(JobV1):
         Raises:
             JobFailedError: Job {job_id} failed: {failure_reason}
             JobFailedError: Job {job_id} was cancelled: {cancellation_reason}
-            RuntimeError: failed to GET memory of job: {job_id}
-            RuntimeError: unexpected number of results; expected {num}, got: {num}
+            ApiError: failed to GET memory of job: {job_id}
+            ApiError: unexpected number of results; expected {num}, got: {num}
         """
         status = self.status()
         if status not in JOB_FINAL_STATES:
@@ -232,11 +224,11 @@ class Job(JobV1):
             try:
                 memory = self.remote_data.result.memory
             except AttributeError:
-                raise RuntimeError(f"failed to GET memory of job: {self.job_id()}")
+                raise ApiError(f"failed to GET memory of job: {self.job_id()}")
 
             # Sanity check
             if len(memory) != len(self.payload.experiments):
-                raise RuntimeError(
+                raise ApiError(
                     f"unexpected number of results;"
                     f"expected {len(self.payload.experiments)}, got: {len(memory)}"
                 )

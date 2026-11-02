@@ -21,6 +21,7 @@ import tracemalloc
 from typing import Callable, List
 
 import pytest
+import respx
 from qiskit import QuantumCircuit, transpile
 from qiskit.providers import JobStatus
 
@@ -35,22 +36,26 @@ SHOTS = 10_000
 
 
 @pytest.fixture
-def api(requests_mock):
+def api():
     """MSS and the backend, mocked with the integration tests' fixtures"""
-    devices = load_json_fixture("many_backends.json")
-    requests_mock.get(
-        f"{API_URL}/devices/", json={"data": devices, "skip": 0, "limit": None}
-    )
-    for calibration in load_json_fixture("calibrations.json"):
-        requests_mock.get(
-            f"{API_URL}/calibrations/{calibration['name']}", json=calibration
+    with respx.mock(assert_all_called=False) as router:
+        devices = load_json_fixture("many_backends.json")
+        router.get(f"{API_URL}/devices/").respond(
+            json={"data": devices, "skip": 0, "limit": None}
         )
-    requests_mock.post(
-        f"{API_URL}/jobs/",
-        json={"job_id": "perf", "upload_url": f"{BCC_URL}/jobs", "access_token": "t"},
-    )
-    requests_mock.post(f"{BCC_URL}/jobs", status_code=200)
-    return requests_mock
+        for calibration in load_json_fixture("calibrations.json"):
+            router.get(f"{API_URL}/calibrations/{calibration['name']}").respond(
+                json=calibration
+            )
+        router.post(f"{API_URL}/jobs/").respond(
+            json={
+                "job_id": "perf",
+                "upload_url": f"{BCC_URL}/jobs",
+                "access_token": "t",
+            }
+        )
+        router.post(f"{BCC_URL}/jobs").respond(200)
+        yield router
 
 
 def test_import(benchmark):
@@ -84,8 +89,10 @@ def test_run(benchmark, api):
         backend.run(circuits, meas_level=2)
 
     _record_calls_and_memory(benchmark, api, run)
-    upload = next(r for r in api.request_history if r.url == f"{BCC_URL}/jobs")
-    benchmark.extra_info["upload_bytes"] = len(upload.body)
+    upload = next(
+        call.request for call in api.calls if call.request.url == f"{BCC_URL}/jobs"
+    )
+    benchmark.extra_info["upload_bytes"] = len(upload.content)
     benchmark(run)
 
 
@@ -143,12 +150,12 @@ def _get_finished_job(backend: OpenPulseBackend, num_circuits: int) -> Job:
 
 def _record_calls_and_memory(benchmark, api, action: Callable[[], object]) -> None:
     """Runs the action once, recording the HTTP calls it made and its peak memory"""
-    calls_before = api.call_count
+    calls_before = len(api.calls)
     tracemalloc.start()
     try:
         action()
         _, peak = tracemalloc.get_traced_memory()
     finally:
         tracemalloc.stop()
-    benchmark.extra_info["http_calls"] = api.call_count - calls_before
+    benchmark.extra_info["http_calls"] = len(api.calls) - calls_before
     benchmark.extra_info["peak_memory_bytes"] = peak

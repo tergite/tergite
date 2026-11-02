@@ -42,11 +42,12 @@ from qiskit.pulse.channels import (
 from qiskit.transpiler import Target
 from qiskit.transpiler.coupling import CouplingMap
 
+from ..api import mss
 from ..compat.qiskit.compiler.assembler import assemble
 from ..compat.qiskit.qobj import PulseQobj, QasmQobj
 from ..compat.qiskit_ibm_runtime.models import BackendConfiguration
 from ..exc import TergiteError
-from ..services import api_client, device_compiler
+from ..services import device_compiler
 from ..utils.qobj import (
     derive_reg_len_from_qobj_experiment,
     rewrite_acquire_memory_slots,
@@ -118,8 +119,8 @@ class TergiteBackend(BackendV2):
                  job registered in the Tergite API to be executed
         """
         calibration_date = metadata.get("calibration_date", None)
-        resp = api_client.register_job(
-            self.provider.account,
+        resp = mss.create_job(
+            self.provider.mss_client,
             backend_name=self.name,
             calibration_date=calibration_date,
         )
@@ -174,14 +175,9 @@ class TergiteBackend(BackendV2):
             num_experiments=len(qobj.experiments),
             calibration_date=self.last_calibrated,
         )
-        response = job.submit()
-        if response.ok:
-            logging.info(f"Tergite: Job {job.job_id()} has been successfully submitted")
-            return job
-        else:
-            raise RuntimeError(
-                f"Unable to transmit job to the Tergite BCC, response: {response}"
-            )
+        job.submit()
+        logging.info(f"Tergite: Job {job.job_id()} has been successfully submitted")
+        return job
 
     @abstractmethod
     def configuration(self) -> BackendConfiguration:
@@ -512,8 +508,8 @@ class OpenPulseBackend(TergiteBackend):
         Internally, a fresh call to the calibrations endpoint is made to the REST API
         """
         if self.data.characterized:
-            self._device_properties = api_client.get_latest_calibration(
-                self.provider.account, backend_name=self.name
+            self._device_properties = mss.get_calibration(
+                self.provider.mss_client, backend_name=self.name
             )
             logging.info(f"Refreshed the device properties of '{self.name}' backend")
 

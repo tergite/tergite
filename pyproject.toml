@@ -26,18 +26,17 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "requests>=2.25.1",
     "qiskit>1,<1.3",
     "numpy>=1.26.0",
     "h5py>=3.8.0",
     "pydantic>=2.5.0",
-    "sympy>=1.3"
+    "sympy>=1.3",
+    "httpx>=0.27",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=7.4.2",
-    "requests-mock>=1.11.0",
     "scikit-learn~=1.7.0",
     "black[jupyter]~=25.1.0",
     "isort~=6.0.1",
@@ -45,6 +44,7 @@ dev = [
     "pytest-benchmark>=5.1",
     "psutil>=7.0",
     "datamodel-code-generator>=0.34",
+    "respx>=0.22",
 ]
 
 [project.urls]

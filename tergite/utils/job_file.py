@@ -18,6 +18,7 @@ from typing import Any, Dict
 import h5py
 
 from tergite.compat.qiskit.qobj import PulseQobj
+from tergite.exc import ApiError
 
 
 def extract_job_metadata(logfile: Path) -> Dict[str, Any]:
@@ -32,7 +33,7 @@ def extract_job_metadata(logfile: Path) -> Dict[str, Any]:
         the metadata extracted from the file at the logfile path
 
     Raises:
-        RuntimeError: malformed logfile. '{str}' not found
+        ApiError: malformed logfile. '{str}' not found
     """
     with h5py.File(logfile, "r") as hdf:
         try:
@@ -40,7 +41,7 @@ def extract_job_metadata(logfile: Path) -> Dict[str, Any]:
                 k: _np_to_py(v) for k, v in hdf["header/qobj_metadata"].attrs.items()
             }
         except KeyError as exp:
-            raise RuntimeError(f"malformed logfile. '{exp}' not found")
+            raise ApiError(f"malformed logfile. '{exp}' not found")
 
 
 def extract_job_qobj(logfile: Path) -> PulseQobj:
@@ -53,14 +54,14 @@ def extract_job_qobj(logfile: Path) -> PulseQobj:
         the PulseQobj derived from the file at the logfile path
 
     Raises:
-        RuntimeError: malformed logfile. '{str}' not found
+        ApiError: malformed logfile. '{str}' not found
     """
     with h5py.File(logfile, "r") as hdf:
         try:
             experiment_data = hdf["header/qobj_data"].attrs.get("experiment_data")
             return PulseQobj.from_dict(data=json.loads(experiment_data))
         except KeyError as exp:
-            raise RuntimeError(f"malformed logfile. '{exp}' not found")
+            raise ApiError(f"malformed logfile. '{exp}' not found")
 
 
 def _np_to_py(value: Any) -> Any:

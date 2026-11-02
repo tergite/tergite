@@ -13,9 +13,14 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   `pip install tergite[test]` and `tergite[dev]` no longer exist
 - Changed the supported Python to 3.13 and later, as the rest of the Tergite stack; Python 3.12
   users keep the last release that supports it
+- Changed the calls to MSS and the backends to httpx, from requests; their errors are `tergite.exc.ApiError`, a
+  `RuntimeError` as before, and an unknown backend raises `BackendNotFoundError`, a `QiskitBackendNotFoundError`
+- Changed `Job.submit()` to return nothing, raising `ApiError` when the upload fails, rather than the requests
+  response
 
 ### Fixed
 
+- Fixed a logfile served with `Content-Encoding: gzip` being saved still compressed
 - Fixed installing tergite failing on current setuptools, by dropping the unused
   `qiskit-ibm-runtime` and `pandas` dependencies
 - Fixed listing backends crashing when any device takes no pulse jobs; running on such a

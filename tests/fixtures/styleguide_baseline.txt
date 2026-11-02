@@ -29,9 +29,8 @@ license-header: tests/e2e/test_job_execution.py
 license-header: tests/integration/__init__.py
 license-header: tests/integration/test_provider.py
 license-header: tests/utils/__init__.py
-type-hints: tergite/services/api_client/__init__.py::register_job
-type-hints: tergite/services/api_client/dtos.py::JobFileParams.serialize_qobj
-type-hints: tergite/services/api_client/dtos.py::JobFileParams.parse_qobj
+type-hints: tergite/api/job_file.py::JobFileParams.serialize_qobj
+type-hints: tergite/api/job_file.py::JobFileParams.parse_qobj
 type-hints: tergite/services/configs/__init__.py::Tergiterc.save_accounts
 type-hints: tergite/services/device_compiler/functions.py::delta_t_function
 type-hints: tergite/services/device_compiler/functions.py::delta_t_function_sympy

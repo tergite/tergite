@@ -25,9 +25,9 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Dict, Iterator, List
 
+import httpx
 import psutil
 import pytest
-import requests
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Provider, Tergite
@@ -49,7 +49,7 @@ PROCESS_ENV_VARS = {
 }
 
 
-def test_roundtrip(http_log: List[requests.PreparedRequest]):
+def test_roundtrip(http_log: List[httpx.Request]):
     """Runs each kind of job several times, recording what the round trip costs"""
     provider = Tergite.use_provider_account(
         service_name="perf", url=os.environ["API_URL"], token=os.environ["API_TOKEN"]
@@ -67,22 +67,22 @@ def test_roundtrip(http_log: List[requests.PreparedRequest]):
 
 
 @pytest.fixture
-def http_log(monkeypatch) -> List[requests.PreparedRequest]:
+def http_log(monkeypatch) -> List[httpx.Request]:
     """The requests the SDK sends, as it sends them"""
     log = []
-    send = requests.Session.send
+    send = httpx.Client.send
 
-    def logged_send(session, request, **kwargs):
+    def logged_send(client, request, **kwargs):
         log.append(request)
-        return send(session, request, **kwargs)
+        return send(client, request, **kwargs)
 
-    monkeypatch.setattr(requests.Session, "send", logged_send)
+    monkeypatch.setattr(httpx.Client, "send", logged_send)
     return log
 
 
 def _measure_kind(
     provider: Provider,
-    http_log: List[requests.PreparedRequest],
+    http_log: List[httpx.Request],
     backend_name: str,
     num_qubits: int,
     meas_level: int,

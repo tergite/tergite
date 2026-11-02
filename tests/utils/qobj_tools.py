@@ -15,7 +15,7 @@ from email.parser import BytesParser
 from email.policy import default as default_policy
 from typing import Any
 
-from tergite.services.api_client import JobFile
+from tergite.api.job_file import JobFile
 
 
 def _extract_multipart_field_bytes(
@@ -67,7 +67,7 @@ def _qobj_to_dict(qobj: Any) -> dict:
 
 def extract_uploaded_qobj_from_request(req) -> dict:
     ct = req.headers.get("Content-Type", "")
-    body = req.body
+    body = req.content
     if not isinstance(body, (bytes, bytearray)):
         raise AssertionError(
             f"Expected bytes body for multipart upload, got {type(body)}"

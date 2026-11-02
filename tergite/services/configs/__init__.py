@@ -24,6 +24,7 @@ import warnings
 from configparser import ConfigParser
 from typing import List, Optional
 
+from ...exc import TergiteError
 from .dtos import AccountInfo
 
 TERGITERC_FILE = pathlib.Path.home() / ".qiskit" / "tergiterc"
@@ -85,10 +86,10 @@ class Tergiterc:
                 to save
 
         Raises:
-            Exception: If no accounts are passed
+            TergiteError: If no accounts are passed
         """
         if not accounts:
-            raise Exception("Cannot save account(s). None given.")
+            raise TergiteError("Cannot save account(s). None given.")
 
         if not self._parser:
             self._parser = ConfigParser()

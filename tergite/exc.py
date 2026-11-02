@@ -10,10 +10,37 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The errors the SDK raises"""
+from typing import Optional
+
+from qiskit.providers import QiskitBackendNotFoundError
 
 
 class TergiteError(Exception):
     """The base of every error the SDK raises"""
+
+
+class ApiError(TergiteError, RuntimeError):
+    """MSS or a backend refused a call, or answered what the SDK cannot use
+
+    A RuntimeError too, as the SDK raised those before it had this class.
+    """
+
+    def __init__(self, message: str, status_code: Optional[int] = None):
+        """Initializes the error
+
+        Args:
+            message: what went wrong
+            status_code: the HTTP status of the response, if there was one
+        """
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class BackendNotFoundError(TergiteError, QiskitBackendNotFoundError):
+    """No backend, or more than one, matches what was asked for
+
+    A QiskitBackendNotFoundError too, as the SDK raised those before it had this class.
+    """
 
 
 class JobFailedError(TergiteError):

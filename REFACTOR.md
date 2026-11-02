@@ -326,11 +326,16 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
 
 ## Step 3: one HTTP client
 
-1. **`tergite/api/`** replaces `services/api_client/`. `client.py` makes the `httpx.Client` a
-   `Provider` owns: base URL, bearer token, timeouts, and one response hook that raises an
-   `ApiError(status, detail)` from the `{"detail": …}` body. `mss.py` holds `get_devices`,
-   `get_calibration`, `create_job` and `get_job`; `bcc.py` holds `upload_job`, `cancel_job`
-   and `download_logfile`, each taking the client first and returning generated models.
+1. **`tergite/api/`** replaces `services/api_client/`. `client.py` makes the two
+   `httpx.Client`s a `Provider` owns: MSS's, with its base URL and the account's app token,
+   read for each request so that a token changed on the account is used, and the backends',
+   to which each job gives its URL and token; both with timeouts and one shared SSL
+   context, as loading the CA certificates made each client cost 6.7 ms. One
+   `raise_for_error` raises an `ApiError(message, status_code)` from the `{"detail": …}`
+   body. `mss.py` holds `get_devices`, `get_calibration`, `create_job` and `get_job`;
+   `bcc.py` holds `upload_job`, `cancel_job` and `download_logfile`, each taking the client
+   first and returning generated models. Done as one change with items 2 to 4, which it
+   brings with it.
 2. **`tergite/exc.py`**: `TergiteError`, `ApiError`, `JobFailedError`,
    `BackendNotFoundError` (a `QiskitBackendNotFoundError` too, so existing `except` clauses
    still catch it). Every `RuntimeError` and bare `Exception` the package raises today becomes

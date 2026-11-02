@@ -560,8 +560,7 @@ def test_job_result_of_unsuccessful_job(api, status, reason_field, message):
     calibrations = _get_calibrations("loke")
     tc = _get_expected_1q_transpiled_circuit(backend=backend, calibrations=calibrations)
     job = backend.run(tc, meas_level=2)
-    api.get(
-        f"{API_URL}/jobs/{TEST_JOB_ID}",
+    api.get(f"{API_URL}/jobs/{TEST_JOB_ID}").respond(
         json={
             "job_id": TEST_JOB_ID,
             "device": "loke",
@@ -586,7 +585,8 @@ def test_every_call_has_a_timeout(api, tmp_results_file):
     job.cancel()
 
     timeouts = {
-        (req.method, req.netloc, req.path): req.timeout for req in api.request_history
+        (req.method, req.url.host, req.url.path): req.extensions["timeout"]["read"]
+        for req in (call.request for call in api.calls)
     }
     assert {
         ("GET", "api.tergite.example", "/devices/"),

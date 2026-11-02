@@ -84,15 +84,17 @@ def test_get_backend_fetches_only_its_own_calibration(api):
     provider.get_backend("loke").target
 
     calibration_paths = {
-        req.path for req in api.request_history if "/calibrations/" in req.path
+        call.request.url.path
+        for call in api.calls
+        if "/calibrations/" in call.request.url.path
     }
     assert calibration_paths == {"/calibrations/loke"}
 
 
-def test_get_backend_with_uncalibrated_couplers(api):
+def test_get_backend_with_uncalibrated_couplers(api, monkeypatch):
     """Pairs whose couplers have no calibration get no CZ, and every backend still loads"""
     calibration = {**TEST_CALIBRATIONS_MAP["loke"], "couplers": []}
-    api.get(f"{API_URL}/calibrations/loke", json=calibration)
+    monkeypatch.setitem(TEST_CALIBRATIONS_MAP, "loke", calibration)
     provider = _get_test_provider(url=API_URL)
 
     backend = provider.get_backend("loke")
@@ -109,7 +111,9 @@ def test_get_backend_with_pairs_without_couplers(api):
         {**device, "qubit_ids_coupler_map": []} if device["name"] == "loke" else device
         for device in BACKENDS_LIST
     ]
-    api.get(f"{API_URL}/devices/", json={"data": devices, "skip": 0, "limit": None})
+    api.get(f"{API_URL}/devices/").respond(
+        json={"data": devices, "skip": 0, "limit": None}
+    )
     provider = _get_test_provider(url=API_URL)
 
     backend = provider.get_backend("loke")
@@ -137,7 +141,7 @@ def test_run_on_non_pulse_backend(api):
     with pytest.raises(TergiteError, match="accept pulse jobs only"):
         backend.run(qc)
 
-    assert [req for req in api.request_history if req.method == "POST"] == []
+    assert [call for call in api.calls if call.request.method == "POST"] == []
 
 
 @pytest.mark.parametrize("backend_name", GOOD_BACKENDS)
