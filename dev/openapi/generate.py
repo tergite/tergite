@@ -88,7 +88,7 @@ def render_models(contract: Contract) -> str:
         the source of the models module
     """
     spec = json.loads(contract.spec_file.read_text())
-    pruned = _prune_spec(spec, contract.schemas)
+    pruned = prune_spec(spec, contract.schemas)
     with tempfile.TemporaryDirectory() as folder:
         output = Path(folder) / "models.py"
         generate(
@@ -111,7 +111,7 @@ def render_models(contract: Contract) -> str:
     return black.format_str(isort.code(source, profile="black"), mode=black.Mode())
 
 
-def _prune_spec(spec: Dict[str, Any], schemas: Iterable[str]) -> Dict[str, Any]:
+def prune_spec(spec: Dict[str, Any], schemas: Iterable[str]) -> Dict[str, Any]:
     """The spec without paths, and with only the schemas and those they refer to"""
     all_schemas = spec["components"]["schemas"]
     kept = _get_referred_schemas(all_schemas, set(schemas))

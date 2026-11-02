@@ -266,6 +266,12 @@ for backend in "${SIMULATORS[@]}"; do
   wait_for_url simulators "http://127.0.0.1:$MSS_PORT/calibrations/$name" $simulators_pid 300
 done
 
+echo "Checking that MSS and the backend serve the schemas dev/openapi pins"
+"$WORK_PATH/venvs/sdk/bin/python" -m dev.openapi.check_served "http://127.0.0.1:$MSS_PORT/openapi.json" mss.json \
+  || exit_with_err "MSS's API is not the one the SDK's models were generated from"
+"$WORK_PATH/venvs/sdk/bin/python" -m dev.openapi.check_served "http://127.0.0.1:$SIMULATORS_PORT/openapi.json" bcc.json \
+  || exit_with_err "the backend's API is not the one the SDK's models were generated from"
+
 echo "Running $PYTEST_TARGET..."
 cd "$ROOT_PATH"
 IS_END_TO_END="True" \

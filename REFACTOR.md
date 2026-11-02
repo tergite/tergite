@@ -319,9 +319,10 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
    models, apart from the derived views `TergiteBackendConfig.model_post_init` computes
    (`coupled_qubit_idxs`, `qubit_ids_coupler_dict`), which become functions beside their one
    user. `JobFile` stays hand-written until B1 publishes the upload body's schema.
-4. **The e2e checks the copy.** `dev/e2e_native_test.sh` fails when the MSS it starts serves a
-   spec that differs from `dev/openapi/mss.json`, so a drift between the pinned copy and the
-   real server shows on the merge request that causes it.
+4. **The e2e checks the copy.** `dev/e2e_native_test.sh` runs `dev/openapi/check_served.py`
+   against the MSS and the backend it starts, and fails when they serve, of the schemas the
+   SDK reads, any that differ from the pinned copies: the rest, such as MSS's
+   `/auth/{provider}` routes, follow the service's config.
 
 ## Step 3: one HTTP client
 
