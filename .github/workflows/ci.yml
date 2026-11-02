@@ -22,26 +22,20 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.13"]
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install OpenBlas for scipy if no wheels
-        run: sudo apt-get install -y libopenblas-dev
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python --version
-          pip install ."[test,dev]"
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+        run: uv sync --locked
       - name: Lint
         if: ${{ vars.SHOULD_LINT == 'true' }}
-        run: black tergite --check
+        run: uv run black tergite --check
       - name: Run tests
-        run: pytest tests/
+        run: uv run pytest
 
   e2e:
     runs-on: ubuntu-latest
