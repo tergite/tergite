@@ -193,8 +193,9 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
    - **The project.** `uv.lock` committed; the dev and test extras become one `dev`
      `[dependency-groups]` group, so they stop shipping as installable extras. The setuptools
      build backend stays.
-   - **Python as the rest of the stack has it:** `requires-python = ">=3.13"` and a
-     `.python-version` of 3.13, as in tergite-frontend and tergite-backend. Users on 3.12 keep
+   - **Python as the rest of the stack has it:** `requires-python = ">=3.13"`, as in
+     tergite-frontend and tergite-backend, with `UV_PYTHON` in CI; like them, no
+     `.python-version` is committed. Users on 3.12 keep
      the last release that supports it; a `Changed` changelog entry says so, and the README's
      dependencies list says 3.13.
    - **Local development.** CONTRIBUTING's conda, `python -m venv` and `pip install .[test]`

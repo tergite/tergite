@@ -18,7 +18,7 @@ maintainers = [
 version = "2026.06.0"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 keywords = ["quantum-computer", "qiskit", "quantum", "tergite", "sdk"]
 license = {file = "LICENSE.txt"}
 classifiers = [

@@ -11,6 +11,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 - Changed the `test` and `dev` extras into a `dev` dependency group, installed with `uv sync`;
   `pip install tergite[test]` and `tergite[dev]` no longer exist
+- Changed the supported Python to 3.13 and later, as the rest of the Tergite stack; Python 3.12
+  users keep the last release that supports it
 
 ### Fixed
 
