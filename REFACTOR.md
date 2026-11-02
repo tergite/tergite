@@ -51,6 +51,7 @@ Each of these belongs in that repo's own plan; the SDK steps name the one they n
 | B4 | tergite-backend | `Device.basis_gates` lists the gates B2 compiles, and `DeviceCalibration` keeps the durations and errors the SDK's `Target` reads: `pi_pulse_duration`, `readout_assignment_error`, the resonator's pulse and integration times, and T1/T2. |
 | B5 | tergite-backend | One release after B2: delete the `PulseQobj` path, `libs/qiskit/`, the vendored Qobj encoder and decoder, and `PulseLibInstruction`. |
 | F1 | tergite-frontend | MSS's `JobResult` gains the optional fields of D4, which the backend fills in its `job_updated` event. |
+| F2 | tergite-frontend | `dev/seed.py` takes the folder of fixtures to seed from, defaulting to `ui/fixtures`, so this repo's e2e seeds MSS with its own devices, calibrations, projects and app tokens (step 1.6). |
 
 **The gate-level payload**, uploaded to the `upload_url` as today's multipart `upload_file`.
 Its shape follows qpi's `JobPayload` on purpose, so the two stacks read alike:
@@ -122,13 +123,15 @@ the code it touches, and step 7 moves them into this repo's own `DESIGN.md`.
 
 **Every commit is verified the same way:** `black` and `isort` with no flags, `pyflakes tergite
 tests dev`, then `pytest > "$LOG" 2>&1; echo "exit=$?" >> "$LOG"`. `dev/e2e_native_test.sh`
-(step 1.6) runs at the end of steps 1, 4, 5 and 6. `tests/test_styleguide.py` (step 1.5) has a
+(step 1.6) runs on every merge request in CI, and locally at the end of steps 1, 4, 5 and 6.
+`tests/test_styleguide.py` (step 1.5) has a
 baseline of the violations that existed when it was added; a commit that fixes one deletes its
 line, and no commit adds one.
 
 **Every step ends with a sign-off.** Its last commit adds `docs/prototypes/<NN>-<step>.md`: a
 script a user or an agent runs against the e2e stack (install, submit the example circuits,
-what should come back), and the go-ahead is given before the next step starts.
+what should come back). From step 1 on, the sign-off also reruns `dev/perf/record.sh` and
+`compare.py` (step 1.9), and the go-ahead is given before the next step starts.
 
 ## Step 0: fix the bugs
 
@@ -215,13 +218,80 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
 5. **`tests/test_styleguide.py`**, ported from tergite-frontend's: verbs for functions, no
    `build_*`, no banner comments, licence headers, `__all__` in `tergite/__init__.py`, with a
    baseline of today's violations.
-6. **A native e2e.** `dev/e2e_native_test.sh` runs MSS and the backends from local checkouts
-   or clones (`FRONTEND_PATH`, `BACKEND_PATH`), natively, as tergite-frontend's
-   `dev/e2e_native_test.sh` does, seeds them, and runs `pytest tests/e2e`. It replaces
-   `e2e_test.sh`, `e2e-runner.sh` and the Docker Compose fixtures in `tests/fixtures/`, and
-   runs in CI on every merge request rather than by hand.
-7. **Housekeeping.** Delete `archive/` (the 2022 and 2023 demos; the history keeps them) and
-   check `examples/` runs against the e2e stack, which step 7 then updates.
+6. **A native e2e, off Docker**, as tergite-frontend's `dev/e2e_native_test.sh` already is.
+   Today `e2e_test.sh` clones both repos, builds their images, starts them with Docker
+   Compose, and runs the tests in another container, because the backends' upload URLs
+   name hosts on the Docker network; outside Docker, `tests/e2e/conftest.py` patches
+   `requests` to rewrite those hosts. The new `dev/e2e_native_test.sh`:
+   - runs MSS from `FRONTEND_PATH`, or a clone of `FRONTEND_REPO` at `FRONTEND_BRANCH`, with
+     `main.py serve`, on a MongoDB of its own, migrated and seeded with MSS's `dev/seed.py`
+     from this repo's fixtures (F2);
+   - runs one backend process from `BACKEND_PATH`, or a clone, serving `qiskit_pulse_1q`,
+     `qiskit_pulse_2q` and the dummy quantify device each under its own path, as the
+     frontend's script does;
+   - binds everything to 127.0.0.1, so the upload URLs work as they are and the proxy in
+     `tests/e2e/conftest.py`, `is_in_docker` and `IS_IN_DOCKER` go;
+   - keeps its data in `temp-native/`, fresh each run, keeps the services up with
+     `DEBUG=True`, and passes its arguments to `pytest`, so one test can be run;
+   - replaces `e2e_test.sh`, `e2e-runner.sh`, `tests/fixtures/e2e-runner.sh` and the Docker
+     Compose and Mongo fixtures in `tests/fixtures/`, and runs in CI on every merge
+     request, on `main` and on tags, rather than by hand.
+7. **More of the SDK in the e2e.** Today it has four tests: one circuit on each simulator, IQ
+   points on one, and the dummy quantify device. Each public name of convention 14 gets an
+   e2e test against the real stack, one file per area:
+   - **Providers and backends:** listing, `get_backend`, an unknown name, and a target whose
+     gates and properties match the seeded calibration.
+   - **Running:** both simulators at `meas_level` 1 and 2, `meas_return` single and avg,
+     several circuits in one job, and the golden cases of item 2 (Bell pair, `measure_all`,
+     partial, permuted clbits), so step 4 proves on the real stack that the gate-level path
+     answers as the pulse path did.
+   - **Jobs:** status through to done, cancelling a queued job, `provider.job(job_id)` from a
+     new provider, the logfile download, and `JobFailedError` for a job the backend fails.
+   - **Auth and quota:** a bad app token is refused, and a project with no QPU seconds left
+     cannot submit (MSS's 403), each with its own seeded project and token.
+8. **Fast tests, as tergite-frontend's went from about 45 minutes to 1.** First record where
+   the time goes: `pytest --durations=25`, for the unit suite and for the e2e, with the
+   numbers in the commit. Then, one commit per trick, each with its before and after:
+   - **The stack starts once per e2e run**, and every test shares it. Nothing restarts
+     between tests, and nothing resets: a test only adds jobs, which no other test reads,
+     and a test that needs a state of its own gets its own seeded project and token.
+   - **Poll fast.** `wait_for_final_state` polls every 5 seconds by default; the e2e passes
+     `wait=0.2`.
+   - **Session-scoped fixtures** for what tests read but never change: the provider, the
+     backends, the calibrations and the transpiled test circuits.
+   - **One job, several circuits**, where tests check the same thing on different circuits,
+     so the backend's per-job cost is paid once.
+   - **Cut the parametrizations that cross axes that do not interact**, as MSS's did:
+     `_INVALID_PARAMS` runs every auth test for 4 backends × 4 tokens; one route per test is
+     enough. A case that behaves alike on every backend runs on one, with one smoke case on
+     each other.
+   - **`pytest -n 4 --dist=worksteal`** for the unit suite, if the durations show it pays;
+     the e2e stays serial, since the backend runs one job at a time.
+
+   The target is the e2e under two minutes once the services are up, and the unit suite
+   under ten seconds.
+9. **Performance checks**, so no refactor step makes the SDK slower. `dev/perf/`, as in
+   tergite-frontend: `record.sh <dir>` records, the baselines live in `dev/perf/baselines/`,
+   and `compare.py dev/perf/baselines <dir>` exits 1 when a measure is more than 10%, and
+   more than its noise floor, worse.
+   - **The client alone**, against the mocked API, with pytest-benchmark: the time to
+     `import tergite`; `provider.get_backend` (time and HTTP calls; today it makes one call
+     per characterized device, step 6.3); building a target; `backend.run` up to the upload
+     (time and payload bytes); `job.result()` for 1, 10 and 100 circuits of 10,000 shots;
+     and peak memory for each, from `tracemalloc`.
+   - **The round trip**, against the native stack of item 6: jobs of each kind on each
+     simulator, from `run()` to `result()`. It records p50 and p95 latency, jobs per minute,
+     HTTP calls and bytes uploaded per job, and the CPU and peak memory of the SDK, MSS and
+     backend processes, sampled with psutil.
+   - **HTTP calls are compared exactly**: one call more is a regression, whatever the
+     timings say.
+   - The baselines are recorded at the end of this step, of the code after step 0 and
+     before any refactor commit, and every sign-off reruns the checks. Step 4 changes the
+     payload and moves compilation to the backend by design. Its sign-off holds the round
+     trip to the baseline, and records new baselines for payload size and client time,
+     with the reason in the commit. Compare only runs made on the same machine.
+10. **Housekeeping.** Delete `archive/` (the 2022 and 2023 demos; the history keeps them) and
+    check `examples/` runs against the e2e stack, which step 7 then updates.
 
 ## Step 2: the wire contract, from OpenAPI
 
