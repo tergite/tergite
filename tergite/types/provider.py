@@ -63,9 +63,10 @@ class Provider:
             A list of instantiated and available OpenPulseBackend, or OpenPulseBackend backends,
                 that match the given filter
         """
-        available_backends = self.available_backends.values()
+        available_backends = list(self.available_backends.values())
         if name:
-            kwargs["backend_name"] = name
+            # by name first, as filter_backends builds the target of each backend it reads
+            available_backends = [b for b in available_backends if b.name == name]
 
         return filter_backends(available_backends, filters=filters, **kwargs)
 

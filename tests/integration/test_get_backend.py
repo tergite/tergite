@@ -78,16 +78,29 @@ def test_backend_hash(api, backend_name):
     assert len({first, second}) == 1
 
 
+def test_get_backend_fetches_only_its_own_calibration(api):
+    """get_backend(name) fetches the calibration of that backend alone"""
+    provider = _get_test_provider(url=API_URL)
+
+    provider.get_backend("loke").target
+
+    calibration_paths = {
+        req.path for req in api.request_history if "/calibrations/" in req.path
+    }
+    assert calibration_paths == {"/calibrations/loke"}
+
+
 def test_get_backend_with_uncalibrated_couplers(api):
     """Pairs whose couplers have no calibration get no CZ, and every backend still loads"""
     calibration = {**TEST_CALIBRATIONS_MAP["loke"], "couplers": []}
     api.get(f"{API_URL}/calibrations/loke", json=calibration)
     provider = _get_test_provider(url=API_URL)
 
+    backend = provider.get_backend("loke")
     with pytest.warns(UserWarning, match="Backend 'loke' has no CZ on"):
-        backend = provider.get_backend("loke")
+        target = backend.target
 
-    assert "cz" not in backend.target.operation_names
+    assert "cz" not in target.operation_names
     assert provider.get_backend("qiskit_pulse_2q").target.instruction_supported("cz")
 
 
@@ -100,10 +113,11 @@ def test_get_backend_with_pairs_without_couplers(api):
     api.get(f"{API_URL}/devices/", json={"data": devices, "skip": 0, "limit": None})
     provider = _get_test_provider(url=API_URL)
 
+    backend = provider.get_backend("loke")
     with pytest.warns(UserWarning, match="Backend 'loke' has no CZ on"):
-        backend = provider.get_backend("loke")
+        target = backend.target
 
-    assert "cz" not in backend.target.operation_names
+    assert "cz" not in target.operation_names
 
 
 def test_get_non_pulse_backend(api):

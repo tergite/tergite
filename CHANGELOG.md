@@ -31,6 +31,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   `JobFailedError` with the job's failure or cancellation reason
 - Fixed every `get_backend()` call failing whenever any device had a coupled pair without a
   coupler or without its calibration; such pairs get no CZ, with a warning
+- Fixed `get_backend(name)` fetching every device's calibration, so that one device's
+  incomplete calibration failed every `get_backend()`; it fetches only its own backend's
 - Fixed a device MSS sends in a shape the SDK cannot read vanishing from the backends without a
   word; it is still skipped, with a warning naming the device and its invalid fields
 

@@ -51,7 +51,7 @@ Each of these belongs in that repo's own plan; the SDK steps name the one they n
 | B4 | tergite-backend | `Device.basis_gates` lists the gates B2 compiles, and `DeviceCalibration` keeps the durations and errors the SDK's `Target` reads: `pi_pulse_duration`, `readout_assignment_error`, the resonator's pulse and integration times, and T1/T2. |
 | B5 | tergite-backend | One release after B2: delete the `PulseQobj` path, `libs/qiskit/`, the vendored Qobj encoder and decoder, and `PulseLibInstruction`. |
 | F1 | tergite-frontend | MSS's `JobResult` gains the optional fields of D4, which the backend fills in its `job_updated` event. |
-| F2 | tergite-frontend | `dev/seed.py` takes the folder of fixtures to seed from, defaulting to `ui/fixtures`, so this repo's e2e seeds MSS with its own devices, calibrations, projects and app tokens (step 1.6). |
+| F2 | tergite-frontend | `ui/fixtures` gain a project with no QPU seconds left and an app token for it, which this repo's e2e uses to check MSS's quota refusal (step 1.7). Its other fixtures, MSS's config and the backends' settings and keys, the e2e already reads from the frontend checkout. |
 
 **The gate-level payload**, uploaded to the `upload_url` as today's multipart `upload_file`.
 Its shape follows qpi's `JobPayload` on purpose, so the two stacks read alike:
@@ -224,19 +224,24 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
    Compose, and runs the tests in another container, because the backends' upload URLs
    name hosts on the Docker network; outside Docker, `tests/e2e/conftest.py` patches
    `requests` to rewrite those hosts. The new `dev/e2e_native_test.sh`:
-   - runs MSS from `FRONTEND_PATH`, or a clone of `FRONTEND_REPO` at `FRONTEND_BRANCH`, with
-     `main.py serve`, on a MongoDB of its own, migrated and seeded with MSS's `dev/seed.py`
-     from this repo's fixtures (F2);
-   - runs one backend process from `BACKEND_PATH`, or a clone, serving `qiskit_pulse_1q`,
-     `qiskit_pulse_2q` and the dummy quantify device each under its own path, as the
-     frontend's script does;
+   - runs MSS from `FRONTEND_PATH`, or a clone of `FRONTEND_REPO` at `FRONTEND_BRANCH`, on a
+     MongoDB of its own, seeded with MSS's `dev/seed.py`. MSS's config, the backends'
+     settings and keys and the seeded users, projects and tokens all come from the
+     frontend's `ui/fixtures`, which its own e2e keeps in step with MSS and the backend, so
+     this repo keeps no copy to drift;
+   - runs the backends from `BACKEND_PATH`, or a clone, with `main.py start`, so their
+     workers execute jobs: `qiskit_pulse_1q` and `qiskit_pulse_2q` in one process, from the
+     backend's qiskit extra, and Loke on a dummy Qblox cluster in another, from its quantify
+     extra, as the two extras conflict. Loke's quantify config stays in this repo, as the
+     frontend never executes on it;
    - binds everything to 127.0.0.1, so the upload URLs work as they are and the proxy in
      `tests/e2e/conftest.py`, `is_in_docker` and `IS_IN_DOCKER` go;
    - keeps its data in `temp-native/`, fresh each run, keeps the services up with
      `DEBUG=True`, and passes its arguments to `pytest`, so one test can be run;
-   - replaces `e2e_test.sh`, `e2e-runner.sh`, `tests/fixtures/e2e-runner.sh` and the Docker
-     Compose and Mongo fixtures in `tests/fixtures/`, and runs in CI on every merge
-     request, on `main` and on tags, rather than by hand.
+   - replaces `e2e_test.sh`, `e2e-runner.sh`, `tests/fixtures/e2e-runner.sh` and the
+     fixtures only Docker used (the Compose file, `mongo-init.js`, `e2e.env`, MSS's config,
+     the backends' settings, seeds, keys and booking databases), and runs in CI on every
+     merge request, on `main` and on tags, rather than by hand.
 7. **More of the SDK in the e2e.** Today it has four tests: one circuit on each simulator, IQ
    points on one, and the dummy quantify device. Each public name of convention 14 gets an
    e2e test against the real stack, one file per area:
@@ -248,8 +253,9 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
      answers as the pulse path did.
    - **Jobs:** status through to done, cancelling a queued job, `provider.job(job_id)` from a
      new provider, the logfile download, and `JobFailedError` for a job the backend fails.
-   - **Auth and quota:** a bad app token is refused, and a project with no QPU seconds left
-     cannot submit (MSS's 403), each with its own seeded project and token.
+   - **Auth and quota:** an unknown, an expired and an inactive project's app token are
+     refused, with the seeded tokens; once F2 lands, a project with no QPU seconds left
+     cannot submit (MSS's 403).
 8. **Fast tests, as tergite-frontend's went from about 45 minutes to 1.** First record where
    the time goes: `pytest --durations=25`, for the unit suite and for the e2e, with the
    numbers in the commit. Then, one commit per trick, each with its before and after:
@@ -291,8 +297,9 @@ Tests and tooling only. After this step, a refactor commit that changes behaviou
      payload and moves compilation to the backend by design. Its sign-off holds the round
      trip to the baseline, and records new baselines for payload size and client time,
      with the reason in the commit. Compare only runs made on the same machine.
-10. **Housekeeping.** Delete `archive/` (the 2022 and 2023 demos; the history keeps them) and
-    check `examples/` runs against the e2e stack, which step 7 then updates.
+10. **Housekeeping.** Check `examples/` runs against the e2e stack, which step 7 then
+    updates. `archive/` stays: it was reintroduced on purpose in 0.1.1, as the history of the
+    live demos, and only the user decides it goes.
 
 ## Step 2: the wire contract, from OpenAPI
 
@@ -375,9 +382,9 @@ Needs B2 and B4 in the e2e stack.
 3. **The provider stops caching forever.** `available_backends` is a `cached_property`, so a
    long session never sees a device come online. `backends()` fetches the devices each call;
    a backend refreshes its target when MSS reports a newer `last_calibrated` than the one it
-   was built from. `get_backend(name)` stops fetching the calibration of every characterized
-   device: `filter_backends` reads each backend's configuration, which builds its target, so
-   asking for one backend costs a call per device. Filtering reads the device data alone.
+   was built from. `get_backend(name)` fetching the calibration of every characterized device was
+   fixed in step 1, as the native e2e showed one device's incomplete calibration failing
+   every `get_backend()`; filtering by other criteria than the name still builds targets.
 4. **Long functions become compositions**, one per commit, with unit tests for the pure steps:
    every function still over 30 lines once steps 3 to 5 have landed.
 
