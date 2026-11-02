@@ -664,6 +664,8 @@ def _get_expected_job(
 ) -> Job:
     """Returns the expected job after being initialized"""
     schedule = compiler.schedule(transpiled_circuit, backend=backend)
+    if options.get("meas_level", 2) == 2:
+        options["meas_return"] = "single"
     with warnings.catch_warnings():
         # The class QobjExperimentHeader is deprecated
         warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit")

@@ -33,6 +33,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   coupler or without its calibration; such pairs get no CZ, with a warning
 - Fixed `get_backend(name)` fetching every device's calibration, so that one device's
   incomplete calibration failed every `get_backend()`; it fetches only its own backend's
+- Fixed `backend.run(..., meas_level=2)` returning a single count unless `meas_return="single"` was
+  passed; counts always ask for every shot, as `meas_return` applies only to levels 0 and 1
 - Fixed a device MSS sends in a shape the SDK cannot read vanishing from the backends without a
   word; it is still skipped, with a warning naming the device and its invalid fields
 

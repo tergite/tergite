@@ -18,6 +18,7 @@ REFACTOR.md's step 4 can be shown to answer exactly as the pulse payload does.
 from typing import Any, Dict, List
 
 import numpy as np
+import pytest
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Tergite
@@ -107,14 +108,32 @@ def test_iq_points(api):
     )
 
 
+@pytest.mark.parametrize("meas_return", [None, "avg"])
+def test_counts_ask_for_every_shot(api, meas_return):
+    """meas_level=2 sends meas_return=single, so the backend returns each shot's bits"""
+    qc = QuantumCircuit(1, 1)
+    qc.measure(0, 0)
+    options = {} if meas_return is None else {"meas_return": meas_return}
+
+    _run_with_memory(api, [qc], memory=[["0x0", "0x1"]], **options)
+
+    assert _get_uploaded_qobj(api)["config"]["meas_return"] == "single"
+
+
 def _run_with_memory(
-    api, circuits: List[QuantumCircuit], memory: List[Any], meas_level: int = 2
+    api,
+    circuits: List[QuantumCircuit],
+    memory: List[Any],
+    meas_level: int = 2,
+    **options: Any,
 ):
     """Runs the circuits on the mocked backend, which answers with the given memory"""
     backend = Tergite.use_provider_account(
         service_name="test", url=API_URL
     ).get_backend(BACKEND_NAME)
-    job = backend.run(transpile(circuits, backend=backend), meas_level=meas_level)
+    job = backend.run(
+        transpile(circuits, backend=backend), meas_level=meas_level, **options
+    )
     api.get(
         f"{API_URL}/jobs/{TEST_JOB_ID}",
         json={
@@ -130,12 +149,17 @@ def _run_with_memory(
 
 def _get_uploaded_q_to_c(api) -> List[Dict[str, int]]:
     """The qubit-to-clbit map of each experiment, as the pulse payload carries it"""
+    qobj = _get_uploaded_qobj(api)
+    return [
+        exp["header"]["metadata"]["tergite"]["q_to_c"] for exp in qobj["experiments"]
+    ]
+
+
+def _get_uploaded_qobj(api) -> Dict[str, Any]:
+    """The qobj the job uploaded to the backend"""
     upload = next(
         req
         for req in api.request_history
         if req.method == "POST" and req.path == "/jobs" and "upload_file" in req.text
     )
-    qobj = extract_uploaded_qobj_from_request(upload)
-    return [
-        exp["header"]["metadata"]["tergite"]["q_to_c"] for exp in qobj["experiments"]
-    ]
+    return extract_uploaded_qobj_from_request(upload)

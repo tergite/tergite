@@ -446,6 +446,11 @@ class OpenPulseBackend(TergiteBackend):
             )  # already a schedule, so don't convert
             for experiment in experiments
         ]
+        # Qiskit defines meas_return for levels 0 and 1 alone; at level 2 the backend averages
+        # what it is sent, so each shot's bits are asked for, whatever was passed
+        if kwargs.get("meas_level", 2) == 2:
+            kwargs["meas_return"] = "single"
+
         # assemble schedules to PulseQobj
         with warnings.catch_warnings():
             # The method assemble is deprecated
