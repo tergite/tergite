@@ -7,6 +7,73 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Added
+
+- Added an account from the environment variables `TERGITE_API_URL` and `TERGITE_API_TOKEN`, named
+  `env` and returned by `get_provider()` ahead of saved ones, so a token need not be saved to disk
+- Added pulse-level jobs: `backend.run()` takes OpenQASM 3 programs with OpenPulse, as text or an oqpy program,
+  and `calibrations=` of `defcal`s that a job's gates run with; `backend.frames` and `backend.calibrations` give
+  the frames and gate `defcal`s a device publishes; oqpy is the new `pulse` extra
+
+### Changed
+
+- Changed the `test` and `dev` extras into a `dev` dependency group, installed with `uv sync`;
+  `pip install tergite[test]` and `tergite[dev]` no longer exist
+- Changed the supported Python to 3.13 and later, as the rest of the Tergite stack; Python 3.12
+  users keep the last release that supports it
+- Changed the calls to MSS and the backends to httpx, from requests; their errors are `tergite.exc.ApiError`, a
+  `RuntimeError` as before, and an unknown backend raises `BackendNotFoundError`, a `QiskitBackendNotFoundError`
+- Changed `Job.submit()` to return nothing, raising `ApiError` when the upload fails, rather than the requests
+  response
+- Changed backends to run circuits, sent as OpenQASM 3 and compiled to pulses by the backend
+  from its calibration, rather than pulse schedules the SDK built; it needs a tergite-backend
+  that accepts them, and pulse schedules are no longer accepted
+- Changed `OpenPulseBackend` and `OpenQASMBackend` into deprecated names of `TergiteBackend`,
+  which every device now is
+- Changed the counts of a circuit with a classical register it never measures into, such as `c` beside the
+  `meas` of `measure_all()`, to include that register, as Qiskit's own backends do; the SDK dropped it before
+- Changed `provider.job(job_id)` counts to come without register names or leading zeros, as
+  MSS does not keep a job's circuits; the SDK no longer needs h5py or sympy
+- Changed to Qiskit 2.1 and later, from Qiskit 1.2, which kept the SDK from installing beside
+  current Qiskit packages; each experiment result's `header` is a dict, as in Qiskit 2
+- Changed `tergite.services.configs.AccountInfo` to `tergite.accounts.Account`, with the rc file
+  read and written by `load_accounts` and `save_account`; the file's format is unchanged
+- Changed `get_provider(name)` to raise a `TergiteError` for a name no account has, rather than
+  return the first account's provider, which sent a misspelt service's jobs to another service
+
+### Fixed
+
+- Fixed a logfile served with `Content-Encoding: gzip` being saved still compressed
+- Fixed the rc file, which holds account tokens, being readable by every user of the computer; it
+  is saved for its owner alone (0600), and loading one that others can read warns how to fix it
+- Fixed installing tergite failing on current setuptools, by dropping the unused
+  `qiskit-ibm-runtime` and `pandas` dependencies
+- Fixed listing backends crashing when any device takes no pulse jobs; running on such a
+  backend now raises before a job is registered, rather than after
+- Fixed backends being unhashable, which made them unusable as set members or dict keys
+- Fixed saving a provider account failing when `~/.qiskit` did not exist or the account was
+  already saved, and an account saved without a token being read back with the token "None"
+- Fixed saving an account whose URL or token holds a `%` failing, and saving an account again
+  moving it to the end of the rc file, which could change the account `get_provider()` defaults to
+- Fixed `import tergite` reading `~/.qiskit/tergiterc` and printing warnings; the file is read
+  on first use, and warnings and the job submission notice go through `warnings` and `logging`
+- Fixed calls to MSS and the backends waiting forever on a server that never answers; they now
+  time out after 30 seconds, or 300 for uploading a job and downloading its logfile
+- Fixed `job.result()` of a failed or cancelled job raising "failed to GET memory"; it raises a
+  `JobFailedError` with the job's failure or cancellation reason
+- Fixed every `get_backend()` call failing whenever any device had a coupled pair without a
+  coupler or without its calibration; such pairs get no CZ, with a warning
+- Fixed `get_backend(name)` fetching every device's calibration, so that one device's
+  incomplete calibration failed every `get_backend()`; it fetches only its own backend's
+- Fixed `backend.run(..., meas_level=2)` returning a single count unless `meas_return="single"` was
+  passed; counts always ask for every shot, as `meas_return` applies only to levels 0 and 1
+- Fixed averaged IQ points (`meas_level=1`, `meas_return="avg"`) coming back as one shot of points
+  rather than one point per measured qubit
+- Fixed a provider never seeing a device that came online after it first listed the backends; it
+  lists them from MSS on each call, and a backend rebuilds its target when its device is recalibrated
+- Fixed a device MSS sends in a shape the SDK cannot read vanishing from the backends without a
+  word; it is still skipped, with a warning naming the device and its invalid fields
+
 ## [2026.06.0] - 2026-06-26
 
 This is part of the tergite release v2026.06.0.

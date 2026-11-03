@@ -21,37 +21,35 @@
 # Adilet Tuleuov, 2024
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
-import functools
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List
 
-from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from qiskit.providers.providerutils import filter_backends
 
-from ..services import api_client
-from ..services.configs import AccountInfo
-from ..utils.job_file import extract_job_metadata, extract_job_qobj
-from .backend import OpenPulseBackend, OpenQASMBackend
-from .job import STATUS_MAP, Job
+from ..accounts import Account
+from ..api import mss
+from ..api.client import create_bcc_client, create_mss_client
+from ..backend import TergiteBackend
+from ..exc import BackendNotFoundError
+from ..job import STATUS_MAP, Job
 
 
 class Provider:
     """The Qiskit Provider with which to access the Tergite quantum computers"""
 
-    def __init__(self, /, account: "AccountInfo"):
+    def __init__(self, /, account: Account):
         """Initializes the Provider
 
         Args:
-            account: the instance of the
-                :class:tergite.providers.tergite.account.AccountInfo`
-                with which to connect to the Tergite API
+            account: the account at the Tergite service to connect to
         """
         super().__init__()
         self.account = account
-        self._malformed_backends = {}
+        self.mss_client = create_mss_client(account.url, lambda: self.account.token)
+        self.bcc_client = create_bcc_client()
 
     def backends(
         self, /, name: str = None, filters: Callable[[Any], bool] = None, **kwargs
-    ) -> List[Union[OpenPulseBackend, OpenQASMBackend]]:
+    ) -> List[TergiteBackend]:
         """Filters the available backends of this provider.
 
         Args:
@@ -60,98 +58,60 @@ class Provider:
             kwargs: kwargs to match the available backends with
 
         Returns:
-            A list of instantiated and available OpenPulseBackend, or OpenPulseBackend backends,
+            A list of the available backends
                 that match the given filter
         """
-        available_backends = self.available_backends.values()
+        available_backends = list(self.available_backends.values())
         if name:
-            kwargs["backend_name"] = name
+            # by name first, as filter_backends builds the target of each backend it reads
+            available_backends = [b for b in available_backends if b.name == name]
 
         return filter_backends(available_backends, filters=filters, **kwargs)
 
-    @functools.cached_property
-    def available_backends(
-        self, /
-    ) -> Dict[str, Union[OpenPulseBackend, OpenQASMBackend]]:
-        """Dictionary of all available backends got from the API"""
-        backends = dict()
-        backend_configs = api_client.get_backend_configs(self.account)
-
-        for backend_conf in backend_configs:
-            if backend_conf.open_pulse:
-                obj = OpenPulseBackend(
-                    data=backend_conf, provider=self, base_url=self.account.url
-                )
-            else:
-                obj = OpenQASMBackend(
-                    data=backend_conf, provider=self, base_url=self.account.url
-                )
-            backends[obj.name] = obj
-
-        return backends
+    @property
+    def available_backends(self, /) -> Dict[str, TergiteBackend]:
+        """The backends of the devices MSS lists, by name, fetched on each read so that a
+        device coming online is seen"""
+        return {
+            device.name: TergiteBackend(
+                data=device, provider=self, base_url=self.account.url
+            )
+            for device in mss.get_devices(self.mss_client)
+        }
 
     def job(self, job_id: str) -> Job:
         """Retrieve a runtime job given a job id
+
+        MSS does not keep how a job was run, so its measurement level and shots are taken
+        from the memory it returns, and its circuits' registers are unknown: counts come
+        keyed by their bits, without register names or leading zeros.
 
         Args:
             job_id: the ID of the job
 
         Returns:
             an instance of `Job` corresponding to the given job id
-
-        Raises:
-            RuntimeError: Job: {job_id} has no download_url
         """
-        account = self.account
-        remote_data = api_client.get_remote_job_data(account, job_id=job_id)
-        if remote_data.download_url is None:
-            raise RuntimeError(f"Job: {job_id} has no download_url")
-
-        download_url = remote_data.download_url
-        access_token = remote_data.access_token
-        backend = self.get_backend(name=remote_data.device)
-        logfile = api_client.download_job_logfile(
-            job_id=job_id, url=download_url, access_token=access_token
-        )
-        raw_status = remote_data.status
-        status = STATUS_MAP.get(raw_status)
-        calibration_date = remote_data.calibration_date
-
-        metadata = extract_job_metadata(logfile)
-        payload = extract_job_qobj(logfile)
-
-        job = Job(
-            backend=backend,
+        remote_data = mss.get_job(self.mss_client, job_id)
+        memory = remote_data.result.memory if remote_data.result else []
+        is_counts = bool(memory) and bool(memory[0]) and isinstance(memory[0][0], str)
+        return Job(
+            backend=self.get_backend(name=remote_data.device),
             job_id=job_id,
-            payload=payload,
-            upload_url=None,
-            download_url=download_url,
-            logfile=logfile,
-            status=status,
+            shots=len(memory[0]) if memory else None,
+            meas_level=2 if is_counts else 1,
+            status=STATUS_MAP.get(remote_data.status),
             remote_data=remote_data,
-            calibration_date=calibration_date,
-            access_token=access_token,
-            **metadata,
+            download_url=remote_data.download_url,
+            calibration_date=remote_data.calibration_date,
+            access_token=remote_data.access_token,
         )
-        self._sync_backend_options_from_job(job)
-        return job
 
     def __str__(self, /):
         return "Tergite: Provider"
 
     def __repr__(self, /):
         return "<{} from Tergite Qiskit>".format(self.__class__.__name__)
-
-    def _sync_backend_options_from_job(self, job):
-        # Prefer payload (source of truth), fallback to metadata
-        shots = None
-        if getattr(job, "payload", None) is not None:
-            shots = getattr(getattr(job.payload, "config", None), "shots", None)
-        if shots is None:
-            shots = job.metadata.get("shots")
-
-        if shots is not None:
-            job.backend().set_options(shots=int(shots))
 
     # The below code is part of Qiskit.
     #
@@ -180,9 +140,7 @@ class Provider:
     # ---------------- ALTERATION NOTICE ---------------- #
     # This code has been derived from the Qiskit abstract ProviderV1 class
 
-    def get_backend(
-        self, name=None, **kwargs
-    ) -> Union[OpenPulseBackend, OpenQASMBackend]:
+    def get_backend(self, name=None, **kwargs) -> TergiteBackend:
         """Return a single backend matching the specified filtering.
 
         Args:
@@ -193,7 +151,7 @@ class Provider:
             Backend: a backend matching the filtering.
 
         Raises:
-            QiskitBackendNotFoundError: if no backend could be found or
+            BackendNotFoundError: if no backend could be found or
                 more than one backend matches the filtering criteria.
         """
         # As Qiskit ProviderV1 class was deprecated
@@ -204,10 +162,8 @@ class Provider:
 
         backends = self.backends(name, **kwargs)
         if len(backends) > 1:
-            raise QiskitBackendNotFoundError(
-                "More than one backend matches the criteria"
-            )
+            raise BackendNotFoundError("More than one backend matches the criteria")
         if not backends:
-            raise QiskitBackendNotFoundError("No backend matches the criteria")
+            raise BackendNotFoundError("No backend matches the criteria")
 
         return backends[0]

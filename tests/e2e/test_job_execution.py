@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from tergite import Job, Provider
+from tests.utils.jobs import wait_for_final_state
 
 
 def test_simulator_1_qubit_gate(backend_provider: Provider):
@@ -13,14 +14,14 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
     backend = backend_provider.get_backend("qiskit_pulse_1q")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(1, 1)
+    qc = circuit.QuantumCircuit(1)
     qc.x(0)
     qc.h(0)
     qc.measure_all()
 
     tc = compiler.transpile(qc, backend=backend)
     job: Job = backend.run(tc, meas_level=2, meas_return="single")
-    job.wait_for_final_state(timeout=100)
+    wait_for_final_state(job)
     result = job.result().get_counts()
 
     assert (
@@ -36,7 +37,7 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
     backend = backend_provider.get_backend("qiskit_pulse_2q")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(2, 2)
+    qc = circuit.QuantumCircuit(2)
     qc.h(0)
     qc.h(1)
     qc.cx(0, 1)
@@ -44,7 +45,7 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
 
     tc = compiler.transpile(qc, backend=backend)
     job: Job = backend.run(tc, meas_level=2, meas_return="single")
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
     result = job.result().get_counts()
 
     assert (
@@ -61,7 +62,7 @@ def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
     backend = backend_provider.get_backend("qiskit_pulse_2q")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(2, 2)
+    qc = circuit.QuantumCircuit(2)
     qc.h(0)
     qc.h(1)
     qc.cx(0, 1)
@@ -69,7 +70,7 @@ def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
 
     tc = compiler.transpile(qc, backend=backend)
     job: Job = backend.run(tc, meas_level=1, meas_return="single")
-    job.wait_for_final_state(timeout=300)
+    wait_for_final_state(job)
     memory = job.result().get_memory()  # shape = (shots, n_qubits)
 
     assert (
@@ -101,14 +102,14 @@ def test_dummy_quantify_device(backend_provider: Provider):
     backend = backend_provider.get_backend("Loke")
     backend.set_options(shots=1024)
 
-    qc = circuit.QuantumCircuit(1, 1)
+    qc = circuit.QuantumCircuit(1)
     qc.x(0)
     qc.h(0)
     qc.measure_all()
 
     tc = compiler.transpile(qc, backend=backend)
     job: Job = backend.run(tc, meas_level=2, meas_return="single")
-    job.wait_for_final_state(timeout=100)
+    wait_for_final_state(job)
     result = job.result().get_counts()
 
     assert result["0"] == 1024, f"Expected {result['00']} to be 1024"

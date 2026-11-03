@@ -11,9 +11,19 @@
 # that they have been altered from the originals.
 
 
-from .types.backend import OpenPulseBackend, OpenQASMBackend
-from .types.job import Job
+from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackend
+from .job import Job
 from .types.provider import Provider
 from .types.provider_factory import ProviderFactory
 
 Tergite = ProviderFactory()
+
+__all__ = [
+    "OpenPulseBackend",
+    "OpenQASMBackend",
+    "TergiteBackend",
+    "Job",
+    "Provider",
+    "ProviderFactory",
+    "Tergite",
+]

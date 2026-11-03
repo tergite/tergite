@@ -16,34 +16,33 @@
 #
 # Martin Ahindura, 2023
 """Defines the ProviderFactory class that contains multiple Tergite Providers."""
-import pathlib
-from collections import OrderedDict
-from typing import List, Optional
+import os
+from pathlib import Path
+from typing import Dict, List, Optional
 
-from ..services.configs import TERGITERC_FILE, AccountInfo, Tergiterc
+from ..accounts import (
+    TERGITERC_FILE,
+    Account,
+    get_environment_account,
+    load_accounts,
+    save_account,
+)
+from ..exc import TergiteError
 from .provider import Provider
 
 
 class ProviderFactory:
     """Container of multiple Tergite Provider's, retrievable by service name
 
-    It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`
+    It can be passed a custom path to an rc file: default is `$HOME/.qiskit/tergiterc`. On
+    first use, it loads the accounts saved there and, ahead of them, the account named "env"
+    that the environment variables TERGITE_API_URL and TERGITE_API_TOKEN set, if any.
     """
 
-    def __init__(self, rc_file: pathlib.Path = TERGITERC_FILE):
-        self._providers = OrderedDict()
-        self._tergiterc = Tergiterc(rc_file=rc_file)
-
-        # get a list of provider account objects from tergiterc
-        accounts_list = self._tergiterc.load_accounts()
-        if not accounts_list:
-            print(
-                "Warning: No stored provider account found in $HOME/.qiskit/tergiterc"
-            )
-
-        # for each item in the accounts list create a Provider object
-        for account in accounts_list:
-            self._providers[account.service_name] = Provider(account)
+    def __init__(self, rc_file: Path = TERGITERC_FILE):
+        self._rc_file = rc_file
+        self._providers: Dict[str, Provider] = {}
+        self._is_loaded = False
 
     def use_provider_account(
         self,
@@ -65,9 +64,10 @@ class ProviderFactory:
                 :class:`~tergite.providers.tergite.provider.Provider`
                 for the given account
         """
-        account = AccountInfo(service_name=service_name, url=url, token=token)
+        self._load_providers()
+        account = Account(service_name=service_name, url=url, token=token)
         if save:
-            self._tergiterc.save_accounts([account])
+            save_account(self._rc_file, account)
 
         new_provider = Provider(account)
         self._providers[account.service_name] = new_provider
@@ -80,24 +80,54 @@ class ProviderFactory:
         Returns:
             list of service names of providers in this collection
         """
+        self._load_providers()
         return list(self._providers.keys())
 
-    def get_provider(self, service_name=None) -> Optional[Provider]:
-        """Retrieves a given provider by service name
+    def get_provider(self, service_name: Optional[str] = None) -> Provider:
+        """Gets the provider of the given service name, or the first if none is given
 
         Args:
-            service_name: the name by which the given provider is saved
+            service_name: the name the provider's account is saved or used under, or "env"
+                for the environment's
 
         Returns:
-            the provider of the given service name
-                if it exists or None if it doesn't
+            the provider of that name, or, if no name is given, the environment's account's
+            if TERGITE_API_URL is set, else that of the first account saved or used
+
+        Raises:
+            TergiteError: No provider account is available. Provide one via
+                Tergite.use_provider_account(..) or TERGITE_API_URL and TERGITE_API_TOKEN.
+            TergiteError: No provider account is named '{service_name}'; there are: {names}
         """
+        self._load_providers()
         providers = self._providers
 
         if not providers:
-            raise Exception(
-                "No provider account is available. Provide one via Tergite.use_provider_account(..)."
+            raise TergiteError(
+                "No provider account is available. Provide one via Tergite.use_provider_account(..) "
+                "or TERGITE_API_URL and TERGITE_API_TOKEN."
             )
+        if service_name is None:
+            return next(iter(providers.values()))
+        if service_name not in providers:
+            raise TergiteError(
+                f"No provider account is named '{service_name}'; there are: "
+                f"{', '.join(providers)}"
+            )
+        return providers[service_name]
 
-        # get by name or default to the first entry
-        return providers.get(service_name, next(iter(providers.values())))
+    def _load_providers(self) -> None:
+        """Loads the providers of the environment's account and of the saved accounts, the
+        environment's first and in place of a saved one of its name, on the first call only
+        """
+        if self._is_loaded:
+            return
+        self._is_loaded = True
+        environment_account = get_environment_account(os.environ)
+        if environment_account is not None:
+            self._providers[environment_account.service_name] = Provider(
+                environment_account
+            )
+        for account in load_accounts(self._rc_file):
+            if account.service_name not in self._providers:
+                self._providers[account.service_name] = Provider(account)

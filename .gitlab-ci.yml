@@ -3,95 +3,66 @@ stages:
   - e2e
   - release
 
-.install_pydev_for_3_13_only: &install_pydev_for_3_13_only
-  - |- 
-        if  [[ $(python --version) == 'Python 3.13'* ]]; then
-            apt update; 
-            apt install -y libopenblas-dev gfortran; 
-        fi
-
 test:
   image: python:$VERSION
   needs: []
   stage: tests
+  variables:
+    UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
+    UV_PYTHON: $VERSION
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - .cache/uv
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG =~ /^v.*$/
+  before_script:
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - uv sync --locked
   script:
-    - *install_pydev_for_3_13_only
-    - pip install ."[test,dev]"
-    # Check formatting
-    - black --check tergite
-    # Run unit tests
-    - pytest tests/
+    - uv run black --check tergite tests dev
+    - uv run isort --check-only tergite tests dev
+    - uv run pyflakes tergite tests dev
+    - uv run pytest
   parallel:
     matrix:
-      - VERSION: ['3.12-slim', '3.13-bookworm']
+      - VERSION: ["3.13"]
 
+# tests/e2e against MSS and the backends, all running natively, seeded from the frontend's fixtures
 e2e:
   needs: []
-  image: docker:latest
-  services:
-    - name: docker:dind
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm
   stage: e2e
-  when: manual
-  manual_confirmation: 'Are you sure you want to run the end-to-end test?'
-
   variables:
+    UV_PYTHON: "3.13"
     FRONTEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-frontend.git"
-    BACKEND_REPO:  "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
-    BACKEND_BRANCH: "main"
-    FRONTEND_BRANCH: "main"
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375/
-    PYTHON_IMAGE: python:$VERSION
-
-    BACKEND_LOG_LEVEL: DEBUG        
-
-    CI_DEBUG_TRACE: "false"           
-
+    BACKEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
+    # this branch, tag or merge request's source branch, where the other repos have one of that name
+    FRONTEND_BRANCH: $CI_COMMIT_REF_NAME
+    BACKEND_BRANCH: $CI_COMMIT_REF_NAME
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG =~ /^v.*$/
-
   before_script:
-    - mkdir -p "$CI_PROJECT_DIR/logs"
-    - docker info
-    - |
-      if [[ -n "$DOCKER_USER" && -n "$DOCKER_TOKEN" ]]; then
-        echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
-      else
-        echo "Skipping docker login: DOCKER_USER or DOCKER_TOKEN not set."
-      fi
-    - apk update && apk add --no-cache curl bash build-base
-      openssl-dev zlib-dev libffi-dev make git
-
+    - apt-get update -qq
+    - apt-get install -y -qq curl gnupg git
+    - curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc |
+      gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+    - echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main" >
+      /etc/apt/sources.list.d/mongodb-org-8.0.list
+    - apt-get update -qq && apt-get install -y -qq mongodb-org
   script:
-    - |
-      set +e
-      ./e2e_test.sh 2>&1 | tee e2e.log
-      TEST_EXIT_CODE=$?
-      set -e
-    - |
-      echo "Collecting tergite-backend logs …"
-      BACKEND_ID=$(docker ps -aqf "name=tergite-e2e-qiskit_pulse_2q-1" | head -n1)
-      if [[ -n "$BACKEND_ID" ]]; then
-        docker logs "$BACKEND_ID" > "$CI_PROJECT_DIR/logs/backend.log" 2>&1
-        echo "Saved $(wc -l < backend.log) log lines to backend.log"
-      else
-        echo "No running backend container found" > "$CI_PROJECT_DIR/logs/backend.log"
-      fi
-    - exit $TEST_EXIT_CODE
+    - ./dev/e2e_native_test.sh
   artifacts:
-    when: always          
+    when: on_failure
     paths:
-      - e2e.log
-      - logs/backend.log
+      - temp-native/logs/
     expire_in: 1 week
-
-  parallel:
-    matrix:
-      - VERSION: ['3.12-slim', '3.13-bookworm']
 
 deploy staging:
   stage: release
@@ -99,18 +70,15 @@ deploy staging:
     - test
     - e2e
   environment: staging
-  image: python:3.12-slim
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
   rules:
     - if: $SHOULD_PUBLISH_TO_STAGING == "true" && $CI_COMMIT_TAG =~ /^v.*$/
   script:
-    - python -m pip install --upgrade pip
-    - python --version
-    - pip install .
-    - pip install build twine
-    # build package
-    - python -m build
-    # upload to test pypi
-    - twine upload --skip-existing -u __token__ -p "$TEST_PYPI_API_TOKEN" r https://test.pypi.org/legacy/ dist/*;
+    - uv build
+    - uv publish
+      --publish-url https://test.pypi.org/legacy/
+      --check-url https://test.pypi.org/simple/
+      --token "$TEST_PYPI_API_TOKEN"
 
 deploy production:
   stage: release
@@ -118,15 +86,9 @@ deploy production:
     - test
     - e2e
   environment: production
-  image: python:3.12-slim
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
   rules:
     - if: $SHOULD_PUBLISH_TO_PROD == "true" && $CI_COMMIT_TAG =~ /^v.*$/
   script:
-    - python -m pip install --upgrade pip
-    - python --version
-    - pip install .
-    - pip install build twine
-    # build package
-    - python -m build
-    # upload official pypi
-    - twine upload --skip-existing -u __token__ -p "$PYPI_API_TOKEN" dist/*;
+    - uv build
+    - uv publish --check-url https://pypi.org/simple/ --token "$PYPI_API_TOKEN"

@@ -18,7 +18,7 @@ maintainers = [
 version = "2026.06.0"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 keywords = ["quantum-computer", "qiskit", "quantum", "tergite", "sdk"]
 license = {file = "LICENSE.txt"}
 classifiers = [
@@ -26,31 +26,29 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "requests>=2.25.1",
-    "qiskit>1,<1.3",
-    "pandas>=1.4.2",
+    "qiskit>=2.1,<3",
     "numpy>=1.26.0",
-    "qiskit-ibm-runtime>=0.28.0",
-    "h5py>=3.8.0",
-    "pydantic>=2.5.0"
+    "pydantic>=2.5.0",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest>=7.4.2",
-    "requests-mock>=1.11.0",
-    "scikit-learn~=1.7.0"
-]
+# writing pulse-level jobs with oqpy, and the backend's frames as oqpy frames
+pulse = ["oqpy>=0.3.11,<0.4"]
+
+[dependency-groups]
 dev = [
-    "jupyter>=1.0.0",
-    "python-dateutil>=2.8.1",
-    "python-multipart>=0.0.5",
-    "tqdm>=4.64.1",
-    "more-itertools>=8.14.0",
-    "matplotlib>=3.5.3",
-    "matplotlib-inline>=0.1.6",
+    "pytest>=7.4.2",
+    "scikit-learn~=1.7.0",
     "black[jupyter]~=25.1.0",
-    "isort~=6.0.1"
+    "isort~=6.0.1",
+    "pyflakes>=3.2",
+    "pytest-benchmark>=5.1",
+    "psutil>=7.0",
+    "datamodel-code-generator>=0.34",
+    "respx>=0.22",
+    "h5py>=3.8.0",
+    "oqpy>=0.3.11,<0.4",
 ]
 
 [project.urls]
@@ -64,11 +62,16 @@ Changelog = "https://github.com/tergite/tergite/blob/main/CHANGELOG.md"
 packages = ["tergite"]
 
 [tool.isort]
+profile = "black"
 skip_gitignore = true
 
 [tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+# so that dev/perf can import the tests' utilities
+pythonpath = ["."]
 markers = [
   "e2e: end-to-end tests",
   "integration: integration tests",
 ]
+# what Qiskit or another dependency deprecates is moved off as it is deprecated
+filterwarnings = ["error::DeprecationWarning", "error::PendingDeprecationWarning"]

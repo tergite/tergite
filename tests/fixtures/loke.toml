@@ -100,3 +100,14 @@ qubits = [ 0 ]
 qasm_def = "gate id q { U(0, 0, 0) q; }"
 parameters = [ ]
 
+
+# so that the e2e runs pulse-level jobs on Loke's dummy clusters; values for no real chip
+[pulse_limits]
+# drive above the 0.57 of Loke's calibrated x, which its published defcal plays
+max_amplitude = { drive = 0.8, readout = 0.5, coupler = 0.5 }
+max_frequency_offset = 50e6
+max_energy_per_shot = { drive = 1e-6, readout = 1e-6, coupler = 1e-6 }
+max_energy_per_job = { drive = 1e-2, readout = 1e-2, coupler = 1e-2 }
+max_pulse_duration = 100e-6
+max_samples_per_waveform = 16384
+max_capture_duration = 16e-6

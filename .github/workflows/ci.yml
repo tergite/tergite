@@ -12,70 +12,60 @@ on:
       job:
         description: 'Job to run'
         required: true
-        default: 'e2e'
+        default: 'release'
         type: choice
         options:
-          - e2e
           - release
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12", "3.13"]
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install OpenBlas for scipy if no wheels
-        run: sudo apt-get install -y libopenblas-dev
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python --version
-          pip install ."[test,dev]"
-      - name: Lint
-        if: ${{ vars.SHOULD_LINT == 'true' }}
-        run: black tergite --check
-      - name: Run tests
-        run: pytest tests/
-
-  e2e:
-    runs-on: ubuntu-latest
-    if: |
-      startsWith(github.ref, 'refs/heads/main') || 
-      startsWith(github.ref, 'refs/tags/') || 
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'e2e')
-    needs: tests
-    strategy:
-      matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.13"]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-        with:
-          version: 'latest'
+      - uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+        run: uv sync --locked
+      - name: Lint
+        run: |
+          uv run black --check tergite tests dev
+          uv run isort --check-only tergite tests dev
+          uv run pyflakes tergite tests dev
+      - name: Run tests
+        run: uv run pytest
+
+  e2e:
+    # noble, as the MongoDB repository below names it
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install MongoDB
+        run: |
+          curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc |
+            sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" |
+            sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-org
       - name: Run end-to-end-tests
         env:
           DEBUG: ${{ vars.DEBUG || 'false' }}
           FRONTEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-frontend.git
           BACKEND_REPO: https://github.com/${{ vars.REPO_OWNER || github.repository_owner }}/tergite-backend.git
-          BACKEND_BRANCH: ${{ github.ref_name }}
-          FRONTEND_BRANCH: ${{ github.ref_name }}
-          PYTHON_IMAGE: python:${{ matrix.python-version }}-slim
-        run: ./e2e_test.sh
-#      - name: Dump container logs on failure
-#        if: always()
-#        run: |
-#          for container in $(docker ps -a --filter "name=tergite-e2e" --format "{{.Names}}"); do
-#            echo "===== $container ====="
-#            docker logs "$container" 2>&1 || true
-#          done
+          # a pull request's source branch, as its ref_name is N/merge
+          FRONTEND_BRANCH: ${{ github.head_ref || github.ref_name }}
+          BACKEND_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: ./dev/e2e_native_test.sh
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-logs
+          path: temp-native/logs/
 
   release:
     name: Release
@@ -84,38 +74,24 @@ jobs:
       startsWith(github.ref, 'refs/tags/') || 
       (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'release')
     needs: tests
+    env:
+      UV_PYTHON: "3.13"
     steps:
       - name: Checkout the commit
         uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          cd $GITHUB_WORKSPACE
-          python -m pip install --upgrade pip
-          python --version
-          pip install .
-          pip install build twine
-      - name: Deploy docs
-        if: ${{ vars.SHOULD_PUBLISH_DOCS == 'true' }}
-        run: |
-          source .venv/bin/activate
-          mkdocs gh-deploy --force
+      - uses: astral-sh/setup-uv@v6
       - name: Build
-        run: python -m build
+        run: uv build
       - name: Publish to Test pypi
         if: ${{ vars.SHOULD_PUBLISH_TO_STAGING == 'true' }}
         run: |
-          twine upload --skip-existing \
-            -u __token__ \
-            -p ${{ secrets.TEST_PYPI_API_TOKEN }} \
-            -r https://test.pypi.org/legacy/ dist/*;
+          uv publish \
+            --publish-url https://test.pypi.org/legacy/ \
+            --check-url https://test.pypi.org/simple/ \
+            --token ${{ secrets.TEST_PYPI_API_TOKEN }}
       - name: Publish to pypi
         if: ${{ vars.SHOULD_PUBLISH_TO_PROD == 'true' }}
         run: |
-          twine upload --skip-existing \
-            -u __token__ \
-            -p ${{ secrets.PYPI_API_TOKEN }} dist/*;
+          uv publish \
+            --check-url https://pypi.org/simple/ \
+            --token ${{ secrets.PYPI_API_TOKEN }}

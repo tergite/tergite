@@ -14,6 +14,9 @@ import dataclasses
 import json
 from typing import Any, Dict, List, Optional
 
+import httpx
+import respx
+
 
 @dataclasses.dataclass
 class MockRequest:
@@ -23,29 +26,29 @@ class MockRequest:
     has_text: bool = False
 
     @classmethod
-    def load(cls, req):
+    def load(cls, req: httpx.Request) -> "MockRequest":
         json_data = None
         try:
-            json_data = req.json()
-        except (AttributeError, TypeError, json.JSONDecodeError):
+            json_data = json.loads(req.content)
+        except (TypeError, ValueError):
             pass
 
         return cls(
-            url=req.url,
+            url=str(req.url),
             method=req.method,
             json=json_data,
-            has_text=(req.text is not None),
+            has_text=bool(req.content),
         )
 
 
-def get_request_list(requests_mocker) -> List[MockRequest]:
-    """Retrieves the list of requests from the requests_mocker.
+def get_request_list(router: respx.MockRouter) -> List[MockRequest]:
+    """Retrieves the list of requests the mocked API received
 
     Args:
-        requests_mocker: the Mock object from requests_mock
+        router: the router of the mocked API
 
     Returns:
         the list of MockRequest made
     """
 
-    return [MockRequest.load(v) for v in requests_mocker.request_history]
+    return [MockRequest.load(call.request) for call in router.calls]

@@ -29,7 +29,7 @@ When versioning we follow the format `{year}.{month}.{patch_number}` e.g. `2023.
 ## Contacting the Tergite Developers
 
 Since the Github repositories are only mirrors, no Github pull requests or Github issue/bug reports
-are looked. Please get in touch via email <quantum.nextlabs@chalmers.se> instead.
+are looked. Please get in touch via email <contact.quantum@chalmersnextlabs.se> instead.
 
 Take note that the maintainers may not answer every email.
 
@@ -39,7 +39,8 @@ Pull requests are the best way to propose changes to the codebase (we
 use [Github Flow](https://docs.github.com/en/get-started/quickstart/github-flow)). We actively welcome your pull
 requests:
 
-1. Clone the repo and create your branch from `main`.
+1. Clone the repo and create your branch from `main`. Read [DESIGN.md](./DESIGN.md) first: it has
+   the SDK's architecture and the conventions code is held to.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
@@ -89,7 +90,8 @@ All signed CLAs are emails to us at <contact.quantum@chalmersnextlabs.se>.
 
 ## How to Test
 
--   Make sure you have [python +3.12](https://www.python.org/) installed (or you could use [conda](https://www.anaconda.com/docs/getting-started/miniconda/install) or [pyenv](https://github.com/pyenv/pyenv) to install python +3.12).
+-   Install [uv](https://docs.astral.sh/uv/getting-started/installation/), which installs
+    Python 3.13 for you if you do not have it.
 
 -   Clone the repo and enter its root folder
 
@@ -98,55 +100,70 @@ git clone git@github.com:tergite/tergite.git
 cd tergite
 ```
 
-- Create and activate a virtual environment
-
-Using conda:
-
-```shell
-conda create -n tergite-sdk python=3.12
-conda activate tergite-sdk
-```
-
-Using installed python:
-
-```shell
-python3.12 -m venv env 
-source env/bin/activate
-```
-
--   Install the dependencies
+-   Install the dependencies, into `.venv`
 
 ``` shell
-pip install ."[test]"
+uv sync
 ```
 
--   Run the tests command
+-   Run the tests, then the linters CI runs
 
 ``` shell
-pytest tests
+uv run pytest
+```
+
+``` shell
+uv run black --check tergite tests dev && uv run isort --check-only tergite tests dev && uv run pyflakes tergite tests dev
+```
+
+-   Run the example notebooks, with Jupyter alongside
+
+``` shell
+uv run --with jupyter jupyter lab examples/notebooks
 ```
 
 ## How to Run End-to-end Tests
 
-- Ensure you have [docker](https://docs.docker.com/engine/install/) and [python](https://www.python.org/downloads/) installed
-- Ensure nothing is running on ports:
-  - 27018
-  - 8000
-  - 8002
-  - 8001
-  - 6378
+`dev/e2e_native_test.sh` runs `tests/e2e` against MSS and the backends, all running natively
+from checkouts of [tergite-frontend](https://github.com/tergite/tergite-frontend) and
+[tergite-backend](https://github.com/tergite/tergite-backend), with fresh data in
+`temp-native/`.
 
-- Run the tests command
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/), MongoDB (`mongod` and
+  `mongosh`), git and curl.
+- Ensure nothing is running on ports 8201, 8202, 8203 and 27218.
+- Run it against local checkouts, or clones of the given repositories and branches:
+
+``` shell
+FRONTEND_PATH="../tergite-frontend" BACKEND_PATH="../tergite-backend" ./dev/e2e_native_test.sh
+```
 
 ``` shell
 FRONTEND_REPO="https://github.com/tergite/tergite-frontend.git" \
   BACKEND_REPO="https://github.com/tergite/tergite-backend.git" \
-# BACKEND_BRANCH="main" \ # you can set a different backend branch; default is 'main'
-# FRONTEND_BRANCH="main" \ # you can set a different frontend branch; default is 'main'
-# DEBUG="True" \ # Set 'True' to avoid cleaning up the containers, env, and repos after test, default: ''
-# PYTHON_IMAGE="python:3.12-slim" \ # Set the docker image to run the tests. If not provided, it runs on the host machine
-./e2e_test.sh
+  ./dev/e2e_native_test.sh
 ```
+
+Its arguments go to pytest, e.g. `./dev/e2e_native_test.sh -k quantify`. Set `DEBUG=True` to
+keep the services running afterwards; their logs are in `temp-native/logs/`.
+
+## How to Check Performance
+
+`dev/perf/record.sh` records the client's benchmarks against mocked services, and the round trip
+of jobs against the end-to-end stack, which it starts as above; `compare.py` fails on a measure
+more than 10% and its noise floor worse than the baselines in `dev/perf/baselines`, or on one more
+HTTP call.
+
+``` shell
+FRONTEND_PATH="../tergite-frontend" BACKEND_PATH="../tergite-backend" ./dev/perf/record.sh /tmp/perf
+```
+
+``` shell
+uv run python dev/perf/compare.py dev/perf/baselines /tmp/perf
+```
+
+The numbers are the machine's own, so compare runs made on one machine. `./dev/perf/record.sh
+/tmp/perf client` records the client's alone, without the stack.
 
 ## References
 

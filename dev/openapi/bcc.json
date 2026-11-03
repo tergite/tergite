@@ -1,0 +1,1822 @@
+{
+  "components": {
+    "schemas": {
+      "Body_submit_job_jobs_post": {
+        "properties": {
+          "upload_file": {
+            "format": "binary",
+            "title": "Upload File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_file"
+        ],
+        "title": "Body_submit_job_jobs_post",
+        "type": "object"
+      },
+      "Booking": {
+        "description": "Schema for booking\n\nAttributes:\n    id: the unique identifier of the booking\n    user_id: the unique identifier of the user associated with this booking\n    user: the user associated with this booking",
+        "properties": {
+          "end_utc": {
+            "format": "date-time",
+            "title": "End Utc",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "start_utc": {
+            "format": "date-time",
+            "title": "Start Utc",
+            "type": "string"
+          },
+          "total_duration": {
+            "title": "Total Duration",
+            "type": "number"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "user_id",
+          "start_utc",
+          "end_utc",
+          "total_duration"
+        ],
+        "title": "Booking",
+        "type": "object"
+      },
+      "BookingsConfig": {
+        "description": "Configurations for the booking service",
+        "properties": {
+          "max_idle_time": {
+            "title": "Max Idle Time",
+            "type": "integer"
+          },
+          "max_slots_per_day": {
+            "title": "Max Slots Per Day",
+            "type": "integer"
+          },
+          "max_time_slot_length": {
+            "title": "Max Time Slot Length",
+            "type": "number"
+          },
+          "min_time_slot_length": {
+            "title": "Min Time Slot Length",
+            "type": "number"
+          }
+        },
+        "required": [
+          "max_time_slot_length",
+          "min_time_slot_length",
+          "max_slots_per_day",
+          "max_idle_time"
+        ],
+        "title": "BookingsConfig",
+        "type": "object"
+      },
+      "CancellationDetails": {
+        "description": "Details to do with a given cancellation request",
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "CancellationDetails",
+        "type": "object"
+      },
+      "GeneralMessage": {
+        "description": "A general message object sent on the API",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Data"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "success",
+              "error",
+              "cancelled",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "GeneralMessage",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Job": {
+        "additionalProperties": true,
+        "description": "Representation of the job to be executed by this application\n\nAttributes:\n    job_id: the unique identifier of this job\n    user_id: the unique identifier of the user who owns this job\n    estimated_duration: the estimated time this job could take to execute in seconds;\n        default = None\n    timestamps: the timestamps for each stage of running this job; default = None\n    status: the status of this job; default = JobStatus.PENDING\n    failure_reason: the reason why the job has failed; default = None\n    etc.",
+        "properties": {
+          "actual_duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The seconds the job took to execute, once it has",
+            "readOnly": true,
+            "title": "Actual Duration"
+          },
+          "calibration_date": {
+            "title": "Calibration Date",
+            "type": "string"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "device": {
+            "title": "Device",
+            "type": "string"
+          },
+          "download_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Url"
+          },
+          "estimated_duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Duration"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage",
+            "default": 0
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus",
+            "default": "pending"
+          },
+          "timestamps": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamps"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "device",
+          "calibration_date",
+          "actual_duration"
+        ],
+        "title": "Job",
+        "type": "object"
+      },
+      "JobResult": {
+        "additionalProperties": true,
+        "description": "The results of the job",
+        "properties": {
+          "memory": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "items": {
+                  "items": {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        {
+                          "items": {
+                            "type": "number"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Memory"
+          }
+        },
+        "title": "JobResult",
+        "type": "object"
+      },
+      "JobStatus": {
+        "description": "The overall status of the job, coarser than its stage",
+        "enum": [
+          "pending",
+          "executing",
+          "failed",
+          "successful",
+          "cancelled"
+        ],
+        "title": "JobStatus",
+        "type": "string"
+      },
+      "MSSTokenClaims": {
+        "description": "The model of the claims stored in special MSS JWT token given to users",
+        "properties": {
+          "is_pulse_allowed": {
+            "default": false,
+            "title": "Is Pulse Allowed",
+            "type": "boolean"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "user_id"
+        ],
+        "title": "MSSTokenClaims",
+        "type": "object"
+      },
+      "NewBookingInfo": {
+        "description": "Schema for creating new bookings",
+        "properties": {
+          "end_utc": {
+            "format": "date-time",
+            "title": "End Utc",
+            "type": "string"
+          },
+          "start_utc": {
+            "format": "date-time",
+            "title": "Start Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_utc",
+          "end_utc"
+        ],
+        "title": "NewBookingInfo",
+        "type": "object"
+      },
+      "NewUserInfo": {
+        "description": "Schema for creating new users",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_admin": {
+            "default": false,
+            "title": "Is Admin",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "title": "NewUserInfo",
+        "type": "object"
+      },
+      "PaginatedListResponse_Booking_": {
+        "properties": {
+          "data": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "skip": {
+            "default": 0,
+            "title": "Skip",
+            "type": "integer"
+          }
+        },
+        "title": "PaginatedListResponse[Booking]",
+        "type": "object"
+      },
+      "PaginatedListResponse_UserProfile_": {
+        "properties": {
+          "data": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/UserProfile"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "skip": {
+            "default": 0,
+            "title": "Skip",
+            "type": "integer"
+          }
+        },
+        "title": "PaginatedListResponse[UserProfile]",
+        "type": "object"
+      },
+      "RecalibrationInfo": {
+        "description": "Basic information about recalibration",
+        "properties": {
+          "current_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Job Id"
+          },
+          "current_job_started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Job Started At"
+          },
+          "current_job_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecalibrationStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "interval": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval"
+          },
+          "next_job_enqueued_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Job Enqueued At"
+          },
+          "next_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Job Id"
+          },
+          "next_job_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecalibrationStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous_job_ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Job Ended At"
+          },
+          "previous_job_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Job Error"
+          },
+          "previous_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Job Id"
+          },
+          "previous_job_started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Job Started At"
+          },
+          "previous_job_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecalibrationStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "RecalibrationInfo",
+        "type": "object"
+      },
+      "RecalibrationStatus": {
+        "description": "Where a recalibration is, in the words RQ had for them, which the API still returns",
+        "enum": [
+          "scheduled",
+          "started",
+          "finished",
+          "failed"
+        ],
+        "title": "RecalibrationStatus",
+        "type": "string"
+      },
+      "Stage": {
+        "description": "Stage in the BCC chain",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "title": "Stage",
+        "type": "integer"
+      },
+      "TimestampPair": {
+        "description": "When a stage of the job started and finished, as ISO strings",
+        "properties": {
+          "finish_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "finished, as a datetime",
+            "readOnly": true,
+            "title": "Finish Timestamp"
+          },
+          "finished": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished"
+          },
+          "start_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "started, as a datetime",
+            "readOnly": true,
+            "title": "Start Timestamp"
+          },
+          "started": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started"
+          }
+        },
+        "required": [
+          "start_timestamp",
+          "finish_timestamp"
+        ],
+        "title": "TimestampPair",
+        "type": "object"
+      },
+      "Timestamps": {
+        "description": "Timestamps for the job",
+        "properties": {
+          "execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimestampPair"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "final": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimestampPair"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "post_processing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimestampPair"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pre_processing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimestampPair"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimestampPair"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "Timestamps",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "description": "A token response sent on the API",
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "token_type": {
+            "const": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "UserProfile": {
+        "description": "Schema for a user's profile",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_admin": {
+            "default": false,
+            "title": "Is Admin",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "title": "UserProfile",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Interfaces Quantum processor via REST API",
+    "title": "Backend Control Computer",
+    "version": "v2026.11.0-rc.3"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Greets a caller that MSS has signed for, to check it can reach this device\n\nReturns:\n    a welcome message",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Root"
+      }
+    },
+    "/bookings": {
+      "get": {
+        "description": "Views all available bookings\n\nArgs:\n    skip: number of records to ignore at the top of the returned results; default is 0\n    limit: maximum number of records to return; default is None.\n    sort: fields to sort by; prepending \"-\" returns the records in descending order\n    db_engine: the SQL database engine to query\n    user_id: the unique identifier of the owner of the given bookings\n    min_start_utc: the minimum start time in UTC\n    max_start_utc: the maximum start time in UTC\n\nReturns:\n    the paginated list of the available bookings",
+        "operationId": "view_bookings_bookings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Limit"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Sort",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_start_utc",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Start Utc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_start_utc",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Start Utc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "user_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedListResponse_Booking_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View Bookings"
+      },
+      "post": {
+        "description": "Creates a booking for the user of the given token\n\nArgs:\n    device: what the device runs on\n    user_id: the MSS user_id as sent by MSS\n    booking_info: the information about the new booking\n\nReturns:\n    the newly created booking",
+        "operationId": "create_booking_bookings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewBookingInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Booking"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Booking"
+      }
+    },
+    "/bookings/config": {
+      "get": {
+        "description": "Views the configurations for the bookings service\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the instance of the bookings configurations",
+        "operationId": "view_bookings_config_bookings_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingsConfig"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "View Bookings Config"
+      }
+    },
+    "/bookings/{booking_id}/cancel": {
+      "post": {
+        "description": "Cancels a booking of given id for the user of the given token\n\nArgs:\n    device: what the device runs on\n    booking_id: the unique identifier of the booking to cancel\n    user_id: the MSS user_id as sent by MSS\n    is_mss_admin: whether the user is an admin in MSS or not\n\nReturns:\n    the general message object with the status",
+        "operationId": "cancel_booking_bookings__booking_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "booking_id",
+            "required": true,
+            "schema": {
+              "title": "Booking Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Booking"
+      }
+    },
+    "/dynamic-properties": {
+      "get": {
+        "description": "Retrieves the device properties that are changing with time i.e. calibration data\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the device's latest calibration data",
+        "operationId": "get_dynamic_properties_dynamic_properties_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Dynamic Properties"
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Answers that the API runs, for bcc start and load balancers, without MSS's signature\n\nReturns:\n    the status \"ok\"",
+        "operationId": "check_health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Check Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Check Health"
+      }
+    },
+    "/jobs": {
+      "get": {
+        "description": "Views all jobs that belong to the current user\n\nArgs:\n    device: what the device runs on\n    user_id: the unique identifier of the currently logged in user\n    status: the status of the jobs to return; default = None, i.e. all statuses\n    skip: number of records to ignore at the top of the returned results; default is 0\n    limit: maximum number of records to return; default is JOBS_PAGE_SIZE, at most\n        MAX_JOBS_PAGE_SIZE\n\nReturns:\n    the paginated list of the user's jobs",
+        "operationId": "view_jobs_jobs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/JobStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response View Jobs Jobs Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View Jobs"
+      },
+      "post": {
+        "description": "Receives quantum jobs to process. This can be done by any IP address\n\nArgs:\n    device: what the device runs on\n    upload_file: the quantum job file uploaded\n    token_claims: the user_id and job_id associated with this request\n    should_force_normal_queue: whether to force the job to run on the normal queue or not\n\nReturns:\n    the submitted job",
+        "operationId": "submit_job_jobs_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "force_normal_queue",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Force Normal Queue",
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_submit_job_jobs_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Job"
+      }
+    },
+    "/jobs/{job_id}": {
+      "delete": {
+        "description": "Deletes the job of given job_id if job belongs to current user or if user is admin\n\nArgs:\n    device: what the device runs on\n    job_id: the unique identifier of the job\n    user_id: the JWT token for the user, transformed into user_id by callback\n    is_mss_admin: whether the user is an mss admin or not\n\nReturns:\n    a general message showing status\nRaises:\n    NotAuthenticatedError: user not found\n    ItemNotFoundError: Job {job_id} not found",
+        "operationId": "remove_job_jobs__job_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Job"
+      },
+      "get": {
+        "description": "View the job of given job_id if job belongs to current user or if user is admin\n\nArgs:\n    device: what the device runs on\n    job_id: the unique identifier of the job\n    user_id: the user_id as provided by MSS\n    is_mss_admin: whether the user is an mss admin or not\n\nReturns:\n    the job of the given job_id",
+        "operationId": "view_job_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View Job"
+      }
+    },
+    "/jobs/{job_id}/cancel": {
+      "post": {
+        "description": "Cancels the job of given job_id if job belongs to current user or if user is admin\n\nArgs:\n    device: what the device runs on\n    job_id: the unique identifier of the job\n    details: the extra information passed when canceling the job\n    mss_auth_details: the auth details from MSS for this request\n\nReturns:\n    a general message showing status\nRaises:\n    NotAuthenticatedError: user not found\n    ItemNotFoundError: Job {job_id} not found\n    JobAlreadyCompleteError (406): job {job_id} is already {status}",
+        "operationId": "cancel_job_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancellationDetails"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Job"
+      }
+    },
+    "/logfiles/{logfile_id}": {
+      "get": {
+        "description": "Downloads the job logfile\n\nArgs:\n    device: what the device runs on\n    logfile_id: the id of the logfile usually the job id\n\nRaises:\n    ItemNotFoundError: logfile {logfile_id} not found",
+        "operationId": "download_logfile_logfiles__logfile_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "logfile_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Logfile Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Logfile"
+      }
+    },
+    "/me": {
+      "delete": {
+        "description": "Deletes the profile of the current user\n\nArgs:\n    device: what the device runs on\n    user_id: the user_id as submitted by MSS\n\nRaises:\n    ItemNotFoundError (404): user not found\n\nReturns:\n    A general message object with status",
+        "operationId": "delete_profile_me_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delete Profile"
+      },
+      "get": {
+        "description": "Views the profile of the current user\n\nArgs:\n    db_engine: the SQL database to query\n    user_id: the user_id as submitted by MSS\n\nRaises:\n    ItemNotFoundError (404): user not found\n\nReturns:\n    the user profile of the current user",
+        "operationId": "view_profile_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "View Profile"
+      }
+    },
+    "/recalibration/cancel": {
+      "post": {
+        "description": "Cancels recalibration on this device\n\nOnly MSS admin users can initialize recalibration\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    general information on the status of the request",
+        "operationId": "cancel_recalibration_recalibration_cancel_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Cancel Recalibration"
+      }
+    },
+    "/recalibration/info": {
+      "get": {
+        "description": "Gets the current information about the recalibration\n\nOnly MSS admin users can get recalibration info\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the recalibration's schedule and status",
+        "operationId": "get_recalibration_info_recalibration_info_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecalibrationInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Recalibration Info"
+      }
+    },
+    "/recalibration/init": {
+      "post": {
+        "description": "Initializes recalibration\n\nOnly MSS admin users can initialize recalibration\n\nArgs:\n    device: what the device runs on\n    start_timestamp: the start time of the recalibration; default = None i.e. straight away\n    interval: the recalibration interval; default = None i.e. no repeat\n\nReturns:\n    the status of the recalibration",
+        "operationId": "initialize_recalibration_recalibration_init_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_timestamp",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start Timestamp"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interval",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Interval"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Initialize Recalibration"
+      }
+    },
+    "/static-properties": {
+      "get": {
+        "description": "Retrieves the device properties that are not changing\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the device's static properties",
+        "operationId": "get_static_properties_static_properties_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Static Properties"
+      }
+    },
+    "/switch/off": {
+      "post": {
+        "description": "Switches off this device\n\nOnly MSS admin users can switch on and off this device\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the status of the request",
+        "operationId": "switch_off_switch_off_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Switch Off"
+      }
+    },
+    "/switch/on": {
+      "post": {
+        "description": "Switches on this device\n\nOnly MSS admin users can switch on and off this device\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the status of the request",
+        "operationId": "switch_on_switch_on_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Switch On"
+      }
+    },
+    "/switch/status": {
+      "get": {
+        "description": "Gets the status of this device\n\nArgs:\n    device: what the device runs on\n\nReturns:\n    the status, \"ON\" or \"OFF\"",
+        "operationId": "get_switch_status_switch_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Switch Status"
+      }
+    },
+    "/token": {
+      "post": {
+        "description": "Get a token specific to the associated MSS instance for the provided token claims.\n\nThis is a special route as it can only be used through the associated MSS instance.\nOn top of that MSS being whitelisted, the public key of that MSS will be used to encrypt\nthe access token that will be sent over to the user.\n\nTake note that the JWT must also contain the `user_id` as well as the `job_id`\nas these will be used to ensure a JWT is not used for another job.\n\nTake note also that if the given user does not exist, the user is created with\na random email.\n\nArgs:\n    device: what the device runs on\n    body: the http request body sent\n    mss_user_id: the user_id as specified by MSS\n\nReturns:\n    the user token response",
+        "operationId": "get_mss_token_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MSSTokenClaims"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Mss Token"
+      }
+    },
+    "/users": {
+      "get": {
+        "description": "Views all users\n\nOnly MSS admin users can view this\n\nArgs:\n    skip: number of records to ignore at the top of the returned results; default is 0\n    limit: maximum number of records to return; default is None.\n    db_engine: the SQL database to query\n\nReturns:\n    the paginated list of the available users",
+        "operationId": "view_users_users_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedListResponse_UserProfile_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View Users"
+      },
+      "post": {
+        "description": "Creates a user given the name and email\n\nOnly MSS admin users can create users here\n\nArgs:\n    user_info: the information about the new user\n    db_engine: the SQL database to query\n\nReturns:\n    the created user",
+        "operationId": "create_user_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewUserInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create User"
+      }
+    },
+    "/users/{user_id}": {
+      "delete": {
+        "description": "Deletes the user of the given user_id\n\nOnly admins are allowed to remove users\n\nArgs:\n    device: what the device runs on\n    user_id: the unique identifier of the user\n\nRaises:\n    ItemNotFoundError: user not found\n\nReturns:\n    A general message object with status",
+        "operationId": "remove_user_users__user_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove User"
+      }
+    }
+  }
+}
