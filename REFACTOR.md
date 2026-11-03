@@ -1,8 +1,8 @@
 # Refactor plan
 
-Nine steps, in order. Each numbered item is one commit, verified before the next. Steps 4 and 5
+Eleven steps, in order. Each numbered item is one commit, verified before the next. Steps 4 and 5
 need tergite-backend to accept the gate-level payload (B2 below) in the stack the e2e runs
-against; steps 0 to 3 do not wait for it.
+against; steps 0 to 3 do not wait for it. Step 8 needs pulse-level jobs (B6, F3, F4).
 
 The SDK today is a Qiskit provider that turns circuits into pulse schedules on the user's
 machine, from the calibration MSS publishes, and uploads them as a `PulseQobj` with sampled
@@ -13,6 +13,21 @@ backend, where the calibration lives, and makes the SDK send OpenQASM 3: the sam
 `tergite-qpu-driver` uses, built in tergite-backend's own code. The SDK then depends on
 current Qiskit and nothing vendored, and its wire models come from the OpenAPI specs of MSS and
 BCC instead of being transcribed by hand.
+
+Pulse-level control, which Qiskit 2 has no `qiskit.pulse` for, returns as OpenQASM 3's own
+pulse grammar, OpenPulse (D6), in the same payload. The plan ends with:
+
+- **One wire format**, OpenQASM 3, for gates and, optionally with OpenPulse `defcal` and `cal`
+  blocks, for pulses: one parser and one translator into quantify-scheduler on the backend.
+- **An SDK on current Qiskit** with nothing vendored and no pulse compilation of its own: it
+  sends circuits or pulse programs, and offers the device's frames and gate calibrations.
+- **Gate pulses in one place**, the backend's calibration-driven elements (the CZ in its
+  `CouplerEdge`), which a job's `defcal` may override; the qobj path, with the `wacqt_cz`
+  waveforms the SDK sampled, deleted (B5).
+- **Simulators on qiskit-aer** (B3), and so neither the end-of-life qiskit-dynamics nor
+  `qiskit~=0.45` left in the backend.
+- **Pulse access opt-in per project**, granted by an admin in the dashboard (F3), and guarded
+  by the backend (B6).
 
 ## Decisions to confirm
 
@@ -38,6 +53,17 @@ Each has a recommendation; the plan is written as if it were taken.
 - **D5. One coordinated release.** The backend accepts both payloads for one release (B2),
   the SDK of that release sends only the new one, and the next backend release deletes the
   qobj path (B5).
+- **D6. Pulse level is OpenQASM 3 with OpenPulse, opt-in per project, guarded by the
+  backend.** A job's OpenQASM may carry `defcal` blocks, which replace a gate's pulses within
+  that job, and `cal` blocks, which play pulses on the frames the device publishes. Only a
+  project an admin granted pulse access, in the dashboard, may send them; the backend
+  enforces limits its operators set per device, and refuses pulse programs on a device
+  without them. The SDK writes no pulses itself: users write them with `oqpy`, Amazon
+  Braket's library for OpenQASM 3 with OpenPulse, or by hand.
+- **D7. The qobj path goes one release after pulse-level jobs arrive**, as D5 has it: the
+  release that brings them still accepts qobjs, deprecated, so that older SDKs keep working
+  and pulse users have a release to move to OpenPulse (step 9). Recommended over deleting it
+  in the same release, which would break every older SDK the day the backend upgrades.
 
 ## What the other repos do first
 
@@ -47,11 +73,14 @@ Each of these belongs in that repo's own plan; the SDK steps name the one they n
 | --- | --- | --- |
 | B1 | tergite-backend | Commit its OpenAPI spec as MSS does: `dev/openapi/export.py` writes `dev/openapi/openapi.json`, every route declares its response, and `tests/test_openapi.py` fails when the file is stale. |
 | B2 | tergite-backend | `POST /jobs` also accepts the gate-level payload below. The heavy worker parses each circuit with `qiskit.qasm3`, maps each instruction to quantify-scheduler gate-level operations (`Rxy`, `Rz`, `CZ`, `Measure`, `Reset`, `IdlePulse`; CX, SWAP and the rest decomposed into them) and compiles the schedule with `SerialCompiler` against a `QuantumDevice` built from the backend's calibration. Pulses are then quantify's parametric ones (DRAG from `amp180`/`motzoi`/`duration`, dispersive measurement, square CZ), sampled on the backend. It follows `tergite-qpu-driver`'s design, without depending on qpi. Results keep today's `Job.result.memory` shapes, with clbits ordered as Qiskit orders them (clbit 0 rightmost). |
-| B3 | tergite-backend | The simulators per D3, which lets the qiskit extra leave `qiskit~=0.45` and `qiskit-dynamics`. |
+| B3 | tergite-backend | The simulators per D3, which lets the qiskit extra leave `qiskit~=0.45` and `qiskit-dynamics`, which has reached its end of life. They run gate-level jobs only; a pulse program is refused (B6). |
 | B4 | tergite-backend | `Device.basis_gates` lists the gates B2 compiles, and `DeviceCalibration` keeps the durations and errors the SDK's `Target` reads: `pi_pulse_duration`, `readout_assignment_error`, the resonator's pulse and integration times, and T1/T2. |
-| B5 | tergite-backend | One release after B2: delete the `PulseQobj` path, `libs/qiskit/`, the vendored Qobj encoder and decoder, and `PulseLibInstruction`. |
+| B5 | tergite-backend | One release after B6 (D7): delete the `PulseQobj` path, `libs/qiskit/`, the vendored Qobj encoder and decoder, `PulseLibInstruction`, and the qobj translator into quantify (`quantify/instruction.py`, the channel registry). |
+| B6 | tergite-backend | Pulse-level jobs (D6), each item one commit: (1) one parser for every job, `openpulse`'s, which reads plain OpenQASM 3 too: gates translate as B2 has them, gate definitions in the program are inlined, and the quantify extra no longer needs Qiskit; (2) `defcal` blocks replace a gate's pulses within the job, and `cal` blocks translate into quantify operations on the published frames: `play` of an allow-list of waveforms (gaussian, drag, constant, gaussian_square, and bounded sample arrays), `shift_phase`, `set_phase`, `shift_frequency`, `set_frequency`, `delay` and `capture`; (3) each device's frames, a drive, a readout and each coupler's flux, named after its ports and at their calibrated frequencies, and its gates' calibrations as OpenPulse `defcal`s, sent to MSS with its calibration (F4); (4) the guardrails: per-device limits in the backend config (amplitude per kind of port, how far a frame may move from its calibrated frequency, energy and duty cycle per shot and per job, program duration, waveform samples, capture length), checked at upload with the reason for a refusal, and the pulse-access claim of the job token (F3); a device without limits refuses pulse programs; (5) the simulators refuse pulse programs. `dev/check_gate_level.py` checks the limits are set. |
 | F1 | tergite-frontend | MSS's `JobResult` gains the optional fields of D4, which the backend fills in its `job_updated` event. |
 | F2 | tergite-frontend | `ui/fixtures` gain a project with no QPU seconds left and an app token for it, which this repo's e2e uses to check MSS's quota refusal (step 1.7). Its other fixtures, MSS's config and the backends' settings and keys, the e2e already reads from the frontend checkout. |
+| F3 | tergite-frontend | Pulse access per project (D6): the project model gains `is_pulse_allowed`, off by default; MSS signs it into the job token it gives the backend; admins grant and revoke it in the dashboard's project forms (`admin-projects`), the projects page shows it, and a project's members request it as a new request type, `project-pulse-access`, beside `project-qpu-seconds` (`services/requests`), which admins approve in `admin-requests`. `ui/fixtures` gain a project with it and an app token, for this repo's e2e (step 8). |
+| F4 | tergite-frontend | MSS's `DeviceCalibration` gains the device's frames and its gates' `defcal`s, optional, which the backend sends with its calibration (B6.3) and the SDK reads (step 8). |
 
 **The gate-level payload**, uploaded to the `upload_url` as today's multipart `upload_file`.
 Its shape follows qpi's `JobPayload` on purpose, so the two stacks read alike:
@@ -66,6 +95,23 @@ Its shape follows qpi's `JobPayload` on purpose, so the two stacks read alike:
     "meas_return": "single"
   }
 }
+```
+
+**A pulse-level job** (B6) is the same payload, its `qasm` an OpenQASM 3 program with OpenPulse
+blocks on the frames the device publishes, e.g. a job's own pulses for `x`:
+
+```
+OPENQASM 3.0;
+defcalgrammar "openpulse";
+cal {
+    extern gaussian(complex[float[64]], duration, duration) -> waveform;
+}
+defcal x $0 {
+    play(q00_drive, gaussian(0.25, 80ns, 20ns));
+}
+bit[1] c;
+x $0;
+c[0] = measure $0;
 ```
 
 ## Conventions
@@ -415,8 +461,36 @@ Needs B2 and B4 in the e2e stack.
 3. **`examples/`**: the notebooks and `hello_world.py` run against the e2e stack, and
    `tests/e2e` executes `hello_world.py`.
 
-## Step 8: close out
+## Step 8: pulse-level jobs
+
+Needs B6, F3 and F4 in the stack the e2e runs against.
+
+1. **`backend.run` takes pulse programs**: OpenQASM 3 text, or anything with `to_qasm()`, such
+   as an `oqpy.Program`, sent as a circuit's `qasm` as it is; the SDK does not check pulses,
+   which the backend does with the device's limits, and runs them at `meas_level` 1, or 2
+   where the program measures.
+2. **`backend.run(circuits, calibrations=[...])`** puts the `defcal`s given, as text or `oqpy`,
+   into each circuit's OpenQASM, after a `defcalgrammar "openpulse";`, so that a job runs its
+   own pulses for a gate.
+3. **`backend.frames` and `backend.calibrations`**: the device's frames as `oqpy` frames, and its
+   gates' `defcal`s, both from the calibration MSS serves (F4); `oqpy` is the `pulse` extra, so
+   that gate-level users do not install it.
+4. **e2e on Loke's dummy clusters**: a job with its own `defcal x`, a `cal` block that plays and
+   captures, and the refusals: a project without pulse access (F3's fixture), a pulse beyond
+   the device's limits, and a pulse program on a simulator. The performance checks hold.
+
+## Step 9: from OpenPulse schedules to OpenQASM 3
+
+1. **A migration script**, `examples/migration/schedule_to_openpulse.py`, run with Qiskit 1.x: it
+   turns a `qiskit.pulse` `Schedule` into an `oqpy` program, channel to frame as the backend's
+   qobj path maps them (`d{i}` the drive, `m{i}` the readout, `u{k}` the coupler of
+   `coupling_dict`), with a test of each kind of instruction.
+2. **The guide** in the README, and the SDK's error for a pulse schedule points to it, as does
+   the `OpenPulseBackend` deprecation; DESIGN.md describes both levels.
+
+## Step 10: close out
 
 1. Read `DESIGN.md` against the tree: every path it names exists.
-2. Run `dev/e2e_native_test.sh` against the backend release that ships B2.
+2. Run `dev/e2e_native_test.sh` against the backend release that ships B2, B3 and B6, and check
+   the plan's end state holds.
 3. Delete `docs/prototypes/` and this file; the history keeps both.
