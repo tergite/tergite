@@ -33,6 +33,7 @@ from .api.job_file import CircuitPayload, JobFile, JobParams
 from .exc import TergiteError
 from .job import Job
 from .pulse import (
+    MIGRATION_GUIDE_URL,
     add_calibrations,
     get_calibration_qasm,
     get_calibrations,
@@ -258,7 +259,9 @@ class OpenPulseBackend(TergiteBackend):
 
     def __init__(self, /, *, data: "Device", provider: "Provider", base_url: str):
         warnings.warn(
-            "OpenPulseBackend is deprecated: use TergiteBackend", DeprecationWarning
+            "OpenPulseBackend is deprecated: use TergiteBackend, and write pulses in "
+            f"OpenPulse: {MIGRATION_GUIDE_URL}",
+            DeprecationWarning,
         )
         super().__init__(data=data, provider=provider, base_url=base_url)
 
@@ -284,18 +287,13 @@ class _JobItem:
 
 
 def _get_entry_list(run_input: Any) -> List[Any]:
-    """Gets the circuits and programs of what run() was given: one of them, or a list
-
-    Raises:
-        TergiteError: Tergite backends run circuits or OpenQASM 3 programs, not {type}
-    """
-    if isinstance(run_input, (QuantumCircuit, str)) or hasattr(run_input, "to_qasm"):
+    """Gets the circuits and programs of what run() was given: one of them, or a list; one
+    that is neither, for the refusal of an entry"""
+    is_single = isinstance(run_input, (QuantumCircuit, str)) or hasattr(
+        run_input, "to_qasm"
+    )
+    if is_single or not isinstance(run_input, Iterable):
         return [run_input]
-    if not isinstance(run_input, Iterable):
-        raise TergiteError(
-            "Tergite backends run circuits or OpenQASM 3 programs, not "
-            f"{type(run_input).__name__}"
-        )
     return list(run_input)
 
 

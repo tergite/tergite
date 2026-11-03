@@ -94,7 +94,9 @@ def test_run_refuses_what_is_neither_a_circuit_nor_a_program(api, run_input):
     backend = _get_backend("loke")
 
     with pytest.raises(
-        TergiteError, match="run circuits or OpenQASM 3 programs, not int"
+        TergiteError,
+        match="run circuits or OpenQASM 3 programs, not int; a pulse schedule is written "
+        "in OpenPulse now: https://github.com/tergite/tergite#migrating-from-pulse-schedules",
     ):
         backend.run(run_input)
 

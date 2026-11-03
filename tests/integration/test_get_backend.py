@@ -76,6 +76,14 @@ def test_deprecated_backend_names(api, alias):
     assert backend == provider.get_backend("loke")
 
 
+def test_open_pulse_backend_points_to_the_migration_guide(api):
+    provider = _get_test_provider(url=API_URL)
+    device = Device.model_validate(get_record(BACKENDS_LIST, _filter={"name": "loke"}))
+
+    with pytest.warns(DeprecationWarning, match="#migrating-from-pulse-schedules"):
+        OpenPulseBackend(data=device, provider=provider, base_url=API_URL)
+
+
 @pytest.mark.parametrize("backend_name", [*GOOD_BACKENDS, NON_PULSE_BACKEND])
 def test_backend_hash(api, backend_name):
     """Equal backends hash alike, so backends can be set members and dict keys"""

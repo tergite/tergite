@@ -197,6 +197,51 @@ job = backend.run(program, shots=1000)
 print(job.result().get_memory())          # each shot's IQ point
 ```
 
+### Migrating from Pulse Schedules
+
+A `qiskit.pulse` schedule that ran on the previous SDK is written again in oqpy, each channel
+on the frame of the same name in `backend.frames`:
+
+| Channel | Frame |
+| --- | --- |
+| `DriveChannel(i)` | the drive of the `i`-th qubit by the number in its id, e.g. `q00_drive` |
+| `MeasureChannel(i)`, `AcquireChannel(i)` | that qubit's readout, e.g. `q00_readout` |
+| `ControlChannel(k)` | the coupler the device names `u{k}`, e.g. `q00_q01_coupler` |
+
+```python
+# before, with Qiskit 1.x
+with pulse.build() as schedule:
+    pulse.play(pulse.Drag(40, 0.2, 10, 2.0), pulse.DriveChannel(0))
+    pulse.shift_phase(0.5, pulse.DriveChannel(0))
+    pulse.acquire(1000, pulse.AcquireChannel(0), pulse.MemorySlot(0))
+job = backend.run(schedule)
+
+# now
+frames = backend.frames
+drag = oqpy.declare_waveform_generator(
+    "drag",
+    [("amp", oqpy.complex128), ("d", oqpy.duration), ("sigma", oqpy.duration), ("beta", oqpy.float64)],
+)
+c = oqpy.BitVar(name="c", size=1)
+program = oqpy.Program()
+with oqpy.Cal(program):
+    program.play(frames["q00_drive"], drag(0.2, 40e-9, 10e-9, 2e-9))
+    program.shift_phase(frames["q00_drive"], 0.5)
+program.measure(oqpy.PhysicalQubits[0], c[0])
+job = backend.run(program)
+```
+
+- **Durations are in seconds**, not samples: a sample is 1 ns, and a Drag's `beta`, which
+  qiskit counts in samples, is in seconds too.
+- **Waveforms** are OpenPulse's `constant`, `gaussian`, `gaussian_square`, `drag`, `sech` and
+  `sine`, or arrays of samples (`oqpy.WaveformVar(samples)`), which reproduce any qiskit pulse
+  exactly from its `get_waveform().samples`; qiskit lifts its Gaussians so their ends are zero,
+  OpenPulse's do not.
+- **An acquisition** becomes `measure`, with the device's calibrated readout, as above; or, for
+  raw IQ points, a `capture_v1` in the `cal` block, which runs after a readout pulse on the
+  same frame rather than alongside it.
+- **A phase or frequency change** takes 4 ns of its frame, which qiskit counts as none.
+
 - You can look at the [examples folder](./examples) for more samples.
 
 ## Examples and demos

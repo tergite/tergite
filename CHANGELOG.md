@@ -27,7 +27,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   response
 - Changed backends to run circuits, sent as OpenQASM 3 and compiled to pulses by the backend
   from its calibration, rather than pulse schedules the SDK built; it needs a tergite-backend
-  that accepts them, and pulse schedules are no longer accepted
+  that accepts them, and pulse schedules are no longer accepted: the README's "Migrating from Pulse Schedules"
+  shows how to write one in OpenPulse
 - Changed `OpenPulseBackend` and `OpenQASMBackend` into deprecated names of `TergiteBackend`,
   which every device now is
 - Changed the counts of a circuit with a classical register it never measures into, such as `c` beside the
