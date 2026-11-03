@@ -33,13 +33,12 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
 
 
 def test_simulator_2_qubit_gate(backend_provider: Provider):
-    """Can run a two-qubit gate operation on simulator when auth on MSS and backend is ON"""
+    """A Bell pair on the 2-qubit simulator reads 00 and 11 about half the time each"""
     backend = backend_provider.get_backend("qiskit_pulse_2q")
     backend.set_options(shots=1024)
 
     qc = circuit.QuantumCircuit(2)
     qc.h(0)
-    qc.h(1)
     qc.cx(0, 1)
     qc.measure_all()
 
@@ -48,12 +47,8 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
     wait_for_final_state(job)
     result = job.result().get_counts()
 
-    assert (
-        420 <= result["00"] <= 640
-    ), f"Expected {result['00']} to be between 450 and 640"
-    assert (
-        420 <= result["11"] <= 640
-    ), f"Expected {result['11']} to be between 450 and 640"
+    for bits in ("00", "11"):
+        assert 420 <= result[bits] <= 640, f"{bits}: {result[bits]} not in 420 to 640"
 
 
 def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):

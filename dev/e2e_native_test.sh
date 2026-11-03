@@ -14,12 +14,12 @@
 # Runs tests/e2e against the whole stack, each service running natively, as
 # tergite-frontend's dev/e2e_native_test.sh does: MongoDB, MSS from a tergite-frontend checkout,
 # seeded from its ui/fixtures, and the backends from a tergite-backend checkout, all from fresh
-# data in temp-native/. The simulators run in one backend process, from the backend's qiskit
-# extra, and Loke, on a dummy Qblox cluster, in another, from its quantify extra, as the two
-# extras conflict. MSS's config, the keys and the simulators' settings come from the frontend's
-# fixtures, which its own e2e keeps in step with MSS and the backend; Loke's settings, quantify
-# and calibration configs from this repo's tests/fixtures. The script's arguments go
-# to pytest, e.g. a test to run. Needs mongod, mongosh, uv, git and curl.
+# data in temp-native/. The simulators, on QuTiP, run in one backend process, and Loke, on a
+# dummy Qblox cluster, in another, both from one environment, so that each process's
+# performance is measured apart. MSS's config, the keys and the simulators' settings come
+# from the frontend's fixtures, which its own e2e keeps in step with MSS and the backend;
+# Loke's settings, quantify and calibration configs from this repo's tests/fixtures. The
+# script's arguments go to pytest, e.g. a test to run. Needs mongod, mongosh, uv, git and curl.
 #
 # Usage
 # =====
@@ -218,8 +218,8 @@ get_checkout tergite-backend "$BACKEND_PATH" "$BACKEND_REPO" "$BACKEND_BRANCH"
 BACKEND_PATH="$CHECKOUT_PATH"
 # name|executor|port|JWT secret|folder of its settings and calibration seed
 SIMULATORS=(
-  "qiskit_pulse_1q|qiskit_pulse_1q|$SIMULATORS_PORT|dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7|$FIXTURES_PATH"
-  "qiskit_pulse_2q|qiskit_pulse_2q|$SIMULATORS_PORT|$LOKE_JWT_SECRET|$FIXTURES_PATH"
+  "qiskit_pulse_1q|quantify|$SIMULATORS_PORT|dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7|$FIXTURES_PATH"
+  "qiskit_pulse_2q|quantify|$SIMULATORS_PORT|$LOKE_JWT_SECRET|$FIXTURES_PATH"
 )
 # the frontend's Loke has 8 qubits and is never recalibrated, as its e2e runs no worker; this
 # one is the dummy 2-qubit Loke that this repo's calibration configs recalibrate as it starts
@@ -228,8 +228,7 @@ LOKE="Loke|quantify|$LOKE_PORT|$LOKE_JWT_SECRET|$SDK_FIXTURES_PATH"
 # environments of their own, so that each checkout's .venv stays as it is
 echo "Installing MSS, the backends and the SDK"
 UV_PROJECT_ENVIRONMENT="$WORK_PATH/venvs/mss" uv sync -q --frozen --no-dev --project "$FRONTEND_PATH"
-UV_PROJECT_ENVIRONMENT="$WORK_PATH/venvs/simulators" uv sync -q --frozen --no-dev --extra qiskit --project "$BACKEND_PATH"
-UV_PROJECT_ENVIRONMENT="$WORK_PATH/venvs/loke" uv sync -q --frozen --no-dev --extra quantify --project "$BACKEND_PATH"
+UV_PROJECT_ENVIRONMENT="$WORK_PATH/venvs/backend" uv sync -q --frozen --no-dev --project "$BACKEND_PATH"
 UV_PROJECT_ENVIRONMENT="$WORK_PATH/venvs/sdk" uv sync -q --frozen --project "$ROOT_PATH"
 
 echo "Starting MongoDB"
@@ -247,9 +246,9 @@ for backend in "${SIMULATORS[@]}"; do
   simulator_env_args+=(--env-file "$WORK_PATH/backends/$name/backend.env")
 done
 write_env_file "$LOKE"
-start_service simulators bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/simulators/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $SIMULATORS_PORT ${simulator_env_args[*]}"
+start_service simulators bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/backend/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $SIMULATORS_PORT ${simulator_env_args[*]}"
 simulators_pid=$SERVICE_PID
-start_service loke bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/loke/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $LOKE_PORT --env-file '$WORK_PATH/backends/Loke/backend.env'"
+start_service loke bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/backend/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $LOKE_PORT --env-file '$WORK_PATH/backends/Loke/backend.env'"
 loke_pid=$SERVICE_PID
 
 echo "Starting MSS"
