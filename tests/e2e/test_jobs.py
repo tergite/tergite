@@ -42,6 +42,9 @@ def test_provider_job_from_a_new_provider(backend_provider: Provider):
     got = other_provider.job(job.job_id())
 
     assert got.status() == JobStatus.DONE
+    # from how the backend says it ran the job, as MSS keeps no payload
+    assert (got.shots, got.meas_level) == (job.shots, job.meas_level)
+    assert got.result().results[0].header["name"] == job.headers[0].name
     assert got.result().get_counts() == job.result().get_counts()
 
 

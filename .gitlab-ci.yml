@@ -39,6 +39,9 @@ e2e:
   stage: e2e
   variables:
     UV_PYTHON: "3.13"
+    # the packages the four environments install, jax, qiskit and quantify among them, kept
+    # between runs rather than downloaded each time
+    UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
     FRONTEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-frontend.git"
     BACKEND_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/tergite-backend.git"
     # this branch, tag or merge request's source branch, where the other repos have one of that name
@@ -58,6 +61,10 @@ e2e:
     - apt-get update -qq && apt-get install -y -qq mongodb-org
   script:
     - ./dev/e2e_native_test.sh
+  cache:
+    key: "uv-cache-e2e"
+    paths:
+      - .cache/uv
   artifacts:
     when: on_failure
     paths:

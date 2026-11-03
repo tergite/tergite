@@ -26,6 +26,10 @@ OPENPULSE_GRAMMAR = 'defcalgrammar "openpulse";'
 # what a program opens with, before which no defcal it is given may go
 HEADER_PREFIXES = ("OPENQASM", "include", "defcalgrammar")
 PULSE_EXTRA_HINT = "install the pulse extra: pip install 'tergite[pulse]'"
+# how to write a qiskit.pulse schedule again in OpenPulse
+MIGRATION_GUIDE_URL = (
+    "https://github.com/tergite/tergite#migrating-from-pulse-schedules"
+)
 
 
 @dataclass(frozen=True)
@@ -62,7 +66,8 @@ def get_program_qasm(program: Any) -> str:
     if not callable(to_qasm):
         raise TergiteError(
             "Tergite backends run circuits or OpenQASM 3 programs, not "
-            f"{type(program).__name__}: pulse schedules went with Qiskit's qiskit.pulse"
+            f"{type(program).__name__}; a pulse schedule is written in OpenPulse now: "
+            f"{MIGRATION_GUIDE_URL}"
         )
     if _is_oqpy_program(program):
         return to_qasm(encal_declarations=True)

@@ -27,13 +27,15 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   response
 - Changed backends to run circuits, sent as OpenQASM 3 and compiled to pulses by the backend
   from its calibration, rather than pulse schedules the SDK built; it needs a tergite-backend
-  that accepts them, and pulse schedules are no longer accepted
+  that accepts them, and pulse schedules are no longer accepted: the README's "Migrating from Pulse Schedules"
+  shows how to write one in OpenPulse
 - Changed `OpenPulseBackend` and `OpenQASMBackend` into deprecated names of `TergiteBackend`,
   which every device now is
 - Changed the counts of a circuit with a classical register it never measures into, such as `c` beside the
   `meas` of `measure_all()`, to include that register, as Qiskit's own backends do; the SDK dropped it before
-- Changed `provider.job(job_id)` counts to come without register names or leading zeros, as
-  MSS does not keep a job's circuits; the SDK no longer needs h5py or sympy
+- Changed `provider.job(job_id)` to read the job from MSS alone, its shots, level and circuits as the backend says
+  it ran them; counts come without register names, and of an older backend's job without leading zeros either;
+  the SDK no longer needs h5py or sympy
 - Changed to Qiskit 2.1 and later, from Qiskit 1.2, which kept the SDK from installing beside
   current Qiskit packages; each experiment result's `header` is a dict, as in Qiskit 2
 - Changed `tergite.services.configs.AccountInfo` to `tergite.accounts.Account`, with the rc file

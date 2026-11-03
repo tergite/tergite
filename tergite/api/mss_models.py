@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Any
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
@@ -143,17 +143,23 @@ class JobCreate(BaseModel):
     device: str = Field(..., title="Device")
 
 
-class JobResult(BaseModel):
+class MeasLevel(IntEnum):
+    integer_1 = 1
+    integer_2 = 2
+
+
+class MeasReturn(Enum):
+    single = "single"
+    avg = "avg"
+
+
+class JobResultCircuit(BaseModel):
     """
-    The results of the job
+    What a job's result needs of one of its circuits
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    memory: list[list[str]] | list[list[list[tuple[float, float]]]] | None = Field(
-        [], title="Memory"
-    )
+    name: str = Field(..., title="Name")
+    num_clbits: int = Field(..., title="Num Clbits")
 
 
 class JobStatus(Enum):
@@ -239,6 +245,23 @@ class TimestampPair(BaseModel):
 
     finished: AwareDatetime | None = Field(None, title="Finished")
     started: AwareDatetime | None = Field(None, title="Started")
+
+
+class JobResult(BaseModel):
+    """
+    The results of the job
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    circuits: list[JobResultCircuit] | None = Field(None, title="Circuits")
+    meas_level: MeasLevel | None = Field(None, title="Meas Level")
+    meas_return: MeasReturn | None = Field(None, title="Meas Return")
+    memory: list[list[str]] | list[list[list[tuple[float, float]]]] | None = Field(
+        [], title="Memory"
+    )
+    shots: int | None = Field(None, title="Shots")
 
 
 class JobTimestamps(BaseModel):

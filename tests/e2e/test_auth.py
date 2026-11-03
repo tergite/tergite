@@ -22,12 +22,14 @@ REFUSED_TOKENS = {
     "unknown": "not-a-token-mss-has",
     "expired": "7e80d9eead6f36497f5563864a6cdc7934566903ace26e3f",
     "inactive project": "c90f2b3ee9b161cdafc63d3f15f2c2cf79a8c6cf19e3519f",
+    "no QPU seconds left": "3f18253685955b7b67324f19dd0d506936bee1de8b422031",
 }
 
 
 @pytest.mark.parametrize("token", REFUSED_TOKENS.values(), ids=REFUSED_TOKENS.keys())
 def test_refused_token_cannot_submit(token: str):
-    """MSS refuses a job submitted with an unknown, expired or inactive project's token"""
+    """MSS refuses a job submitted with an unknown or expired token, or that of an inactive
+    project or of one with no QPU seconds left"""
     provider = Tergite.use_provider_account(
         service_name="refused", url=os.environ["API_URL"], token=token
     )

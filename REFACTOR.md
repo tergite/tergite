@@ -498,12 +498,17 @@ Needs B6, F3 and F4 in the stack the e2e runs against.
 
 ## Step 9: from OpenPulse schedules to OpenQASM 3
 
-1. **A migration script**, `examples/migration/schedule_to_openpulse.py`, run with Qiskit 1.x: it
-   turns a `qiskit.pulse` `Schedule` into an `oqpy` program, channel to frame as the backend's
-   qobj path maps them (`d{i}` the drive, `m{i}` the readout, `u{k}` the coupler of
-   `coupling_dict`), with a test of each kind of instruction.
-2. **The guide** in the README, and the SDK's error for a pulse schedule points to it, as does
-   the `OpenPulseBackend` deprecation; DESIGN.md describes both levels.
+1. **The guide** in the README, "Migrating from Pulse Schedules": which frame each `qiskit.pulse`
+   channel is (`d{i}` the drive, `m{i}` and `a{i}` the readout of the `i`-th qubit by number,
+   `u{k}` the coupler of `coupling_dict`, as the backend's qobj path mapped them), a schedule
+   written again in oqpy, and where the two differ. The SDK's refusal of what is neither a
+   circuit nor a program, and the `OpenPulseBackend` deprecation, link to it; DESIGN.md
+   describes both levels.
+2. **No migration script.** One was planned, to turn a `Schedule` into an oqpy program under
+   Qiskit 1.x, and dropped: the previous SDK compiled users' circuits to schedules itself, so
+   its users need nothing, and the examples and notebooks build no schedule; only hand-written
+   schedules would need it, of which none are known, while the script would need a Qiskit 1.x
+   environment and a CI job of its own. The guide is enough to rewrite one by hand.
 
 ## Step 10: close out
 

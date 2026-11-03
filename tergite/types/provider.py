@@ -21,7 +21,7 @@
 # Adilet Tuleuov, 2024
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
-from typing import Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from qiskit.providers.providerutils import filter_backends
 
@@ -31,6 +31,10 @@ from ..api.client import create_bcc_client, create_mss_client
 from ..backend import TergiteBackend
 from ..exc import BackendNotFoundError
 from ..job import STATUS_MAP, Job
+from ..results import CircuitHeader
+
+if TYPE_CHECKING:
+    from ..api.mss_models import JobResult
 
 
 class Provider:
@@ -82,9 +86,11 @@ class Provider:
     def job(self, job_id: str) -> Job:
         """Retrieve a runtime job given a job id
 
-        MSS does not keep how a job was run, so its measurement level and shots are taken
-        from the memory it returns, and its circuits' registers are unknown: counts come
-        keyed by their bits, without register names or leading zeros.
+        A backend sends how it ran the job with its result: the shots, measurement level
+        and each circuit's name and classical bits, so counts come with the circuits' names
+        and every bit, though not their registers' names. Of a job an older backend ran,
+        the shots and level are taken from the memory, and counts come keyed by their bits
+        without leading zeros.
 
         Args:
             job_id: the ID of the job
@@ -93,13 +99,14 @@ class Provider:
             an instance of `Job` corresponding to the given job id
         """
         remote_data = mss.get_job(self.mss_client, job_id)
-        memory = remote_data.result.memory if remote_data.result else []
-        is_counts = bool(memory) and bool(memory[0]) and isinstance(memory[0][0], str)
+        result = remote_data.result
         return Job(
             backend=self.get_backend(name=remote_data.device),
             job_id=job_id,
-            shots=len(memory[0]) if memory else None,
-            meas_level=2 if is_counts else 1,
+            headers=_get_result_headers(result),
+            shots=_get_result_shots(result),
+            meas_level=_get_result_meas_level(result),
+            meas_return=_get_result_meas_return(result),
             status=STATUS_MAP.get(remote_data.status),
             remote_data=remote_data,
             download_url=remote_data.download_url,
@@ -167,3 +174,41 @@ class Provider:
             raise BackendNotFoundError("No backend matches the criteria")
 
         return backends[0]
+
+
+def _get_result_headers(result: Optional["JobResult"]) -> Optional[List[CircuitHeader]]:
+    """Gets each circuit's header from those the result was sent with; none if it was not"""
+    if result is None or not result.circuits:
+        return None
+    return [
+        CircuitHeader(name=circuit.name, creg_sizes=[], memory_slots=circuit.num_clbits)
+        for circuit in result.circuits
+    ]
+
+
+def _get_result_shots(result: Optional["JobResult"]) -> Optional[int]:
+    """Gets the shots the result was sent with, or else those of its memory"""
+    if result is None:
+        return None
+    if result.shots is not None:
+        return result.shots
+    memory = result.memory or []
+    return len(memory[0]) if memory else None
+
+
+def _get_result_meas_level(result: Optional["JobResult"]) -> int:
+    """Gets the measurement level the result was sent with, or else 2 for a memory of
+    counts and 1 for one of IQ points"""
+    if result is not None and result.meas_level is not None:
+        return int(result.meas_level)
+    memory = (result.memory if result else None) or []
+    is_counts = bool(memory) and bool(memory[0]) and isinstance(memory[0][0], str)
+    return 2 if is_counts else 1
+
+
+def _get_result_meas_return(result: Optional["JobResult"]) -> str:
+    """Gets what the result was sent with, single for each shot's or avg for their average;
+    single if it was not"""
+    if result is None or result.meas_return is None:
+        return "single"
+    return result.meas_return.value
