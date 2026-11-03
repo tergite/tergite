@@ -45,17 +45,23 @@ class GeneralMessage(BaseModel):
     status: Status = Field(..., title="Status")
 
 
-class JobResult(BaseModel):
+class MeasLevel(IntEnum):
+    integer_1 = 1
+    integer_2 = 2
+
+
+class MeasReturn(Enum):
+    single = "single"
+    avg = "avg"
+
+
+class JobResultCircuit(BaseModel):
     """
-    The results of the job
+    What a job's result needs of one of its circuits
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    memory: (
-        list[list[str]] | list[list[list[tuple[float, float] | list[float]]]] | None
-    ) = Field(None, title="Memory")
+    name: str = Field(..., title="Name")
+    num_clbits: int = Field(..., title="Num Clbits")
 
 
 class JobStatus(Enum):
@@ -112,6 +118,23 @@ class Timestamps(BaseModel):
     post_processing: TimestampPair | None = None
     pre_processing: TimestampPair | None = None
     registration: TimestampPair | None = None
+
+
+class JobResult(BaseModel):
+    """
+    The results of the job
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    circuits: list[JobResultCircuit] | None = Field(None, title="Circuits")
+    meas_level: MeasLevel | None = Field(None, title="Meas Level")
+    meas_return: MeasReturn | None = Field(None, title="Meas Return")
+    memory: (
+        list[list[str]] | list[list[list[tuple[float, float] | list[float]]]] | None
+    ) = Field(None, title="Memory")
+    shots: int | None = Field(None, title="Shots")
 
 
 class Job(BaseModel):

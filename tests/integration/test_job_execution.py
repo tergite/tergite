@@ -216,6 +216,33 @@ def test_provider_job(api):
     assert job.result().get_counts() == {"1": 50, "0": 50}
 
 
+def test_provider_job_reads_how_the_job_ran_from_its_result(api):
+    """provider.job(job_id) of a result sent with the job's shots, level and circuits has
+    the counts of every bit, keyed by the circuit's name"""
+    result = {
+        **TEST_JOB_RESULTS["result"],
+        "shots": 100,
+        "meas_level": 2,
+        "meas_return": "single",
+        "circuits": [{"name": "bell", "num_clbits": 2}],
+    }
+    api.get(f"{API_URL}/jobs/{TEST_JOB_ID}").respond(
+        json={
+            **TEST_JOB_RESULTS,
+            "result": result,
+            "job_id": TEST_JOB_ID,
+            "device": "loke",
+            "calibration_date": TEST_CALIBRATIONS_MAP["loke"]["last_calibrated"],
+        }
+    )
+    provider = Tergite.use_provider_account(service_name="test", url=API_URL)
+
+    job = provider.job(TEST_JOB_ID)
+
+    assert (job.shots, job.meas_level, job.meas_return) == (100, 2, "single")
+    assert job.result().get_counts("bell") == {"01": 50, "00": 50}
+
+
 @pytest.mark.parametrize(
     "status, reason_field, message",
     [

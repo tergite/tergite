@@ -1335,6 +1335,50 @@
         "additionalProperties": true,
         "description": "The results of the job",
         "properties": {
+          "circuits": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/JobResultCircuit"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Circuits"
+          },
+          "meas_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  1,
+                  2
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meas Level"
+          },
+          "meas_return": {
+            "anyOf": [
+              {
+                "enum": [
+                  "single",
+                  "avg"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meas Return"
+          },
           "memory": {
             "anyOf": [
               {
@@ -1371,9 +1415,39 @@
             ],
             "default": [],
             "title": "Memory"
+          },
+          "shots": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shots"
           }
         },
         "title": "JobResult",
+        "type": "object"
+      },
+      "JobResultCircuit": {
+        "description": "What a job's result needs of one of its circuits",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "num_clbits": {
+            "title": "Num Clbits",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "num_clbits"
+        ],
+        "title": "JobResultCircuit",
         "type": "object"
       },
       "JobStatus": {

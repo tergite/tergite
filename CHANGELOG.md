@@ -32,8 +32,9 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
   which every device now is
 - Changed the counts of a circuit with a classical register it never measures into, such as `c` beside the
   `meas` of `measure_all()`, to include that register, as Qiskit's own backends do; the SDK dropped it before
-- Changed `provider.job(job_id)` counts to come without register names or leading zeros, as
-  MSS does not keep a job's circuits; the SDK no longer needs h5py or sympy
+- Changed `provider.job(job_id)` to read the job from MSS alone, its shots, level and circuits as the backend says
+  it ran them; counts come without register names, and of an older backend's job without leading zeros either;
+  the SDK no longer needs h5py or sympy
 - Changed to Qiskit 2.1 and later, from Qiskit 1.2, which kept the SDK from installing beside
   current Qiskit packages; each experiment result's `header` is a dict, as in Qiskit 2
 - Changed `tergite.services.configs.AccountInfo` to `tergite.accounts.Account`, with the rc file
