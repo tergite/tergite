@@ -39,6 +39,7 @@ pulse = ["oqpy>=0.3.11,<0.4"]
 [dependency-groups]
 dev = [
     "pytest>=7.4.2",
+    "pytest-xdist>=3.6",
     "scikit-learn~=1.7.0",
     "black[jupyter]~=25.1.0",
     "isort~=6.0.1",

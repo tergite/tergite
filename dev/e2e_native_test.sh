@@ -32,6 +32,7 @@
 #   BACKEND_BRANCH="main" \ # the branch or tag of BACKEND_REPO to clone, or main where it has none
 #   DEBUG="True" \ # Set 'True' to keep the services running and temp-native/ after the tests, default: ''
 #   PYTEST_TARGET="tests/e2e" \ # what pytest runs against the stack, default: 'tests/e2e'
+#   PYTEST_WORKERS="4" \ # the pytest-xdist workers the tests under tests/e2e run in, default: '4'
 #   ./dev/e2e_native_test.sh
 
 set -e # exit if any step fails
@@ -43,6 +44,13 @@ WORK_PATH="$ROOT_PATH/temp-native"
 SDK_FIXTURES_PATH="$ROOT_PATH/tests/fixtures"
 # what pytest runs against the stack; dev/perf/record.sh runs its round trip this way
 PYTEST_TARGET="${PYTEST_TARGET:-tests/e2e}"
+# the e2e's tests run on three backends, so they overlap in workers; the round trip measures
+# its jobs one at a time, so it runs in one
+PYTEST_WORKERS="${PYTEST_WORKERS:-4}"
+PYTEST_PARALLEL=()
+if [[ "$PYTEST_TARGET" == tests/e2e* ]]; then
+  PYTEST_PARALLEL=(-n "$PYTEST_WORKERS" --dist=worksteal)
+fi
 FRONTEND_BRANCH="${FRONTEND_BRANCH:-main}"
 BACKEND_BRANCH="${BACKEND_BRANCH:-main}"
 OPENID_CONFIG_URL="${OPENID_CONFIG_URL:-https://samples.auth0.com/.well-known/openid-configuration}"
@@ -175,6 +183,10 @@ write_env_file() {
     echo "BCC_CORS_ORIGINS=127.0.0.1,localhost"
     echo "BCC_MACHINE_ROOT_URL=http://127.0.0.1:$port/$name"
     echo "BCC_MSS_MACHINE_ROOT_URL=http://127.0.0.1:$MSS_PORT"
+    # it starts before MSS, so it tries MSS each second until MSS answers, not after
+    # waits that double to a minute
+    echo "BCC_MSS_MAX_RECONNECTION_DELAY=1"
+    echo "BCC_MSS_CONNECTION_MAX_ATTEMPTS=120"
     echo "BCC_STORAGE_ROOT=$dir/storage"
     echo "BCC_BOOKING_DB_URL=sqlite:///$dir/booking_db.db"
     echo "BCC_BACKEND_SETTINGS=$settings_path/$stem.toml"
@@ -222,7 +234,23 @@ UV_PROJECT_ENVIRONMENT="$WORK_PATH/venvs/sdk" uv sync -q --frozen --project "$RO
 
 echo "Starting MongoDB"
 start_service mongod mongod --dbpath "$WORK_PATH/mongo" --port $MONGO_PORT --bind_ip 127.0.0.1
-until mongosh --quiet --port $MONGO_PORT --eval "db.runCommand('ping').ok" &> /dev/null; do sleep 0.5; done
+# a TCP connection, as each mongosh it would take to ping costs a second
+until (exec 3<>"/dev/tcp/127.0.0.1/$MONGO_PORT") 2>/dev/null; do sleep 0.2; done
+
+# the backends take longest to start, so they start while MSS is seeded and starts; each
+# keeps what it sends MSS until MSS answers
+echo "Starting the backends"
+simulator_env_args=()
+for backend in "${SIMULATORS[@]}"; do
+  write_env_file "$backend"
+  IFS="|" read -r name _ <<< "$backend"
+  simulator_env_args+=(--env-file "$WORK_PATH/backends/$name/backend.env")
+done
+write_env_file "$LOKE"
+start_service simulators bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/simulators/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $SIMULATORS_PORT ${simulator_env_args[*]}"
+simulators_pid=$SERVICE_PID
+start_service loke bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/loke/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $LOKE_PORT --env-file '$WORK_PATH/backends/Loke/backend.env'"
+loke_pid=$SERVICE_PID
 
 echo "Starting MSS"
 cp "$FIXTURES_PATH/mss-config.toml" "$WORK_PATH/mss-config.toml"
@@ -245,19 +273,6 @@ start_service mss bash -c "cd '$FRONTEND_PATH' && exec '$WORK_PATH/venvs/mss/bin
 mss_pid=$SERVICE_PID
 unset MSS_CONFIG_FILE PRIVATE_KEY_FILE
 wait_for_url mss "http://127.0.0.1:$MSS_PORT/health" $mss_pid 60
-
-echo "Starting the backends"
-simulator_env_args=()
-for backend in "${SIMULATORS[@]}"; do
-  write_env_file "$backend"
-  IFS="|" read -r name _ <<< "$backend"
-  simulator_env_args+=(--env-file "$WORK_PATH/backends/$name/backend.env")
-done
-write_env_file "$LOKE"
-start_service simulators bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/simulators/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $SIMULATORS_PORT ${simulator_env_args[*]}"
-simulators_pid=$SERVICE_PID
-start_service loke bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/loke/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $LOKE_PORT --env-file '$WORK_PATH/backends/Loke/backend.env'"
-loke_pid=$SERVICE_PID
 wait_for_url simulators "http://127.0.0.1:$SIMULATORS_PORT/health" $simulators_pid 300
 wait_for_url loke "http://127.0.0.1:$LOKE_PORT/health" $loke_pid 300
 # the fixtures seed no simulator, so each is in MSS once its backend has sent it
@@ -278,6 +293,6 @@ IS_END_TO_END="True" \
   API_URL="http://127.0.0.1:$MSS_PORT" \
   API_TOKEN="$APP_TOKEN" \
   MSS_PID=$mss_pid SIMULATORS_PID=$simulators_pid LOKE_PID=$loke_pid \
-  "$WORK_PATH/venvs/sdk/bin/python" -m pytest "$PYTEST_TARGET" "$@"
+  "$WORK_PATH/venvs/sdk/bin/python" -m pytest "$PYTEST_TARGET" "${PYTEST_PARALLEL[@]}" "$@"
 
 echo "Script completed."
