@@ -120,6 +120,20 @@ class Device(BaseModel):
     version: str = Field(..., title="Version")
 
 
+class GateDefcal(BaseModel):
+    """
+    A gate's calibrated pulses, as an OpenPulse defcal, which a job may override
+    """
+
+    gate: str = Field(..., description="e.g. x, sx, cz or measure", title="Gate")
+    program: str = Field(
+        ..., description="the defcal, e.g. 'defcal x $0 { ... }'", title="Program"
+    )
+    qubits: list[int] = Field(
+        ..., description="the physical qubits it is calibrated on", title="Qubits"
+    )
+
+
 class JobCreate(BaseModel):
     """
     The schema used when creating a job
@@ -158,6 +172,16 @@ class PaginatedListResponseDevice(BaseModel):
     data: list[Device] | None = Field([], title="Data", validate_default=True)
     limit: int | None = Field(None, title="Limit")
     skip: int | None = Field(0, title="Skip")
+
+
+class PulseFrameKind(Enum):
+    """
+    What a frame plays on: a qubit's drive or readout line, or a coupler's flux line
+    """
+
+    drive = "drive"
+    readout = "readout"
+    coupler = "coupler"
 
 
 class QubitCalibration(BaseModel):
@@ -217,22 +241,6 @@ class TimestampPair(BaseModel):
     started: AwareDatetime | None = Field(None, title="Started")
 
 
-class DeviceCalibration(BaseModel):
-    """
-    Schema for the calibration data of a given device
-    """
-
-    couplers: list[CouplersCalibration] | None = Field(None, title="Couplers")
-    discriminators: dict[str, Any] | None = Field(None, title="Discriminators")
-    id: str | None = Field(None, title="Id")
-    last_calibrated: str | None = Field(None, title="Last Calibrated")
-    name: str = Field(..., title="Name")
-    qubits: list[QubitCalibration] = Field(..., title="Qubits")
-    resonators: list[ResonatorCalibration] | None = Field(None, title="Resonators")
-    updated_at: str | None = Field(None, title="Updated At")
-    version: str = Field(..., title="Version")
-
-
 class JobTimestamps(BaseModel):
     """
     Timestamps for the job
@@ -243,6 +251,45 @@ class JobTimestamps(BaseModel):
     post_processing: TimestampPair | None = None
     pre_processing: TimestampPair | None = None
     registration: TimestampPair | None = None
+
+
+class PulseFrame(BaseModel):
+    """
+    A frame a pulse-level job may play on, at its calibrated frequency
+    """
+
+    frequency: float = Field(
+        ..., description="its calibrated frequency in hertz", title="Frequency"
+    )
+    kind: PulseFrameKind
+    name: str = Field(
+        ...,
+        description="as a job names it, e.g. q12_drive or q12_q13_coupler",
+        title="Name",
+    )
+    qubits: list[int] = Field(
+        ...,
+        description="the physical qubits it acts on, as a job numbers them, e.g. 0 for $0",
+        title="Qubits",
+    )
+
+
+class DeviceCalibration(BaseModel):
+    """
+    Schema for the calibration data of a given device
+    """
+
+    couplers: list[CouplersCalibration] | None = Field(None, title="Couplers")
+    defcals: list[GateDefcal] | None = Field(None, title="Defcals")
+    discriminators: dict[str, Any] | None = Field(None, title="Discriminators")
+    frames: list[PulseFrame] | None = Field(None, title="Frames")
+    id: str | None = Field(None, title="Id")
+    last_calibrated: str | None = Field(None, title="Last Calibrated")
+    name: str = Field(..., title="Name")
+    qubits: list[QubitCalibration] = Field(..., title="Qubits")
+    resonators: list[ResonatorCalibration] | None = Field(None, title="Resonators")
+    updated_at: str | None = Field(None, title="Updated At")
+    version: str = Field(..., title="Version")
 
 
 class Job(BaseModel):

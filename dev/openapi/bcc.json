@@ -366,6 +366,11 @@
       "MSSTokenClaims": {
         "description": "The model of the claims stored in special MSS JWT token given to users",
         "properties": {
+          "is_pulse_allowed": {
+            "default": false,
+            "title": "Is Pulse Allowed",
+            "type": "boolean"
+          },
           "job_id": {
             "title": "Job Id",
             "type": "string"

@@ -941,6 +941,20 @@
             ],
             "title": "Couplers"
           },
+          "defcals": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/GateDefcal"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defcals"
+          },
           "discriminators": {
             "anyOf": [
               {
@@ -952,6 +966,20 @@
               }
             ],
             "title": "Discriminators"
+          },
+          "frames": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PulseFrame"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frames"
           },
           "id": {
             "pattern": "^[0-9a-f]{24}$",
@@ -1029,6 +1057,36 @@
         ],
         "title": "EmailStatus",
         "type": "string"
+      },
+      "GateDefcal": {
+        "description": "A gate's calibrated pulses, as an OpenPulse defcal, which a job may override",
+        "properties": {
+          "gate": {
+            "description": "e.g. x, sx, cz or measure",
+            "title": "Gate",
+            "type": "string"
+          },
+          "program": {
+            "description": "the defcal, e.g. 'defcal x $0 { ... }'",
+            "title": "Program",
+            "type": "string"
+          },
+          "qubits": {
+            "description": "the physical qubits it is calibrated on",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Qubits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "gate",
+          "qubits",
+          "program"
+        ],
+        "title": "GateDefcal",
+        "type": "object"
       },
       "GeneralMessage": {
         "description": "A general message object sent on the API",
@@ -1640,6 +1698,9 @@
           "qpu-seconds-denied",
           "qpu-seconds-low",
           "qpu-seconds-depleted",
+          "pulse-access-requested",
+          "pulse-access-granted",
+          "pulse-access-denied",
           "project-membership-granted",
           "project-membership-revoked",
           "project-admin-assigned",
@@ -1997,6 +2058,11 @@
             "title": "Is Personal",
             "type": "boolean"
           },
+          "is_pulse_allowed": {
+            "default": false,
+            "title": "Is Pulse Allowed",
+            "type": "boolean"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2053,6 +2119,11 @@
             "title": "Description",
             "type": "string"
           },
+          "is_pulse_allowed": {
+            "default": false,
+            "title": "Is Pulse Allowed",
+            "type": "boolean"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2106,6 +2177,11 @@
           },
           "is_personal": {
             "title": "Is Personal",
+            "type": "boolean"
+          },
+          "is_pulse_allowed": {
+            "default": false,
+            "title": "Is Pulse Allowed",
             "type": "boolean"
           },
           "name": {
@@ -2179,6 +2255,17 @@
             ],
             "title": "Is Active"
           },
+          "is_pulse_allowed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Pulse Allowed"
+          },
           "name": {
             "anyOf": [
               {
@@ -2229,6 +2316,50 @@
         },
         "title": "ProjectUpdate",
         "type": "object"
+      },
+      "PulseFrame": {
+        "description": "A frame a pulse-level job may play on, at its calibrated frequency",
+        "properties": {
+          "frequency": {
+            "description": "its calibrated frequency in hertz",
+            "title": "Frequency",
+            "type": "number"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PulseFrameKind"
+          },
+          "name": {
+            "description": "as a job names it, e.g. q12_drive or q12_q13_coupler",
+            "title": "Name",
+            "type": "string"
+          },
+          "qubits": {
+            "description": "the physical qubits it acts on, as a job numbers them, e.g. 0 for $0",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Qubits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "qubits",
+          "frequency"
+        ],
+        "title": "PulseFrame",
+        "type": "object"
+      },
+      "PulseFrameKind": {
+        "description": "What a frame plays on: a qubit's drive or readout line, or a coupler's flux line",
+        "enum": [
+          "drive",
+          "readout",
+          "coupler"
+        ],
+        "title": "PulseFrameKind",
+        "type": "string"
       },
       "QubitCalibration": {
         "additionalProperties": true,
@@ -2757,6 +2888,7 @@
           "close-project",
           "transfer-project",
           "project-qpu-seconds",
+          "project-pulse-access",
           "project-access"
         ],
         "title": "RequestType",
@@ -7758,6 +7890,7 @@
                 "close-project",
                 "transfer-project",
                 "project-qpu-seconds",
+                "project-pulse-access",
                 "project-access"
               ],
               "items": {
