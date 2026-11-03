@@ -13,9 +13,12 @@ computers: a user writes circuits in Qiskit, transpiles them to a device's backe
 them there, and gets Qiskit's own `Result` back. It is a library, Python 3.13+, on Qiskit 2.1+,
 httpx and pydantic, published to PyPI.
 
-The SDK sends circuits, not pulses. Each backend compiles them to pulses from its own
-calibration, so the SDK needs only what the transpiler needs: a device's qubits, couplings,
-gates and their durations and errors.
+The SDK sends circuits, and pulse-level programs it does not compile. Each backend compiles
+circuits to pulses from its own calibration, so the SDK needs only what the transpiler needs: a
+device's qubits, couplings, gates and their durations and errors. Pulse-level programs are
+OpenQASM 3 with OpenPulse, which users write by hand or with oqpy (the `pulse` extra); the SDK
+adds the `defcal`s a job is given, and offers the frames and `defcal`s a device publishes with
+its calibration, but checks no pulse: the backend does, against the device's limits.
 
 ## 2. System context
 
@@ -64,7 +67,9 @@ counts = job.result().get_counts()            # GET /jobs/{id}, until it is fina
    [target.py](tergite/target.py): `rz`, `sx`, `x` and `rx` on every qubit, `measure`, `reset`
    and `delay`, and `cz` on each coupled pair whose coupler is calibrated. Durations and errors
    come from the calibration, in SI units unless the value's unit says otherwise.
-3. **`backend.run`** refuses anything but circuits, fetches the calibration again and recomputes
+3. **`backend.run`** refuses anything but circuits and OpenQASM 3 programs (text, or anything
+   with `to_qasm()`, an oqpy Program's externs put in a `cal` block), adds the `defcal`s it is
+   given after each one's header ([pulse.py](tergite/pulse.py)), fetches the calibration again and recomputes
    the target if the device was recalibrated, refuses a circuit with an instruction the target
    lacks, registers the job at MSS with the calibration's date, and uploads the job file to
    the device's BCC with the job token MSS gave.
@@ -104,6 +109,7 @@ What MSS returns as a job's `result.memory`, one entry per circuit:
 | `tergite/accounts.py` | `Account`, and `load_accounts` and `save_account` over the rc file |
 | `tergite/backend.py` | `TergiteBackend`, a Qiskit `BackendV2`; `OpenPulseBackend` and `OpenQASMBackend` are its deprecated names |
 | `tergite/target.py` | `get_target`: a device's transpiler target from its calibration |
+| `tergite/pulse.py` | pulse-level programs' OpenQASM 3 and classical registers, the `defcal`s a job is given, and a device's frames and `defcal`s from its calibration |
 | `tergite/job.py` | `Job`, a Qiskit `JobV1` |
 | `tergite/results.py` | `get_result`: a Qiskit `Result` from a job's memory |
 | `tergite/api/` | the calls to MSS (`mss.py`) and BCC (`bcc.py`), the HTTP clients (`client.py`), the job file (`job_file.py`) and the generated wire models |

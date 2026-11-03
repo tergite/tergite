@@ -87,12 +87,18 @@ def test_run_refuses_an_untranspiled_circuit(api):
     assert [call for call in api.calls if call.request.method == "POST"] == []
 
 
-def test_run_refuses_what_is_not_a_circuit(api):
-    """run() of a pulse schedule, or anything else, raises: Tergite backends run circuits"""
+@pytest.mark.parametrize("run_input", [42, [42]], ids=["alone", "in-a-list"])
+def test_run_refuses_what_is_neither_a_circuit_nor_a_program(api, run_input):
+    """run() of anything but circuits and OpenQASM 3 programs raises before registering a
+    job"""
     backend = _get_backend("loke")
 
-    with pytest.raises(TergiteError, match="run circuits, not str"):
-        backend.run(["not a circuit"])
+    with pytest.raises(
+        TergiteError, match="run circuits or OpenQASM 3 programs, not int"
+    ):
+        backend.run(run_input)
+
+    assert [call for call in api.calls if call.request.method == "POST"] == []
 
 
 def test_run_keeps_the_target_of_the_same_calibration(api):

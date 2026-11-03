@@ -11,6 +11,9 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 - Added an account from the environment variables `TERGITE_API_URL` and `TERGITE_API_TOKEN`, named
   `env` and returned by `get_provider()` ahead of saved ones, so a token need not be saved to disk
+- Added pulse-level jobs: `backend.run()` takes OpenQASM 3 programs with OpenPulse, as text or an oqpy program,
+  and `calibrations=` of `defcal`s that a job's gates run with; `backend.frames` and `backend.calibrations` give
+  the frames and gate `defcal`s a device publishes; oqpy is the new `pulse` extra
 
 ### Changed
 

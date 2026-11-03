@@ -21,7 +21,8 @@
 """The Qiskit backend of a Tergite device, which runs circuits"""
 import logging
 import warnings
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from qiskit import QuantumCircuit, qasm3
 from qiskit.providers import BackendV2, Options
@@ -31,10 +32,20 @@ from .api import mss
 from .api.job_file import CircuitPayload, JobFile, JobParams
 from .exc import TergiteError
 from .job import Job
+from .pulse import (
+    add_calibrations,
+    get_calibration_qasm,
+    get_calibrations,
+    get_frames,
+    get_program_info,
+    get_program_qasm,
+)
 from .results import CircuitHeader
 from .target import get_target
 
 if TYPE_CHECKING:
+    import oqpy
+
     from .api.mss_models import Device, DeviceCalibration
     from .types.provider import Provider
 
@@ -88,6 +99,20 @@ class TergiteBackend(BackendV2):
         return None if calibration is None else calibration.last_calibrated
 
     @property
+    def frames(self) -> Dict[str, "oqpy.FrameVar"]:
+        """The frames the device's pulse-level jobs may play on, as oqpy frames by name,
+        e.g. q12_drive, from its latest calibration; none if it takes no pulse-level jobs.
+        Needs the pulse extra"""
+        return get_frames(self.device_properties)
+
+    @property
+    def calibrations(self) -> Dict[Tuple[str, Tuple[int, ...]], str]:
+        """The defcals of the device's gates by gate and physical qubits, e.g. ("x", (0,)),
+        from its latest calibration, which a job may run its gates with, as they are or
+        changed; none if it takes no pulse-level jobs"""
+        return get_calibrations(self.device_properties)
+
+    @property
     def meas_map(self) -> List[List[int]]:
         """The qubits the device measures together"""
         return self.data.meas_map
@@ -102,30 +127,45 @@ class TergiteBackend(BackendV2):
 
     def run(
         self,
-        run_input: Union[QuantumCircuit, Iterable[QuantumCircuit]],
+        run_input: Any,
         /,
+        calibrations: Iterable[Any] = (),
         **options: Any,
     ) -> Job:
-        """Runs the circuits, transpiled to the target, as one job
+        """Runs the circuits, transpiled to the target, and pulse-level programs, as one job
 
         Args:
-            run_input: a circuit or circuits, transpiled to the target
+            run_input: a circuit or a pulse-level program, or a list of them: circuits
+                transpiled to the target; programs as OpenQASM 3 text, or anything with
+                to_qasm(), e.g. an oqpy Program, which the backend checks against the
+                device's limits, named program_{index} in the result
+            calibrations: defcals that each circuit and program runs its gates with, as
+                text, e.g. of backend.calibrations, or anything with to_qasm(), e.g. an
+                oqpy Program of defcals
             options: shots, meas_level (2 for counts, 1 for IQ points) or meas_return
-                (single or avg), for this job instead of the backend's options
+                (single or avg), for this job instead of the backend's options; a job
+                with a program that does not measure runs at meas_level 1 unless given
+                one
 
         Returns:
             the job, submitted
 
         Raises:
-            TergiteError: a circuit is not a QuantumCircuit, or uses an instruction the
-                target lacks
-            ApiError: MSS or the backend refused the job
+            TergiteError: an entry is neither a circuit nor a program, a circuit uses an
+                instruction the target lacks, or a calibration is neither text nor has
+                to_qasm()
+            ApiError: MSS or the backend refused the job, e.g. a pulse-level job of a
+                project without pulse access or beyond the device's limits
         """
-        circuits = _get_circuit_list(run_input)
+        entries = _get_entry_list(run_input)
+        defcals = [get_calibration_qasm(calibration) for calibration in calibrations]
         self._refresh_calibration()
-        for circuit in circuits:
-            self._check_supported(circuit)
+        items = [
+            self._get_job_item(entry, index) for index, entry in enumerate(entries)
+        ]
         settings = {**self.options.__dict__, **options}
+        if "meas_level" not in options and not all(item.is_measuring for item in items):
+            settings["meas_level"] = 1
         # Qiskit defines meas_return for levels 0 and 1 alone; at level 2 the backend
         # averages what it is sent, so each shot's bits are asked for, whatever was passed
         if settings["meas_level"] == 2:
@@ -139,7 +179,7 @@ class TergiteBackend(BackendV2):
         job = Job(
             backend=self,
             job_id=created.job_id,
-            headers=[CircuitHeader.from_circuit(c) for c in circuits],
+            headers=[item.header for item in items],
             shots=settings["shots"],
             meas_level=settings["meas_level"],
             meas_return=settings["meas_return"],
@@ -147,9 +187,29 @@ class TergiteBackend(BackendV2):
             access_token=created.access_token,
             calibration_date=self.last_calibrated,
         )
-        job.submit(_get_job_file(created.job_id, circuits, settings))
+        job.submit(_get_job_file(created.job_id, items, defcals, settings))
         logging.info(f"Tergite: Job {job.job_id()} has been successfully submitted")
         return job
+
+    def _get_job_item(self, entry: Any, index: int) -> "_JobItem":
+        """Gets what a job runs of a circuit, checked against the target, or of a program
+
+        Raises:
+            TergiteError: the entry is neither a circuit nor a program, or the circuit
+                uses an instruction the target lacks
+        """
+        if isinstance(entry, QuantumCircuit):
+            self._check_supported(entry)
+            header = CircuitHeader.from_circuit(entry)
+            return _JobItem(header=header, qasm=qasm3.dumps(entry), is_measuring=True)
+        qasm = get_program_qasm(entry)
+        info = get_program_info(qasm)
+        header = CircuitHeader(
+            name=f"program_{index}",
+            creg_sizes=info.creg_sizes,
+            memory_slots=info.num_clbits,
+        )
+        return _JobItem(header=header, qasm=qasm, is_measuring=info.is_measuring)
 
     def _refresh_calibration(self) -> None:
         """Fetches the latest calibration, and rebuilds a target built from another"""
@@ -213,33 +273,46 @@ class OpenQASMBackend(TergiteBackend):
         super().__init__(data=data, provider=provider, base_url=base_url)
 
 
-def _get_circuit_list(
-    run_input: Union[QuantumCircuit, Iterable[QuantumCircuit]],
-) -> List[QuantumCircuit]:
-    circuits = [run_input] if isinstance(run_input, QuantumCircuit) else list(run_input)
-    for circuit in circuits:
-        if not isinstance(circuit, QuantumCircuit):
-            raise TergiteError(
-                f"Tergite backends run circuits, not {type(circuit).__name__}: "
-                "pulse schedules went with Qiskit's qiskit.pulse"
-            )
-    return circuits
+@dataclass(frozen=True)
+class _JobItem:
+    """What a job runs of a circuit or a program: its header, its OpenQASM 3 and whether it
+    measures"""
+
+    header: CircuitHeader
+    qasm: str
+    is_measuring: bool
+
+
+def _get_entry_list(run_input: Any) -> List[Any]:
+    """Gets the circuits and programs of what run() was given: one of them, or a list
+
+    Raises:
+        TergiteError: Tergite backends run circuits or OpenQASM 3 programs, not {type}
+    """
+    if isinstance(run_input, (QuantumCircuit, str)) or hasattr(run_input, "to_qasm"):
+        return [run_input]
+    if not isinstance(run_input, Iterable):
+        raise TergiteError(
+            "Tergite backends run circuits or OpenQASM 3 programs, not "
+            f"{type(run_input).__name__}"
+        )
+    return list(run_input)
 
 
 def _get_job_file(
-    job_id: str, circuits: List[QuantumCircuit], settings: dict
+    job_id: str, items: List[_JobItem], defcals: Sequence[str], settings: dict
 ) -> JobFile:
     return JobFile(
         job_id=job_id,
         params=JobParams(
             circuits=[
                 CircuitPayload(
-                    name=circuit.name,
-                    qasm=qasm3.dumps(circuit),
-                    num_clbits=circuit.num_clbits,
-                    metadata=dict(circuit.metadata or {}),
+                    name=item.header.name,
+                    qasm=add_calibrations(item.qasm, defcals),
+                    num_clbits=item.header.memory_slots,
+                    metadata=item.header.metadata,
                 )
-                for circuit in circuits
+                for item in items
             ],
             shots=settings["shots"],
             meas_level=settings["meas_level"],

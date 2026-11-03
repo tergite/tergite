@@ -25,6 +25,13 @@ Install using pip
 pip install tergite
 ```
 
+For pulse-level jobs written with [oqpy](https://github.com/openqasm/oqpy), and a backend's
+frames as oqpy frames, install the `pulse` extra:
+
+```shell
+pip install 'tergite[pulse]'
+```
+
 ## Dependencies
 
 - [Python 3.13+](https://www.python.org/)
@@ -134,9 +141,61 @@ print(job.result().get_counts())
 | `meas_level` | 2 | 2 for counts, 1 for each shot's IQ points (`job.result().get_memory()`) |
 | `meas_return` | `"single"` | at `meas_level=1`, `"single"` for each shot's points or `"avg"` for their average |
 
-Pulse schedules are no longer accepted: Qiskit 2 has no `qiskit.pulse`, and the pulses are the
-backend's, from its calibration. `OpenPulseBackend` and `OpenQASMBackend` are deprecated names of
-`TergiteBackend`.
+Pulse schedules are no longer accepted, as Qiskit 2 has no `qiskit.pulse`: pulses are written
+in OpenQASM 3's OpenPulse instead, below. `OpenPulseBackend` and `OpenQASMBackend` are deprecated
+names of `TergiteBackend`.
+
+## Running Pulses
+
+A project an admin has allowed pulse-level jobs, in the dashboard, may send pulses to a device
+that takes them, within the limits its operators set. They are
+[OpenPulse](https://openqasm.com/language/openpulse.html), written by hand or with
+[oqpy](https://github.com/openqasm/oqpy), on the frames the device publishes, e.g. `q00_drive`,
+`q00_readout` and `q00_q01_coupler`; the backend checks each against the device's limits and
+refuses it with the reason.
+
+`backend.frames` gives those frames as oqpy frames, by name, and `backend.calibrations` the
+`defcal`s of the device's gates, by gate and physical qubits, which play exactly what the gates do:
+
+```python
+import oqpy
+
+frames = backend.frames
+print(backend.calibrations[("x", (0,))])   # defcal x $0 { ... }
+```
+
+`backend.run(circuits, calibrations=[...])` runs a job's gates with `defcal`s of its own, as text
+or an oqpy program, e.g. a gentler `x` on qubit 0:
+
+```python
+defcals = oqpy.Program()
+gaussian = oqpy.declare_waveform_generator(
+    "gaussian", [("amp", oqpy.complex128), ("d", oqpy.duration), ("sigma", oqpy.duration)]
+)
+with oqpy.defcal(defcals, oqpy.PhysicalQubits[0], "x"):
+    defcals.play(frames["q00_drive"], gaussian(0.15, 40e-9, 10e-9))
+
+job = backend.run(transpile(qc, backend), calibrations=[defcals])
+```
+
+`backend.run()` also takes programs of their own, as OpenQASM 3 text or an oqpy program, beside
+circuits; a program's `cal` blocks play and `capture_v1` into classical bits. A job with a program
+that does not measure runs at `meas_level=1`, its captures as IQ points, unless given another:
+
+```python
+program = oqpy.Program()
+constant = oqpy.declare_waveform_generator(
+    "constant", [("amp", oqpy.complex128), ("d", oqpy.duration)]
+)
+capture = oqpy.declare_extern("capture_v1", [("frame", oqpy.frame), ("d", oqpy.duration)], oqpy.bit)
+c = oqpy.BitVar(name="c", size=1)
+with oqpy.Cal(program):
+    program.play(frames["q00_readout"], constant(0.1, 400e-9))
+    program.set(c[0], capture(frames["q00_readout"], 400e-9))
+
+job = backend.run(program, shots=1000)
+print(job.result().get_memory())          # each shot's IQ point
+```
 
 - You can look at the [examples folder](./examples) for more samples.
 

@@ -33,7 +33,7 @@ SIGNATURES = [
     (Provider.backends, "(self, /, name=None, filters=None, **kwargs)"),
     (Provider.get_backend, "(self, name=None, **kwargs)"),
     (Provider.job, "(self, job_id)"),
-    (TergiteBackend.run, "(self, run_input, /, **options)"),
+    (TergiteBackend.run, "(self, run_input, /, calibrations=(), **options)"),
     (TergiteBackend.set_options, "(self, **fields)"),
     (Job.status, "(self)"),
     (Job.result, "(self)"),
