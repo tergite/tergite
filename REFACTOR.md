@@ -24,8 +24,10 @@ pulse grammar, OpenPulse (D6), in the same payload. The plan ends with:
 - **Gate pulses in one place**, the backend's calibration-driven elements (the CZ in its
   `CouplerEdge`), which a job's `defcal` may override; the qobj path, with the `wacqt_cz`
   waveforms the SDK sampled, deleted (B5).
-- **Simulators on qiskit-aer** (B3), and so neither the end-of-life qiskit-dynamics nor
-  `qiskit~=0.45` left in the backend.
+- **Simulators that play quantify's pulses on QuTiP** (B3): gate-level and pulse-level jobs
+  alike, through the same compilation as a chip, and so neither the end-of-life
+  qiskit-dynamics nor `qiskit~=0.45` left in the backend, nor the conflict between its
+  extras: one package per OS and architecture, a config choosing chip or simulator.
 - **Pulse access opt-in per project**, granted by an admin in the dashboard (F3), and guarded
   by the backend (B6).
 
@@ -41,11 +43,24 @@ Each has a recommendation; the plan is written as if it were taken.
   saved provider (`types/provider_factory.py:103`), which `test_get_provider_non_existing`
   pins, so a typo sends jobs to another service. `get_provider()` without a name still
   returns the first.
-- **D3. The backend's simulators run gates, not pulses.** The `qiskit_pulse_1q`/`2q`
-  simulators need `qiskit.pulse`, which is what pins the backend to `qiskit~=0.45`.
-  Recommended: qiskit-aer with a noise model from the calibration (T1, T2, readout error),
-  and, for `meas_level=1`, IQ points sampled around the calibrated discriminator's centroids,
-  so the e2e's clustering tests keep a meaningful input.
+- **D3. The backend's simulators play the pulses quantify compiles, on QuTiP.** The
+  `qiskit_pulse_1q`/`2q` simulators already simulate pulses, but through `qiskit.pulse` and
+  qiskit-dynamics, which pin the backend to `qiskit~=0.45`, and so to a numpy older than the
+  quantify extra's; hence the two conflicting extras, and a binary for each. Recommended: a
+  simulator is the quantify executor with QuTiP in the Qblox clusters' place. A job compiles
+  as on a chip, gates through the device's elements and `defcal`s, `cal` blocks as they are,
+  against a `QuantumDevice` of the simulated chip's calibration; the device-level schedule's
+  pulses are sampled per port and clock and drive the Hamiltonians the dynamics backends
+  have today (transmons, a tunable coupler, from the calibration), integrated once per circuit
+  with T1/T2 loss. Shots are sampled from the final state; for `meas_level=1`, IQ points
+  around the calibrated discriminator's centroids, so the e2e's clustering tests keep a
+  meaningful input. So the gate-to-pulse translation is tested without hardware, pulse-level
+  jobs can be tried before hardware time, and one dependency set ships both. Its cost: about
+  0.2 s a circuit for a qubit and 0.65 s for two and a coupler (the round trips of today's
+  simulators, less Loke's), growing exponentially, so simulated chips stay at two or three
+  qubits; the Qblox hardware compilation (sequencers, NCOs, LOs) is not exercised. qiskit-aer
+  was the alternative: milliseconds and 15 to 20 qubits, but gates only, a second path to
+  keep, and no test of the pulses.
 - **D4. `Provider.job(job_id)` rebuilds a result from MSS, not from the HDF5 logfile.** Today
   it downloads the logfile only to read the qobj back out of it, the one use of `h5py`.
   Recommended: MSS's `JobResult` gains optional `shots`, `meas_level` and per-circuit
@@ -73,11 +88,10 @@ Each of these belongs in that repo's own plan; the SDK steps name the one they n
 | --- | --- | --- |
 | B1 | tergite-backend | Commit its OpenAPI spec as MSS does: `dev/openapi/export.py` writes `dev/openapi/openapi.json`, every route declares its response, and `tests/test_openapi.py` fails when the file is stale. |
 | B2 | tergite-backend | `POST /jobs` also accepts the gate-level payload below. The heavy worker parses each circuit with `qiskit.qasm3`, maps each instruction to quantify-scheduler gate-level operations (`Rxy`, `Rz`, `CZ`, `Measure`, `Reset`, `IdlePulse`; CX, SWAP and the rest decomposed into them) and compiles the schedule with `SerialCompiler` against a `QuantumDevice` built from the backend's calibration. Pulses are then quantify's parametric ones (DRAG from `amp180`/`motzoi`/`duration`, dispersive measurement, square CZ), sampled on the backend. It follows `tergite-qpu-driver`'s design, without depending on qpi. Results keep today's `Job.result.memory` shapes, with clbits ordered as Qiskit orders them (clbit 0 rightmost). |
-| B3 | tergite-backend | The simulators per D3, which lets the qiskit extra leave `qiskit~=0.45` and `qiskit-dynamics`, which has reached its end of life. They run gate-level jobs only; a pulse program is refused (B6). With qiskit-dynamics go the qiskit-pulse schedules the simulators compile circuits into: `qiskit/circuits.py`, the `WacqtCZPlay` that B5 left in `qiskit/instruction.py` for their CZ, and the dynamics backends. |
+| B3 | tergite-backend | The simulators per D3, after B6: a QuTiP runner behind `QuantifyExecutor` beside the clusters, sampling the device-level schedule's pulses (quantify's own waveform functions) per port and clock into the drive of each qubit's and the coupler's frame, with the simulated chip's Hamiltonian parameters and the drive strength per unit of amplitude beside its calibration in the backend config. Simulated devices take pulse-level jobs within their own `pulse_limits`, lifting B6's refusal, and publish frames and defcals as a chip does. Deleted with qiskit-dynamics: the qiskit executor, `qiskit/circuits.py`, the `WacqtCZPlay` that B5 left in `qiskit/instruction.py`, the dynamics backends, `qiskit~=0.45` and `jax`. The `qiskit` extra and the extras' `conflicts` go: QuTiP 5 takes numpy 2, so one dependency set, one `bcc` binary per OS and architecture in place of `bcc` and `bcc.simulator` (GitLab's and GitHub's package jobs), and the backend config chooses clusters or simulator. The e2e runs every backend from one process. |
 | B4 | tergite-backend | `Device.basis_gates` lists the gates B2 compiles, and `DeviceCalibration` keeps the durations and errors the SDK's `Target` reads: `pi_pulse_duration`, `readout_assignment_error`, the resonator's pulse and integration times, and T1/T2. |
 | B5 | tergite-backend | With B6, in the same release (D7): delete the `PulseQobj` path, `libs/qiskit/`, the vendored Qobj encoder and decoder, `PulseLibInstruction`, and the qobj translator into quantify (`quantify/instruction.py`, the channel registry). |
 | B6 | tergite-backend | Pulse-level jobs (D6), each item one commit: (1) one parser for every job, `openpulse`'s, which reads plain OpenQASM 3 too: gates translate as B2 has them, gate definitions in the program are inlined, and the quantify extra no longer needs Qiskit; (2) `defcal` blocks replace a gate's pulses within the job, and `cal` blocks translate into quantify operations on the published frames: `play` of an allow-list of waveforms (gaussian, drag, constant, gaussian_square, and bounded sample arrays), `shift_phase`, `set_phase`, `shift_frequency`, `set_frequency`, `delay` and `capture`; (3) each device's frames, a drive, a readout and each coupler's flux, named after its ports and at their calibrated frequencies, and its gates' calibrations as OpenPulse `defcal`s, sent to MSS with its calibration (F4); (4) the guardrails: per-device limits in the backend config (amplitude per kind of port, how far a frame may move from its calibrated frequency, energy and duty cycle per shot and per job, program duration, waveform samples, capture length), checked at upload with the reason for a refusal, and the pulse-access claim of the job token (F3); a device without limits refuses pulse programs; (5) the simulators refuse pulse programs. `dev/check_gate_level.py` checks the limits are set. |
-| B7 | tergite-backend | Optional, after B3 and B6, and not part of the end state: a pulse-level simulator, so that pulse users can try a program before spending hardware time. A `qutip_pulse` executor of one or two qubits on QuTiP 5 ports the Hamiltonians the dynamics backends have today (transmons as Duffing oscillators, a tunable coupler, drives on each qubit's and the coupler's frame, from the calibration) and integrates each circuit's drive signals once, with T1/T2 loss: gates become pulses through the device's own `defcal`s, which a job's may override, and `cal` blocks play as they do on hardware, from B6's native circuit, no `qiskit.pulse` between. Shots are sampled from the final state, and `meas_level` 1 IQ points around the discriminator's centroids as B3's are. It publishes frames and defcals (B6.3) and keeps to its own `pulse_limits` (B6.4) like any device. qiskit-aer stays the fast gate-level simulator the e2e runs on. Being a rotating-frame model, it cannot settle how hardware turns a frame whose LO is below its RF. |
 | F1 | tergite-frontend | MSS's `JobResult` gains the optional fields of D4, which the backend fills in its `job_updated` event. |
 | F2 | tergite-frontend | `ui/fixtures` gain a project with no QPU seconds left and an app token for it, which this repo's e2e uses to check MSS's quota refusal (step 1.7). Its other fixtures, MSS's config and the backends' settings and keys, the e2e already reads from the frontend checkout. |
 | F3 | tergite-frontend | Pulse access per project (D6): the project model gains `is_pulse_allowed`, off by default; MSS signs it into the job token it gives the backend; admins grant and revoke it in the dashboard's project forms (`admin-projects`), the projects page shows it, and a project's members request it as a new request type, `project-pulse-access`, beside `project-qpu-seconds` (`services/requests`), which admins approve in `admin-requests`. `ui/fixtures` gain a project with it and an app token, for this repo's e2e (step 8). |
@@ -477,8 +491,10 @@ Needs B6, F3 and F4 in the stack the e2e runs against.
    gates' `defcal`s, both from the calibration MSS serves (F4); `oqpy` is the `pulse` extra, so
    that gate-level users do not install it.
 4. **e2e on Loke's dummy clusters**: a job with its own `defcal x`, a `cal` block that plays and
-   captures, and the refusals: a project without pulse access (F3's fixture), a pulse beyond
-   the device's limits, and a pulse program on a simulator. The performance checks hold.
+   captures, and the refusals: a project without pulse access (F3's fixture) and a pulse beyond
+   the device's limits; and, on a simulator (B3), the same `defcal x` and a Rabi amplitude
+   sweep in `cal` blocks, whose counts show the physics the dummy clusters cannot. The
+   performance checks hold.
 
 ## Step 9: from OpenPulse schedules to OpenQASM 3
 
