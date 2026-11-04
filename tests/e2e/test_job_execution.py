@@ -24,12 +24,9 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
     wait_for_final_state(job)
     result = job.result().get_counts()
 
-    assert 420 <= result["0"] <= 640, (
-        f"Expected {result['00']} to be between 450 and 640"
-    )
-    assert 420 <= result["1"] <= 640, (
-        f"Expected {result['01']} to be between 450 and 640"
-    )
+    for bits in ("0", "1"):
+        count = result.get(bits, 0)
+        assert 420 <= count <= 640, f"{bits}: {count} not in 420 to 640, of {result}"
 
 
 def test_simulator_2_qubit_gate(backend_provider: Provider):
@@ -48,7 +45,8 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
     result = job.result().get_counts()
 
     for bits in ("00", "11"):
-        assert 420 <= result[bits] <= 640, f"{bits}: {result[bits]} not in 420 to 640"
+        count = result.get(bits, 0)
+        assert 420 <= count <= 640, f"{bits}: {count} not in 420 to 640, of {result}"
 
 
 def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
@@ -107,4 +105,6 @@ def test_dummy_quantify_device(backend_provider: Provider):
     wait_for_final_state(job)
     result = job.result().get_counts()
 
-    assert result["0"] == 1024, f"Expected {result['00']} to be 1024"
+    assert result.get("0", 0) == 1024, (
+        f"Expected all 1024 shots to read 0, got {result}"
+    )
