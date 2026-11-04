@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.4] - 2026-11-04
+
 ### Added
 
 - Added an account from the environment variables `TERGITE_API_URL` and `TERGITE_API_TOKEN`, named
