@@ -167,9 +167,6 @@ class JobResult(BaseModel):
     The results of the job
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     circuits: list[JobResultCircuit] | None = Field(None, title="Circuits")
     meas_level: MeasLevel | None = Field(None, title="Meas Level")
     meas_return: MeasReturn | None = Field(None, title="Meas Return")
@@ -194,9 +191,6 @@ class Job(BaseModel):
         etc.
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     actual_duration: float | None = Field(
         None,
         description="The seconds the job took to execute, once it has",

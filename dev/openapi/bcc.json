@@ -86,6 +86,137 @@
         "title": "BookingsConfig",
         "type": "object"
       },
+      "CalibrationValue": {
+        "description": "A calibration value",
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Date"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "CalibrationValue",
+        "type": "object"
+      },
+      "CalibrationValue_float_": {
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Date"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "CalibrationValue[float]",
+        "type": "object"
+      },
+      "CalibrationValue_int_": {
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Date"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "CalibrationValue[int]",
+        "type": "object"
+      },
+      "CalibrationValue_str_": {
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Date"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "CalibrationValue[str]",
+        "type": "object"
+      },
       "CancellationDetails": {
         "description": "Details to do with a given cancellation request",
         "properties": {
@@ -147,6 +278,728 @@
         "title": "CircuitJobParams",
         "type": "object"
       },
+      "CouplerCalibration": {
+        "description": "Schema for the calibration data of the coupler",
+        "properties": {
+          "anharmonicity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "control_qubit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Control Qubit"
+          },
+          "control_rz_lambda": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "coupling_strength_02": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "coupling_strength_12": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "cz_pulse_amplitude": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "cz_pulse_dc_bias": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "cz_pulse_duration_before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "cz_pulse_duration_constant": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "cz_pulse_duration_rise": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "cz_pulse_phase_offset": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "frequency_detuning": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Full Name"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Id"
+          },
+          "pulse_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_str_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The name like \"u1\", or None if there is no id",
+            "readOnly": true,
+            "title": "Short Name"
+          },
+          "target_qubit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Qubit"
+          },
+          "target_rz_lambda": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "short_name"
+        ],
+        "title": "CouplerCalibration",
+        "type": "object"
+      },
+      "Device": {
+        "description": "The device's information, as the backend sends it MSS: these fields alone, as MSS keeps\nonly the fields it declares",
+        "properties": {
+          "basis_gates": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Basis Gates",
+            "type": "array"
+          },
+          "characterized": {
+            "title": "Characterized",
+            "type": "boolean"
+          },
+          "coordinates": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Coordinates",
+            "type": "array"
+          },
+          "coupling_dict": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "title": "Coupling Dict",
+            "type": "object"
+          },
+          "coupling_map": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Coupling Map",
+            "type": "array"
+          },
+          "description": {
+            "default": null,
+            "title": "Description",
+            "type": "string"
+          },
+          "dt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dt"
+          },
+          "dtm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dtm"
+          },
+          "gates": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Gates"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Is Active"
+          },
+          "is_online": {
+            "title": "Is Online",
+            "type": "boolean"
+          },
+          "is_simulator": {
+            "title": "Is Simulator",
+            "type": "boolean"
+          },
+          "last_online": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Online"
+          },
+          "meas_lo_freq": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Meas Lo Freq"
+          },
+          "meas_map": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Meas Map",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "number_of_couplers": {
+            "default": 0,
+            "title": "Number Of Couplers",
+            "type": "integer"
+          },
+          "number_of_qubits": {
+            "title": "Number Of Qubits",
+            "type": "integer"
+          },
+          "number_of_resonators": {
+            "default": 0,
+            "title": "Number Of Resonators",
+            "type": "integer"
+          },
+          "open_pulse": {
+            "title": "Open Pulse",
+            "type": "boolean"
+          },
+          "qubit_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Qubit Ids",
+            "type": "array"
+          },
+          "qubit_ids_coupler_map": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "type": "array"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Qubit Ids Coupler Map",
+            "type": "array"
+          },
+          "qubit_lo_freq": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Qubit Lo Freq"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "number_of_qubits",
+          "is_online",
+          "basis_gates",
+          "coupling_map",
+          "coordinates",
+          "is_simulator",
+          "coupling_dict",
+          "characterized",
+          "open_pulse",
+          "meas_map"
+        ],
+        "title": "Device",
+        "type": "object"
+      },
+      "DeviceCalibration": {
+        "description": "Schema for the calibration data of a given device",
+        "properties": {
+          "couplers": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CouplerCalibration"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Couplers"
+          },
+          "defcals": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/GateDefcal"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Defcals"
+          },
+          "discriminators": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Discriminators"
+          },
+          "frames": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PulseFrame"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Frames"
+          },
+          "last_calibrated": {
+            "title": "Last Calibrated",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "qubits": {
+            "items": {
+              "$ref": "#/components/schemas/QubitCalibration"
+            },
+            "title": "Qubits",
+            "type": "array"
+          },
+          "resonators": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ResonatorCalibration"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Resonators"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "qubits",
+          "last_calibrated"
+        ],
+        "title": "DeviceCalibration",
+        "type": "object"
+      },
+      "DeviceEvent": {
+        "description": "The schema for device events",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeviceEventData"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/DeviceEventName"
+          }
+        },
+        "required": [
+          "name",
+          "data"
+        ],
+        "title": "DeviceEvent",
+        "type": "object"
+      },
+      "DeviceEventData": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Device"
+          },
+          {
+            "$ref": "#/components/schemas/DeviceCalibration"
+          },
+          {
+            "$ref": "#/components/schemas/Job"
+          },
+          {
+            "$ref": "#/components/schemas/DeviceSwitchData"
+          }
+        ]
+      },
+      "DeviceEventName": {
+        "description": "The kinds of events the device sends MSS",
+        "enum": [
+          "initialized",
+          "recalibrated",
+          "job_updated",
+          "switched_off",
+          "switched_on"
+        ],
+        "title": "DeviceEventName",
+        "type": "string"
+      },
+      "DeviceSwitchData": {
+        "description": "The data of the event that the device was switched on or off",
+        "properties": {
+          "date": {
+            "format": "date-time",
+            "title": "Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date"
+        ],
+        "title": "DeviceSwitchData",
+        "type": "object"
+      },
+      "EventResponse": {
+        "description": "Response to an event",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Data"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "success",
+              "error",
+              "cancelled",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "id"
+        ],
+        "title": "EventResponse",
+        "type": "object"
+      },
+      "GateDefcal": {
+        "description": "A gate's calibrated pulses as an OpenPulse defcal, which a job may override",
+        "properties": {
+          "gate": {
+            "title": "Gate",
+            "type": "string"
+          },
+          "program": {
+            "title": "Program",
+            "type": "string"
+          },
+          "qubits": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Qubits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "gate",
+          "qubits",
+          "program"
+        ],
+        "title": "GateDefcal",
+        "type": "object"
+      },
       "GeneralMessage": {
         "description": "A general message object sent on the API",
         "properties": {
@@ -198,7 +1051,6 @@
         "type": "object"
       },
       "Job": {
-        "additionalProperties": true,
         "description": "Representation of the job to be executed by this application\n\nAttributes:\n    job_id: the unique identifier of this job\n    user_id: the unique identifier of the user who owns this job\n    estimated_duration: the estimated time this job could take to execute in seconds;\n        default = None\n    timestamps: the timestamps for each stage of running this job; default = None\n    status: the status of this job; default = JobStatus.PENDING\n    failure_reason: the reason why the job has failed; default = None\n    etc.",
         "properties": {
           "actual_duration": {
@@ -360,7 +1212,6 @@
         "type": "object"
       },
       "JobResult": {
-        "additionalProperties": true,
         "description": "The results of the job",
         "properties": {
           "circuits": {
@@ -633,6 +1484,43 @@
         "title": "PaginatedListResponse[UserProfile]",
         "type": "object"
       },
+      "PulseFrame": {
+        "description": "A frame a pulse-level job may play on, at its calibrated frequency",
+        "properties": {
+          "frequency": {
+            "title": "Frequency",
+            "type": "number"
+          },
+          "kind": {
+            "enum": [
+              "drive",
+              "readout",
+              "coupler"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "qubits": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Qubits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "qubits",
+          "frequency"
+        ],
+        "title": "PulseFrame",
+        "type": "object"
+      },
       "QasmCircuit": {
         "additionalProperties": false,
         "description": "A circuit of a gate-level job, written in OpenQASM 3",
@@ -663,6 +1551,210 @@
           "num_clbits"
         ],
         "title": "QasmCircuit",
+        "type": "object"
+      },
+      "QubitCalibration": {
+        "description": "Schema for the calibration data of the qubit",
+        "properties": {
+          "anharmonicity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Id"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The name like \"q1\", or None if there is no id",
+            "readOnly": true,
+            "title": "Name"
+          },
+          "pi_pulse_amplitude": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pi_pulse_duration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pi_pulse_motzoi": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pulse_sigma": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": {
+              "date": null,
+              "unit": "",
+              "value": 0
+            }
+          },
+          "pulse_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_str_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "readout_assignment_error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "t1_decoherence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "t2_decoherence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "x_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "xy_drive_line": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "y_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "z_drive_line": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "QubitCalibration",
         "type": "object"
       },
       "RecalibrationInfo": {
@@ -815,6 +1907,162 @@
         ],
         "title": "RecalibrationStatus",
         "type": "string"
+      },
+      "ResonatorCalibration": {
+        "description": "Schema for the calibration data of the resonator",
+        "properties": {
+          "acq_delay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "acq_integration_time": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Id"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The name like \"q1\", or None if there is no id",
+            "readOnly": true,
+            "title": "Name"
+          },
+          "pulse_amplitude": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pulse_delay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pulse_duration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_float_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pulse_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_str_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "readout_line": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "x_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "y_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationValue_int_"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ResonatorCalibration",
+        "type": "object"
       },
       "Stage": {
         "description": "Stage in the BCC chain",

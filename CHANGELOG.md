@@ -7,6 +7,12 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed the models of MSS's devices, calibrations and jobs, and the backend's jobs, to hold only the fields their
+  specs declare, now that MSS and the backend keep no others; a calibration's couplers gain `short_name`,
+  `full_name`, `control_qubit` and `target_qubit`, and its qubits and resonators `name`
+
 ## [2026.11.0-rc.2] - 2026-11-04
 
 ### Changed
