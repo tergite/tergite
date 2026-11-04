@@ -13,8 +13,8 @@
 
 tests/integration/test_golden_results.py pins the same cases against a mocked backend; these
 show that the real stack puts each qubit's outcome in the clbit the circuit names. They flip
-qubits with X alone, as the simulator's CZ does not entangle them, and the simulator is
-noisy, so each expects its outcome in most shots, not all.
+qubits with X alone, and the simulated chip is noisy, so each expects its outcome in most
+shots, not all.
 """
 from typing import Dict
 
