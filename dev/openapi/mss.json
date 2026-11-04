@@ -413,7 +413,6 @@
         "type": "object"
       },
       "CouplersCalibration": {
-        "additionalProperties": true,
         "description": "Schema for the calibration data of the coupler",
         "properties": {
           "anharmonicity": {
@@ -425,6 +424,17 @@
                 "type": "null"
               }
             ]
+          },
+          "control_qubit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Control Qubit"
           },
           "control_rz_lambda": {
             "anyOf": [
@@ -536,6 +546,17 @@
               }
             ]
           },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
           "id": {
             "anyOf": [
               {
@@ -556,6 +577,28 @@
                 "type": "null"
               }
             ]
+          },
+          "short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Name"
+          },
+          "target_qubit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Qubit"
           },
           "target_rz_lambda": {
             "anyOf": [
@@ -638,7 +681,6 @@
         "type": "object"
       },
       "Device": {
-        "additionalProperties": true,
         "description": "The Schema for the devices",
         "properties": {
           "basis_gates": {
@@ -1139,7 +1181,6 @@
         "type": "object"
       },
       "Job": {
-        "additionalProperties": true,
         "description": "the job schema",
         "properties": {
           "access_token": {
@@ -1332,7 +1373,6 @@
         "type": "object"
       },
       "JobResult": {
-        "additionalProperties": true,
         "description": "The results of the job",
         "properties": {
           "circuits": {
@@ -2436,7 +2476,6 @@
         "type": "string"
       },
       "QubitCalibration": {
-        "additionalProperties": true,
         "description": "Schema for the calibration data of the qubit",
         "properties": {
           "anharmonicity": {
@@ -2479,6 +2518,17 @@
                 "type": "null"
               }
             ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
           },
           "pi_pulse_amplitude": {
             "anyOf": [
@@ -3009,7 +3059,6 @@
         "type": "object"
       },
       "ResonatorCalibration": {
-        "additionalProperties": true,
         "description": "Schema for the calibration data of the resonator",
         "properties": {
           "acq_delay": {
@@ -3062,6 +3111,17 @@
                 "type": "null"
               }
             ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
           },
           "pulse_amplitude": {
             "anyOf": [
@@ -3299,7 +3359,7 @@
   "info": {
     "description": "A frontend to all our quantum backends",
     "title": "Main Service Server",
-    "version": "2026.11.0-rc.3"
+    "version": "2026.11.0-rc.5"
   },
   "openapi": "3.1.0",
   "paths": {

@@ -12,6 +12,9 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 - Changed the linting from black, isort and pyflakes to ruff, which formats, sorts the imports and finds what
   pyflakes did, and formats the models `dev/openapi/generate.py` writes; contributors run `ruff format` and
   `ruff check` where they ran the three
+- Changed the models of MSS's devices, calibrations and jobs, and the backend's jobs, to hold only the fields their
+  specs declare, now that MSS and the backend keep no others; a calibration's couplers gain `short_name`,
+  `full_name`, `control_qubit` and `target_qubit`, and its qubits and resonators `name`
 
 ## [2026.11.0-rc.2] - 2026-11-04
 

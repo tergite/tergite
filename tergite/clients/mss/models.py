@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import Enum, IntEnum
 from typing import Any
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, Field
 
 
 class CalibrationUnit(Enum):
@@ -51,10 +51,8 @@ class CouplersCalibration(BaseModel):
     Schema for the calibration data of the coupler
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     anharmonicity: CalibrationValue | None = None
+    control_qubit: str | None = Field(None, title="Control Qubit")
     control_rz_lambda: CalibrationValue | None = None
     coupling_strength_02: CalibrationValue | None = None
     coupling_strength_12: CalibrationValue | None = None
@@ -66,8 +64,11 @@ class CouplersCalibration(BaseModel):
     cz_pulse_phase_offset: CalibrationValue | None = None
     frequency: CalibrationValue | None = None
     frequency_detuning: CalibrationValue | None = None
+    full_name: str | None = Field(None, title="Full Name")
     id: int | None = Field(None, title="Id")
     pulse_type: CalibrationValue | None = None
+    short_name: str | None = Field(None, title="Short Name")
+    target_qubit: str | None = Field(None, title="Target Qubit")
     target_rz_lambda: CalibrationValue | None = None
 
 
@@ -86,9 +87,6 @@ class Device(BaseModel):
     The Schema for the devices
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     basis_gates: list[str] = Field(..., title="Basis Gates")
     characterized: bool = Field(..., title="Characterized")
     coordinates: list[tuple[int, int]] = Field(..., title="Coordinates")
@@ -195,13 +193,11 @@ class QubitCalibration(BaseModel):
     Schema for the calibration data of the qubit
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     anharmonicity: CalibrationValue | None = None
     frequency: CalibrationValue | None = None
     id: int | None = Field(None, title="Id")
     index: CalibrationValue | None = None
+    name: str | None = Field(None, title="Name")
     pi_pulse_amplitude: CalibrationValue | None = None
     pi_pulse_duration: CalibrationValue | None = None
     pi_pulse_motzoi: CalibrationValue | None = None
@@ -221,14 +217,12 @@ class ResonatorCalibration(BaseModel):
     Schema for the calibration data of the resonator
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     acq_delay: CalibrationValue | None = None
     acq_integration_time: CalibrationValue | None = None
     frequency: CalibrationValue | None = None
     id: int | None = Field(None, title="Id")
     index: CalibrationValue | None = None
+    name: str | None = Field(None, title="Name")
     pulse_amplitude: CalibrationValue | None = None
     pulse_delay: CalibrationValue | None = None
     pulse_duration: CalibrationValue | None = None
@@ -252,9 +246,6 @@ class JobResult(BaseModel):
     The results of the job
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     circuits: list[JobResultCircuit] | None = Field(None, title="Circuits")
     meas_level: MeasLevel | None = Field(None, title="Meas Level")
     meas_return: MeasReturn | None = Field(None, title="Meas Return")
@@ -320,9 +311,6 @@ class Job(BaseModel):
     the job schema
     """
 
-    model_config = ConfigDict(
-        extra="allow",
-    )
     access_token: str | None = Field(None, title="Access Token")
     actual_duration: float | None = Field(None, title="Actual Duration")
     calibration_date: str = Field(..., title="Calibration Date")
