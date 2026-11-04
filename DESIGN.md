@@ -337,5 +337,3 @@ that brought it to Qiskit 2.
   circuits' names and classical bits, but not their registers, so a job got by its id has
   counts keyed by bits; of a job an older backend ran, the shots and measurement level are
   read from its memory.
-- **The SDK needs a tergite-backend that runs gate-level jobs**; an older backend refuses the
-  job file.
