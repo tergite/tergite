@@ -16,7 +16,7 @@ import warnings
 
 import pytest
 
-from tergite.accounts import (
+from tergite.providers.accounts import (
     Account,
     get_environment_account,
     load_accounts,

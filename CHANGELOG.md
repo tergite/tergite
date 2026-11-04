@@ -7,6 +7,12 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed the package's modules into packages by what they do: `providers`, `backends`, `jobs`, `clients.mss` and
+  `clients.bcc`, and `utils`; importing from `tergite` and `tergite.exc` is unchanged, but a submodule imported
+  directly, such as `tergite.types.provider` or `tergite.api`, has moved
+
 ## [2026.11.0-rc.1] - 2026-11-04
 
 ## [2026.11.0-rc.0] - 2026-11-04

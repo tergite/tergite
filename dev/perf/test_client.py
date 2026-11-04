@@ -26,8 +26,8 @@ from qiskit import QuantumCircuit, transpile
 from qiskit.providers import JobStatus
 
 from tergite import Job, Tergite, TergiteBackend
-from tergite.api.mss_models import Job as MssJob
-from tergite.results import CircuitHeader
+from tergite.clients.mss.models import Job as MssJob
+from tergite.jobs.results import CircuitHeader
 from tests.utils.fixtures import load_json_fixture
 
 API_URL = "https://api.perf.example"

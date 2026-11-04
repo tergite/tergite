@@ -11,10 +11,10 @@
 # that they have been altered from the originals.
 
 
-from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackend
-from .job import Job
-from .types.provider import Provider
-from .types.provider_factory import ProviderFactory
+"""The Qiskit provider of the Tergite quantum computers: start from Tergite"""
+from .backends import OpenPulseBackend, OpenQASMBackend, TergiteBackend
+from .jobs import Job
+from .providers import Provider, ProviderFactory
 
 Tergite = ProviderFactory()
 

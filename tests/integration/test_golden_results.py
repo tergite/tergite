@@ -22,7 +22,7 @@ import pytest
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Tergite
-from tergite.api.bcc_models import MeasReturn
+from tergite.clients.bcc.models import MeasReturn
 from tests.utils.uploads import get_uploaded_job_file
 
 from .conftest import API_URL, TEST_CALIBRATIONS_MAP, TEST_JOB_ID

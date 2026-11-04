@@ -18,7 +18,7 @@ from qiskit import QuantumCircuit, qasm3, transpile
 from qiskit.providers import JobStatus
 
 from tergite import Tergite, TergiteBackend
-from tergite.api.bcc_models import MeasReturn
+from tergite.clients.bcc.models import MeasReturn
 from tergite.exc import ApiError, JobFailedError, TergiteError
 from tests.utils.uploads import get_uploaded_job_file
 

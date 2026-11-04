@@ -66,18 +66,18 @@ counts = job.result().get_counts()            # GET /jobs/{id}, until it is fina
    seen, and makes a `TergiteBackend` of each; a device MSS sends in a shape the SDK cannot
    read is skipped with a warning.
 2. **`backend.target`** is computed from the device and its latest calibration by
-   [target.py](tergite/target.py): `rz`, `sx`, `x` and `rx` on every qubit, `measure`, `reset`
+   [target.py](tergite/backends/target.py): `rz`, `sx`, `x` and `rx` on every qubit, `measure`, `reset`
    and `delay`, and `cz` on each coupled pair whose coupler is calibrated. Durations and errors
    come from the calibration, in SI units unless the value's unit says otherwise.
 3. **`backend.run`** refuses anything but circuits and OpenQASM 3 programs (text, or anything
    with `to_qasm()`, an oqpy Program's externs put in a `cal` block), adds the `defcal`s it is
-   given after each one's header ([pulse.py](tergite/pulse.py)), fetches the calibration again and recomputes
+   given after each one's header ([pulse.py](tergite/backends/pulse.py)), fetches the calibration again and recomputes
    the target if the device was recalibrated, refuses a circuit with an instruction the target
    lacks, registers the job at MSS with the calibration's date, and uploads the job file to
    the device's BCC with the job token MSS gave.
 4. **`job.result()`** reads the job from MSS until it is final, raises `JobFailedError` for a
    failed or cancelled job, and turns its memory into a Qiskit `Result`
-   ([results.py](tergite/results.py)).
+   ([results.py](tergite/jobs/results.py)).
 
 ### The job file
 
@@ -103,29 +103,42 @@ What MSS returns as a job's `result.memory`, one entry per circuit:
 
 ## 4. Package layout
 
-| Path | What it holds |
-| --- | --- |
-| `tergite/__init__.py` | the public surface, `__all__`, and `Tergite`, the default `ProviderFactory` |
-| `tergite/types/provider_factory.py` | `ProviderFactory`: accounts by service name, the rc file read on first use |
-| `tergite/types/provider.py` | `Provider`: an account's HTTP clients, its backends, `job(job_id)` |
-| `tergite/accounts.py` | `Account`, `load_accounts` and `save_account` over the rc file, and `get_environment_account` |
-| `tergite/backend.py` | `TergiteBackend`, a Qiskit `BackendV2`; `OpenPulseBackend` and `OpenQASMBackend` are its deprecated names |
-| `tergite/target.py` | `get_target`: a device's transpiler target from its calibration |
-| `tergite/pulse.py` | pulse-level programs' OpenQASM 3 and classical registers, the `defcal`s a job is given, and a device's frames and `defcal`s from its calibration |
-| `tergite/job.py` | `Job`, a Qiskit `JobV1` |
-| `tergite/results.py` | `get_result`: a Qiskit `Result` from a job's memory |
-| `tergite/api/` | the calls to MSS (`mss.py`) and BCC (`bcc.py`), the HTTP clients (`client.py`), the job file (`job_file.py`) and the generated wire models |
-| `tergite/exc.py` | `TergiteError` and its subclasses: `ApiError`, `BackendNotFoundError`, `JobFailedError`, `UncalibratedCouplerError` |
+The packages follow what a user does: start from a provider, get a backend, run a job on it.
+Each package's `__init__.py` is its facade; `clients/` talks HTTP and knows no Qiskit.
 
-The `Provider` owns two httpx clients, one for MSS, which reads the account's token on each
-request, and one for the BCCs, which carries each job's token per call. Every call has a
-timeout: 30 s, or 300 s to upload a job or download a logfile. An error answer becomes an
-`ApiError` naming what failed and the service's detail.
+```
+tergite/
+├── __init__.py        # the entry point: Tergite, the default ProviderFactory, and __all__
+├── exc.py             # TergiteError and its subclasses, which users catch
+├── providers/         # where a user starts
+│   ├── factory.py     #   ProviderFactory: accounts by service name, the rc file read on first use
+│   ├── provider.py    #   Provider: an account's clients, its backends, job(job_id)
+│   └── accounts.py    #   Account, over the rc file and TERGITE_API_URL/TOKEN
+├── backends/          # the devices as Qiskit backends
+│   ├── backend.py     #   TergiteBackend, a BackendV2; OpenPulseBackend and OpenQASMBackend
+│   │                  #   are its deprecated names
+│   ├── target.py      #   get_target: a device's transpiler target from its calibration
+│   └── pulse.py       #   pulse-level programs, the defcals a job is given, a device's frames
+├── jobs/              # what a backend runs
+│   ├── job.py         #   Job, a Qiskit JobV1
+│   └── results.py     #   get_result: a Qiskit Result from a job's memory
+├── clients/           # HTTP to the services
+│   ├── mss/           #   MssClient: devices, calibrations, jobs; models.py, generated
+│   └── bcc/           #   BccClient: upload, cancel, logfile; models.py, generated, the job
+│                      #   file among them
+└── utils/
+    └── http.py        # timeouts, the shared TLS context, error answers as ApiError
+```
+
+The `Provider` owns an `MssClient`, which sends the account's token, read on each request,
+and a `BccClient`, which each job's calls give its URL and token; each keeps one httpx
+connection pool. Every call has a timeout: 30 s, or 300 s to upload a job or download a
+logfile. An error answer becomes an `ApiError` naming what failed and the service's detail.
 
 ## 5. The wire contract, from OpenAPI
 
 The models of what MSS and BCC send and accept are generated, never written by hand:
-`tergite/api/mss_models.py` and `bcc_models.py` come from the services' OpenAPI specs, pinned
+`tergite/clients/mss/models.py` and `clients/bcc/models.py` come from the services' OpenAPI specs, pinned
 in `dev/openapi/mss.json` and `bcc.json`.
 
 - `dev/openapi/sync.sh` takes the specs from tergite-frontend and tergite-backend checkouts;
@@ -240,12 +253,12 @@ rules, and code a change touches is brought in line with them.
    SDK inherits: `TergiteBackend(BackendV2)` and `Job(JobV1)` are the contract users program
    against.
 6. **Stateless behaviour is a module-level function**, taking explicit arguments and returning
-   data, the HTTP client first when it does I/O: `get_target`, `get_result`, `mss.create_job`.
+   data: `get_target`, `get_result`.
    No `Protocol` or ABC with one implementation, no inheritance to share behaviour.
 7. **Dependencies arrive as arguments.** Importing `tergite` does no I/O and prints nothing.
-   The `Provider` owns its HTTP clients and hands them to the functions that call the API; only
-   `accounts.py` reads the rc file, when asked to.
-8. **One home per kind of thing.** HTTP lives in `tergite/api/`. Errors subclass
+   The `Provider` owns its clients, and its backends and jobs call the services through them;
+   only `providers/accounts.py` reads the rc file, when asked to.
+8. **One home per kind of thing.** HTTP lives in `tergite/clients/`, a package per service. Errors subclass
    `tergite.exc.TergiteError`. The public surface is `tergite/__init__.py`, with `__all__`.
    Development and test tooling (the OpenAPI generator, the e2e runner, the performance
    checks) lives in `dev/`.
@@ -303,9 +316,9 @@ On top of the [style guide](#style-guide) and the [code structure](#code-structu
 
 | Task | Path |
 | --- | --- |
-| A call to MSS or BCC | a module-level function in `tergite/api/mss.py` or `bcc.py`, the client first; a respx route in `tests/integration/conftest.py` |
+| A call to MSS or BCC | a method of `MssClient` or `BccClient`, in `tergite/clients/mss/` or `bcc/`; a respx route in `tests/integration/conftest.py` |
 | A field MSS or BCC sends | `dev/openapi/sync.sh` against their checkouts, then `python -m dev.openapi.generate`; the diff to the pinned spec is the review |
-| A gate the transpiler may use | `tergite/target.py`, from the calibration; a case in `tests/test_target.py` |
+| A gate the transpiler may use | `tergite/backends/target.py`, from the calibration; a case in `tests/test_target.py` |
 | A public name | `tergite/__init__.py` and its `__all__`; its signature in `tests/integration/test_public_api.py` |
 | An error a user catches | a subclass of `TergiteError` in `tergite/exc.py` |
 | A test against the real stack | `tests/e2e/`, run by `dev/e2e_native_test.sh` |

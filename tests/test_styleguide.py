@@ -31,8 +31,8 @@ SOURCE_ROOTS = ("tergite",)
 ALL_ROOTS = SOURCE_ROOTS + ("tests", "dev")
 EXCLUDED_PREFIXES = (
     # generated from the services' specs, in their names
-    "tergite/api/mss_models.py",
-    "tergite/api/bcc_models.py",
+    "tergite/clients/mss/models.py",
+    "tergite/clients/bcc/models.py",
 )
 PUBLIC_SURFACE = "tergite/__init__.py"
 

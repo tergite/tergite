@@ -18,7 +18,7 @@ from qiskit.circuit.library import CZGate, RXGate, RZGate, SXGate, XGate
 from qiskit.providers import QubitProperties
 from qiskit.transpiler import InstructionProperties, Target
 
-from .api import mss_models
+from ..clients.mss import models as mss_models
 
 # each calibration value is in SI units unless its unit says otherwise; many say none
 SI_SCALES = {"ns": 1e-9, "us": 1e-6, "MHz": 1e6, "GHz": 1e9}

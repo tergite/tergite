@@ -25,16 +25,16 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from qiskit.providers.providerutils import filter_backends
 
-from ..accounts import Account
-from ..api import mss
-from ..api.client import create_bcc_client, create_mss_client
-from ..backend import TergiteBackend
+from ..backends.backend import TergiteBackend
+from ..clients.bcc import BccClient
+from ..clients.mss import MssClient
 from ..exc import BackendNotFoundError
-from ..job import STATUS_MAP, Job
-from ..results import CircuitHeader
+from ..jobs.job import STATUS_MAP, Job
+from ..jobs.results import CircuitHeader
+from .accounts import Account
 
 if TYPE_CHECKING:
-    from ..api.mss_models import JobResult
+    from ..clients.mss.models import JobResult
 
 
 class Provider:
@@ -48,8 +48,8 @@ class Provider:
         """
         super().__init__()
         self.account = account
-        self.mss_client = create_mss_client(account.url, lambda: self.account.token)
-        self.bcc_client = create_bcc_client()
+        self.mss_client = MssClient(account.url, lambda: self.account.token)
+        self.bcc_client = BccClient()
 
     def backends(
         self, /, name: str = None, filters: Callable[[Any], bool] = None, **kwargs
@@ -80,7 +80,7 @@ class Provider:
             device.name: TergiteBackend(
                 data=device, provider=self, base_url=self.account.url
             )
-            for device in mss.get_devices(self.mss_client)
+            for device in self.mss_client.get_devices()
         }
 
     def job(self, job_id: str) -> Job:
@@ -98,7 +98,7 @@ class Provider:
         Returns:
             an instance of `Job` corresponding to the given job id
         """
-        remote_data = mss.get_job(self.mss_client, job_id)
+        remote_data = self.mss_client.get_job(job_id)
         result = remote_data.result
         return Job(
             backend=self.get_backend(name=remote_data.device),

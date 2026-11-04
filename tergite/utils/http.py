@@ -9,10 +9,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The HTTP clients the SDK talks to MSS and the backends with"""
+"""What the SDK's HTTP clients share: timeouts, TLS and errors"""
 import functools
 import ssl
-from typing import Callable, Optional
 
 import httpx
 
@@ -22,41 +21,6 @@ from ..exc import ApiError
 REQUEST_TIMEOUT = 30
 # seconds for the calls that upload a job or download a logfile
 TRANSFER_TIMEOUT = 300
-
-
-def create_mss_client(url: str, get_token: Callable[[], Optional[str]]) -> httpx.Client:
-    """Creates the client of an MSS, authenticated with the account's app token
-
-    Args:
-        url: the root URL of MSS
-        get_token: gets the app token, or None for an MSS that asks for none; it is
-            called for each request, so that a token changed on the account is used
-
-    Returns:
-        the client, whose paths are relative to MSS's root URL
-    """
-
-    def authenticate(request: httpx.Request) -> httpx.Request:
-        token = get_token()
-        if token is not None:
-            request.headers["Authorization"] = f"Bearer {token}"
-        return request
-
-    return httpx.Client(
-        base_url=url,
-        auth=authenticate,
-        timeout=REQUEST_TIMEOUT,
-        verify=_get_ssl_context(),
-    )
-
-
-def create_bcc_client() -> httpx.Client:
-    """Creates the client of the backends, which each job gives its URL and token
-
-    Returns:
-        the client
-    """
-    return httpx.Client(timeout=REQUEST_TIMEOUT, verify=_get_ssl_context())
 
 
 def raise_for_error(response: httpx.Response, context: str) -> None:
@@ -75,16 +39,20 @@ def raise_for_error(response: httpx.Response, context: str) -> None:
         )
 
 
+@functools.cache
+def get_ssl_context() -> ssl.SSLContext:
+    """Gets the SSL context every client shares: loading the CA certificates into a new one
+    took a client 6.7 ms to create, against 0.06 ms with this
+
+    Returns:
+        the SSL context
+    """
+    return httpx.create_ssl_context()
+
+
 def _get_detail(response: httpx.Response) -> str:
     """The detail of an error response, or its text if it has none"""
     try:
         return response.json()["detail"]
     except (ValueError, KeyError, TypeError):
         return response.text
-
-
-@functools.cache
-def _get_ssl_context() -> ssl.SSLContext:
-    """The SSL context every client shares: loading the CA certificates into a new one
-    took a client 6.7 ms to create, against 0.06 ms with this"""
-    return httpx.create_ssl_context()

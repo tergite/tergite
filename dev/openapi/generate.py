@@ -53,7 +53,7 @@ class Contract:
 CONTRACTS = (
     Contract(
         spec_file=OPENAPI_DIR / "mss.json",
-        models_file=ROOT_DIR / "tergite" / "api" / "mss_models.py",
+        models_file=ROOT_DIR / "tergite" / "clients" / "mss" / "models.py",
         schemas=(
             "CreatedJobResponse",
             "Device",
@@ -67,7 +67,7 @@ CONTRACTS = (
     ),
     Contract(
         spec_file=OPENAPI_DIR / "bcc.json",
-        models_file=ROOT_DIR / "tergite" / "api" / "bcc_models.py",
+        models_file=ROOT_DIR / "tergite" / "clients" / "bcc" / "models.py",
         schemas=("CancellationDetails", "GeneralMessage", "Job", "JobFile"),
     ),
 )

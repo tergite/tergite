@@ -16,7 +16,7 @@ from email.policy import default as default_policy
 import httpx
 import respx
 
-from tergite.api.bcc_models import JobFile
+from tergite.clients.bcc.models import JobFile
 
 
 def get_uploaded_job_file(router: respx.MockRouter) -> JobFile:
