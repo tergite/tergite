@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Utilities for handling mock requests in tests"""
+
 import dataclasses
 import json
 from typing import Any, Dict, List, Optional

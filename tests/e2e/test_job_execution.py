@@ -24,12 +24,12 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
     wait_for_final_state(job)
     result = job.result().get_counts()
 
-    assert (
-        420 <= result["0"] <= 640
-    ), f"Expected {result['00']} to be between 450 and 640"
-    assert (
-        420 <= result["1"] <= 640
-    ), f"Expected {result['01']} to be between 450 and 640"
+    assert 420 <= result["0"] <= 640, (
+        f"Expected {result['00']} to be between 450 and 640"
+    )
+    assert 420 <= result["1"] <= 640, (
+        f"Expected {result['01']} to be between 450 and 640"
+    )
 
 
 def test_simulator_2_qubit_gate(backend_provider: Provider):
@@ -68,9 +68,9 @@ def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
     wait_for_final_state(job)
     memory = job.result().get_memory()  # shape = (shots, n_qubits)
 
-    assert (
-        memory.ndim == 2 and memory.shape[1] == 2
-    ), f"Expected (shots, 2) IQ array, got {memory.shape}"
+    assert memory.ndim == 2 and memory.shape[1] == 2, (
+        f"Expected (shots, 2) IQ array, got {memory.shape}"
+    )
 
     for qubit in range(2):
         # I-Q coordinates for this qubit

@@ -17,6 +17,7 @@ Code that broke a rule when the rule was added is listed in
 fixtures/styleguide_baseline.txt. That list may only shrink: a new violation fails, and so
 does a listed one that has been fixed but not deleted from the list.
 """
+
 import ast
 import re
 import tokenize

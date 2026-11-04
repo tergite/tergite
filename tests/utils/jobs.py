@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Test utilities for jobs running on the real stack"""
+
 from tergite import Job
 
 # Qiskit's default polls every 5 seconds, longer than a simulator job takes

@@ -16,6 +16,7 @@ service's committed OpenAPI schema (dev/openapi/sync.sh copies them), pruned to 
 the SDK reads and those they refer to, so that a change elsewhere in the service does not
 touch the SDK. tests/test_openapi.py fails when a generated file no longer matches its spec.
 """
+
 import json
 import subprocess
 import tempfile

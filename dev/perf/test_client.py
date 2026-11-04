@@ -15,6 +15,7 @@ Run by dev/perf/record.sh, which keeps pytest-benchmark's JSON for dev/perf/comp
 benchmark records, beside its timings, the HTTP calls one round of it made and the peak
 memory it allocated, which compare.py holds to the baseline too.
 """
+
 import subprocess
 import sys
 import tracemalloc
