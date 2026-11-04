@@ -134,7 +134,9 @@ in `dev/openapi/mss.json` and `bcc.json`.
   dropped), and generates the models with datamodel-code-generator.
 - `tests/test_openapi.py` fails when the models are not what the pinned specs generate.
 - The e2e runs `dev/openapi/check_served.py` against the MSS and BCC it starts, and stops
-  when what they serve differs from the pinned specs, naming the schemas.
+  when what they serve breaks the pinned specs: a field the SDK reads dropped or retyped, a
+  field it does not send required, an enum changed. Added optional fields and schemas and
+  reworded descriptions pass, as the models allow extra fields.
 
 So a change to a service's DTOs reaches the SDK as a diff to a pinned spec, in review.
 
@@ -174,8 +176,9 @@ GitLab CI ([.gitlab-ci.yml](.gitlab-ci.yml)) is the source of truth; GitHub Acti
 - `test`, on merge requests and `v*` tags: with uv from `uv.lock` on Python 3.13,
   `black --check`, `isort --check-only` and `pyflakes` over `tergite tests dev`, then `pytest`.
 - `e2e`, on merge requests, `main` and `v*` tags: `dev/e2e_native_test.sh` after installing
-  MongoDB, against the tergite-frontend and tergite-backend branches of the same name, else
-  their `main`.
+  MongoDB, against the tergite-frontend and tergite-backend branches or tags of the same name,
+  else their newest release of the same minor one, else their `main`: every `v{year}.{month}.x`
+  of the stack works with every other.
 - On a `v*` tag, `deploy staging` and `deploy production` build with `uv build` and publish
   to Test PyPI and PyPI, where `SHOULD_PUBLISH_TO_STAGING` or `SHOULD_PUBLISH_TO_PROD` is set.
 

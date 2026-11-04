@@ -120,12 +120,12 @@ def prune_spec(spec: Dict[str, Any], schemas: Iterable[str]) -> Dict[str, Any]:
         "info": spec["info"],
         "paths": {},
         "components": {
-            "schemas": {name: _make_lenient(all_schemas[name]) for name in sorted(kept)}
+            "schemas": {name: make_lenient(all_schemas[name]) for name in sorted(kept)}
         },
     }
 
 
-def _make_lenient(node: Any) -> Any:
+def make_lenient(node: Any) -> Any:
     """The schema node, and every node in it, as lenient as a client reading it should be:
 
     - a read-only field is optional: the services dump with exclude_none, so a null one,
@@ -134,12 +134,12 @@ def _make_lenient(node: Any) -> Any:
       them back.
     """
     if isinstance(node, list):
-        return [_make_lenient(item) for item in node]
+        return [make_lenient(item) for item in node]
     if not isinstance(node, dict):
         return node
 
     schema = {
-        key: _make_lenient(value) for key, value in node.items() if key != "pattern"
+        key: make_lenient(value) for key, value in node.items() if key != "pattern"
     }
     if "required" in schema and isinstance(schema.get("properties"), dict):
         properties = schema["properties"]
