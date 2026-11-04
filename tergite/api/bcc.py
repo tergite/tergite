@@ -16,8 +16,8 @@ from typing import Dict
 
 import httpx
 
+from .bcc_models import JobFile
 from .client import TRANSFER_TIMEOUT, raise_for_error
-from .job_file import JobFile
 
 
 def upload_job(

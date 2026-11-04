@@ -27,7 +27,7 @@ from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
 
 from .api import bcc, mss, mss_models
-from .api.job_file import JobFile
+from .api.bcc_models import JobFile
 from .exc import ApiError, JobFailedError
 from .results import CircuitHeader, get_result
 

@@ -68,7 +68,7 @@ CONTRACTS = (
     Contract(
         spec_file=OPENAPI_DIR / "bcc.json",
         models_file=ROOT_DIR / "tergite" / "api" / "bcc_models.py",
-        schemas=("CancellationDetails", "GeneralMessage", "Job"),
+        schemas=("CancellationDetails", "GeneralMessage", "Job", "JobFile"),
     ),
 )
 

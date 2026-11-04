@@ -29,7 +29,7 @@ from qiskit.providers import BackendV2, Options
 from qiskit.transpiler import Target
 
 from .api import mss
-from .api.job_file import CircuitPayload, JobFile, JobParams
+from .api.bcc_models import CircuitJobParams, JobFile, QasmCircuit
 from .exc import TergiteError
 from .job import Job
 from .pulse import (
@@ -302,9 +302,9 @@ def _get_job_file(
 ) -> JobFile:
     return JobFile(
         job_id=job_id,
-        params=JobParams(
+        params=CircuitJobParams(
             circuits=[
-                CircuitPayload(
+                QasmCircuit(
                     name=item.header.name,
                     qasm=add_calibrations(item.qasm, defcals),
                     num_clbits=item.header.memory_slots,

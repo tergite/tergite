@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import Enum, IntEnum
 from typing import Any
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, PositiveInt, conint
 
 
 class CancellationDetails(BaseModel):
@@ -26,6 +26,16 @@ class CancellationDetails(BaseModel):
     """
 
     reason: str | None = Field(None, title="Reason")
+
+
+class MeasLevel(IntEnum):
+    integer_1 = 1
+    integer_2 = 2
+
+
+class MeasReturn(Enum):
+    single = "single"
+    avg = "avg"
 
 
 class Status(Enum):
@@ -43,16 +53,6 @@ class GeneralMessage(BaseModel):
     data: dict[str, Any] | list[Any] | None = Field(None, title="Data")
     detail: str | None = Field(None, title="Detail")
     status: Status = Field(..., title="Status")
-
-
-class MeasLevel(IntEnum):
-    integer_1 = 1
-    integer_2 = 2
-
-
-class MeasReturn(Enum):
-    single = "single"
-    avg = "avg"
 
 
 class JobResultCircuit(BaseModel):
@@ -74,6 +74,20 @@ class JobStatus(Enum):
     failed = "failed"
     successful = "successful"
     cancelled = "cancelled"
+
+
+class QasmCircuit(BaseModel):
+    """
+    A circuit of a gate-level job, written in OpenQASM 3
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    metadata: dict[str, Any] | None = Field({}, title="Metadata")
+    name: str = Field(..., title="Name")
+    num_clbits: conint(ge=0) = Field(..., title="Num Clbits")
+    qasm: str = Field(..., title="Qasm")
 
 
 class Stage(IntEnum):
@@ -118,6 +132,34 @@ class Timestamps(BaseModel):
     post_processing: TimestampPair | None = None
     pre_processing: TimestampPair | None = None
     registration: TimestampPair | None = None
+
+
+class CircuitJobParams(BaseModel):
+    """
+    The params of a gate-level job: its circuits and how to measure them
+
+    meas_return applies to meas_level 1 only; meas_level 2 returns every shot.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    circuits: list[QasmCircuit] = Field(..., min_length=1, title="Circuits")
+    meas_level: MeasLevel | None = Field(2, title="Meas Level")
+    meas_return: MeasReturn | None = Field("single", title="Meas Return")
+    shots: PositiveInt = Field(..., title="Shots")
+
+
+class JobFile(BaseModel):
+    """
+    The expected structure of the job file: the OpenQASM 3 circuits of a gate-level job
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    job_id: str = Field(..., title="Job Id")
+    params: CircuitJobParams
 
 
 class JobResult(BaseModel):
