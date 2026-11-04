@@ -33,7 +33,7 @@ def test_refused_token_cannot_submit(token: str):
     provider = Tergite.use_provider_account(
         service_name="refused", url=os.environ["API_URL"], token=token
     )
-    backend = provider.get_backend("qiskit_pulse_1q")
+    backend = provider.get_backend("sim_1q")
     qc = QuantumCircuit(1, 1)
     qc.measure(0, 0)
 

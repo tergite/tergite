@@ -14,12 +14,14 @@
 # Runs tests/e2e against the whole stack, each service running natively, as
 # tergite-frontend's dev/e2e_native_test.sh does: MongoDB, MSS from a tergite-frontend checkout,
 # seeded from its ui/fixtures, and the backends from a tergite-backend checkout, all from fresh
-# data in temp-native/. The simulators, on QuTiP, run in one backend process, and Loke, on a
-# dummy Qblox cluster, in another, both from one environment, so that each process's
-# performance is measured apart. MSS's config, the keys and the simulators' settings come
-# from the frontend's fixtures, which its own e2e keeps in step with MSS and the backend;
-# Loke's settings, quantify and calibration configs from this repo's tests/fixtures. The
-# script's arguments go to pytest, e.g. a test to run. Needs mongod, mongosh, uv, git and curl.
+# data in temp-native/. The simulators, each a simulated chip behind dummy Qblox clusters, run
+# in one backend process, and Loke, on a dummy Qblox cluster, in another, both from one
+# environment, so that each process's performance is measured apart. MSS's config and the keys
+# come from the frontend's fixtures, which its own e2e keeps in step with MSS and the backend;
+# the simulators' settings, chips and tuner configs from the backend's tests/fixtures, as its
+# packages ship them; Loke's settings, quantify and calibration configs from this repo's
+# tests/fixtures. The script's arguments go to pytest, e.g. a test to run. Needs mongod,
+# mongosh, uv, git and curl.
 #
 # Usage
 # =====
@@ -166,18 +168,21 @@ get_checkout() {
   CHECKOUT_PATH="$WORK_PATH/repos/$1";
 }
 
-# writes the env file of a backend's device, from its line of SIMULATORS or LOKE
+# writes the env file of a backend's device, from its line of SIMULATORS or LOKE, with the
+# given settings of its instruments and tuner after its own
 # usage:
-#   write_env_file "name|executor|port|jwt secret|folder of its settings and calibration seed"
+#   write_env_file "name|port|jwt secret|backend config|calibration seed" "BCC_<NAME>=value"...
 write_env_file() {
-  local name executor port jwt_secret settings_path stem dir;
-  IFS="|" read -r name executor port jwt_secret settings_path <<< "$1";
+  local name port jwt_secret settings seed stem dir;
+  IFS="|" read -r name port jwt_secret settings seed <<< "$1";
+  shift;
   stem="$(echo "$name" | tr '[:upper:]' '[:lower:]')";
   dir="$WORK_PATH/backends/$name";
   mkdir -p "$dir/storage";
+  # a copy, as a recalibration writes what it found over its seed
+  cp "$seed" "$dir/calibration.seed.toml";
   {
     echo "BCC_DEFAULT_PREFIX=$name"
-    echo "BCC_EXECUTOR_TYPE=$executor"
     echo "BCC_APP_SETTINGS=production"
     echo "BCC_JWT_SECRET=$jwt_secret"
     echo "BCC_CORS_ORIGINS=127.0.0.1,localhost"
@@ -189,16 +194,37 @@ write_env_file() {
     echo "BCC_MSS_CONNECTION_MAX_ATTEMPTS=120"
     echo "BCC_STORAGE_ROOT=$dir/storage"
     echo "BCC_BOOKING_DB_URL=sqlite:///$dir/booking_db.db"
-    echo "BCC_BACKEND_SETTINGS=$settings_path/$stem.toml"
-    echo "BCC_CALIBRATION_SEED=$settings_path/$stem.seed.toml"
+    echo "BCC_BACKEND_SETTINGS=$settings"
+    echo "BCC_CALIBRATION_SEED=$dir/calibration.seed.toml"
     echo "BCC_PRIVATE_KEY_FILE=$FIXTURES_PATH/private-$(echo "$stem" | tr '_' '-')-key.pem"
     echo "BCC_MSS_PUBLIC_KEY_PATH=$FIXTURES_PATH/public-mss-key.pem"
-    echo "BCC_QUANTIFY_CONFIG_FILE=$SDK_FIXTURES_PATH/quantify-config.json"
-    echo "BCC_QUANTIFY_METADATA_FILE=$SDK_FIXTURES_PATH/quantify-metadata.yml"
-    echo "BCC_CALIBRATION_NODE_CONFIG_FILE=$SDK_FIXTURES_PATH/node_config.calib.toml"
-    echo "BCC_CALIBRATION_DEVICE_CONFIG_FILE=$SDK_FIXTURES_PATH/device_config.calib.toml"
-    echo "BCC_CALIBRATION_SPI_CONFIG_FILE=$SDK_FIXTURES_PATH/spi_config.calib.toml"
+    printf '%s\n' "$@"
   } > "$dir/backend.env";
+}
+
+# waits until the device's first recalibration, which it starts with, has ended, failing if it
+# failed, the backend's process exits or it takes longer than the given seconds
+# usage:
+#   wait_for_recalibration name pid seconds
+wait_for_recalibration() {
+  local deadline=$(( $(date +%s) + $3 )) outcome;
+  while true; do
+    outcome="$("$WORK_PATH/venvs/backend/bin/python" -c '
+import sqlite3, sys
+try:
+    rows = sqlite3.connect(sys.argv[1]).execute(
+        "SELECT status, error FROM recalibration WHERE status IN (\"finished\", \"failed\")"
+    ).fetchall()
+except sqlite3.OperationalError:
+    rows = []
+print(" ".join(str(field) for field in rows[0]) if rows else "")
+' "$WORK_PATH/backends/$1/booking_db.db")";
+    [[ "$outcome" != finished* ]] || return 0;
+    [[ -z "$outcome" ]] || exit_with_log simulators "$1's recalibration failed: $outcome";
+    kill -0 "$2" 2>/dev/null || exit_with_log simulators "the simulators stopped";
+    [[ $(date +%s) -lt $deadline ]] || exit_with_log simulators "$1 did not recalibrate within $3 seconds";
+    sleep 2;
+  done
 }
 
 for port in $MSS_PORT $MONGO_PORT $SIMULATORS_PORT $LOKE_PORT; do
@@ -216,14 +242,30 @@ FRONTEND_PATH="$CHECKOUT_PATH"
 FIXTURES_PATH="$FRONTEND_PATH/ui/fixtures"
 get_checkout tergite-backend "$BACKEND_PATH" "$BACKEND_REPO" "$BACKEND_BRANCH"
 BACKEND_PATH="$CHECKOUT_PATH"
-# name|executor|port|JWT secret|folder of its settings and calibration seed
+BACKEND_FIXTURES_PATH="$BACKEND_PATH/tests/fixtures"
+# name|port|JWT secret|backend config|calibration seed
 SIMULATORS=(
-  "qiskit_pulse_1q|quantify|$SIMULATORS_PORT|dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7|$FIXTURES_PATH"
-  "qiskit_pulse_2q|quantify|$SIMULATORS_PORT|$LOKE_JWT_SECRET|$FIXTURES_PATH"
+  "sim_1q|$SIMULATORS_PORT|dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7|$BACKEND_FIXTURES_PATH/backend_config.simq1.toml|$BACKEND_FIXTURES_PATH/sim_1q.seed.toml"
+  "sim_2q|$SIMULATORS_PORT|$LOKE_JWT_SECRET|$BACKEND_FIXTURES_PATH/backend_config.simq2.toml|$BACKEND_FIXTURES_PATH/sim_2q.seed.toml"
+)
+# their chip behind the dummy clusters, which the tuner recalibrates from its device config
+SIMULATOR_CONFIGS=(
+  "BCC_QUANTIFY_CONFIG_FILE=$BACKEND_FIXTURES_PATH/dummy-quantify-config.json"
+  "BCC_QUANTIFY_METADATA_FILE=$BACKEND_FIXTURES_PATH/dummy-quantify-metadata.yml"
+  "BCC_CALIBRATION_NODE_CONFIG_FILE=$BACKEND_FIXTURES_PATH/chip_node_config.toml"
+  "BCC_CALIBRATION_DEVICE_CONFIG_FILE=$BACKEND_FIXTURES_PATH/chip_calib_device_config.toml"
+  "BCC_CALIBRATION_SPI_CONFIG_FILE=$BACKEND_FIXTURES_PATH/dummy_spi_config.calib.toml"
 )
 # the frontend's Loke has 8 qubits and is never recalibrated, as its e2e runs no worker; this
 # one is the dummy 2-qubit Loke that this repo's calibration configs recalibrate as it starts
-LOKE="Loke|quantify|$LOKE_PORT|$LOKE_JWT_SECRET|$SDK_FIXTURES_PATH"
+LOKE="Loke|$LOKE_PORT|$LOKE_JWT_SECRET|$SDK_FIXTURES_PATH/loke.toml|$SDK_FIXTURES_PATH/loke.seed.toml"
+LOKE_CONFIGS=(
+  "BCC_QUANTIFY_CONFIG_FILE=$SDK_FIXTURES_PATH/quantify-config.json"
+  "BCC_QUANTIFY_METADATA_FILE=$SDK_FIXTURES_PATH/quantify-metadata.yml"
+  "BCC_CALIBRATION_NODE_CONFIG_FILE=$SDK_FIXTURES_PATH/node_config.calib.toml"
+  "BCC_CALIBRATION_DEVICE_CONFIG_FILE=$SDK_FIXTURES_PATH/device_config.calib.toml"
+  "BCC_CALIBRATION_SPI_CONFIG_FILE=$SDK_FIXTURES_PATH/spi_config.calib.toml"
+)
 
 # environments of their own, so that each checkout's .venv stays as it is
 echo "Installing MSS, the backends and the SDK"
@@ -241,11 +283,11 @@ until (exec 3<>"/dev/tcp/127.0.0.1/$MONGO_PORT") 2>/dev/null; do sleep 0.2; done
 echo "Starting the backends"
 simulator_env_args=()
 for backend in "${SIMULATORS[@]}"; do
-  write_env_file "$backend"
+  write_env_file "$backend" "${SIMULATOR_CONFIGS[@]}"
   IFS="|" read -r name _ <<< "$backend"
   simulator_env_args+=(--env-file "$WORK_PATH/backends/$name/backend.env")
 done
-write_env_file "$LOKE"
+write_env_file "$LOKE" "${LOKE_CONFIGS[@]}"
 start_service simulators bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/backend/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $SIMULATORS_PORT ${simulator_env_args[*]}"
 simulators_pid=$SERVICE_PID
 start_service loke bash -c "cd '$WORK_PATH/backends' && exec '$WORK_PATH/venvs/backend/bin/python' '$BACKEND_PATH/main.py' start --host 127.0.0.1 --port $LOKE_PORT --env-file '$WORK_PATH/backends/Loke/backend.env'"
@@ -259,7 +301,7 @@ replace_str "$WORK_PATH/mss-config.toml" "OPENID_CLIENT_ID" "$OPENID_CLIENT_ID"
 replace_str "$WORK_PATH/mss-config.toml" "OPENID_CLIENT_SECRET" "$OPENID_CLIENT_SECRET"
 replace_str "$WORK_PATH/mss-config.toml" "OPENID_CONFIG_URL" "$OPENID_CONFIG_URL"
 for backend in "${SIMULATORS[@]}" "$LOKE"; do
-  IFS="|" read -r name _ port _ <<< "$backend"
+  IFS="|" read -r name port _ <<< "$backend"
   host="$(echo "$name" | tr '[:upper:]' '[:lower:]')"
   replace_str "$WORK_PATH/mss-config.toml" "http://$host:8000" "http://127.0.0.1:$port/$name"
 done
@@ -278,6 +320,11 @@ wait_for_url loke "http://127.0.0.1:$LOKE_PORT/health" $loke_pid 300
 for backend in "${SIMULATORS[@]}"; do
   IFS="|" read -r name _ <<< "$backend"
   wait_for_url simulators "http://127.0.0.1:$MSS_PORT/calibrations/$name" $simulators_pid 300
+done
+# their jobs would otherwise wait behind it longer than the tests wait for them
+for backend in "${SIMULATORS[@]}"; do
+  IFS="|" read -r name _ <<< "$backend"
+  wait_for_recalibration "$name" $simulators_pid 900
 done
 
 echo "Checking that MSS and the backend serve the schemas dev/openapi pins"

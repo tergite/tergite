@@ -13,8 +13,8 @@
 
 tests/integration/test_golden_results.py pins the same cases against a mocked backend; these
 show that the real stack puts each qubit's outcome in the clbit the circuit names. They flip
-qubits with X alone, as the simulator's CZ does not entangle them, and the simulator is
-noisy, so each expects its outcome in most shots, not all.
+qubits with X alone, and the simulated chip is noisy, so each expects its outcome in most
+shots, not all.
 """
 from typing import Dict
 
@@ -81,7 +81,7 @@ def test_two_circuits_in_one_job(backend_provider: Provider):
     flipped.measure([0, 1], [0, 1])
     idle = QuantumCircuit(2, 1)
     idle.measure(1, 0)
-    backend = backend_provider.get_backend("qiskit_pulse_2q")
+    backend = backend_provider.get_backend("sim_2q")
     backend.set_options(shots=SHOTS)
 
     job = backend.run(transpile([flipped, idle], backend=backend), meas_level=2)
@@ -96,7 +96,7 @@ def test_iq_points_averaged(backend_provider: Provider):
     """meas_level=1 with meas_return=avg gives one IQ point per measured qubit"""
     qc = QuantumCircuit(2, 2)
     qc.measure([0, 1], [0, 1])
-    backend = backend_provider.get_backend("qiskit_pulse_2q")
+    backend = backend_provider.get_backend("sim_2q")
     backend.set_options(shots=SHOTS)
 
     job = backend.run(transpile(qc, backend=backend), meas_level=1, meas_return="avg")
@@ -107,7 +107,7 @@ def test_iq_points_averaged(backend_provider: Provider):
 
 def _run(provider: Provider, qc: QuantumCircuit) -> Dict[str, int]:
     """Runs the circuit on the two-qubit simulator, returning its counts"""
-    backend = provider.get_backend("qiskit_pulse_2q")
+    backend = provider.get_backend("sim_2q")
     backend.set_options(shots=SHOTS)
     job = backend.run(transpile(qc, backend=backend), meas_level=2)
     wait_for_final_state(job)

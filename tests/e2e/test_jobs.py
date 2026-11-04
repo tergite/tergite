@@ -72,7 +72,7 @@ def test_cancelled_job_result_raises(backend_provider: Provider):
 
 def _run_x(provider: Provider):
     """Runs an X gate on qubit 0 of the one-qubit simulator, measured, for 100 shots"""
-    backend = provider.get_backend("qiskit_pulse_1q")
+    backend = provider.get_backend("sim_1q")
     backend.set_options(shots=100)
     qc = QuantumCircuit(1, 1)
     qc.x(0)

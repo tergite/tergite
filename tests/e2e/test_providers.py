@@ -15,7 +15,7 @@ from qiskit.providers import QiskitBackendNotFoundError
 
 from tergite import Provider
 
-RUNNING_BACKENDS = ("qiskit_pulse_1q", "qiskit_pulse_2q", "Loke")
+RUNNING_BACKENDS = ("sim_1q", "sim_2q", "Loke")
 
 
 def test_backends_lists_the_running_devices(backend_provider: Provider):
@@ -33,7 +33,7 @@ def test_get_unknown_backend(backend_provider: Provider):
 
 def test_target_follows_the_calibration(backend_provider: Provider):
     """A backend's target holds its calibrated gates on each qubit and coupled pair"""
-    backend = backend_provider.get_backend("qiskit_pulse_2q")
+    backend = backend_provider.get_backend("sim_2q")
     target = backend.target
 
     assert target.num_qubits == 2
