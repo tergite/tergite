@@ -245,8 +245,8 @@ BACKEND_PATH="$CHECKOUT_PATH"
 BACKEND_FIXTURES_PATH="$BACKEND_PATH/tests/fixtures"
 # name|port|JWT secret|backend config|calibration seed
 SIMULATORS=(
-  "qiskit_pulse_1q|$SIMULATORS_PORT|dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7|$BACKEND_FIXTURES_PATH/backend_config.simq1.toml|$BACKEND_FIXTURES_PATH/qiskit_pulse_1q.seed.toml"
-  "qiskit_pulse_2q|$SIMULATORS_PORT|$LOKE_JWT_SECRET|$BACKEND_FIXTURES_PATH/backend_config.simq2.toml|$BACKEND_FIXTURES_PATH/qiskit_pulse_2q.seed.toml"
+  "sim_1q|$SIMULATORS_PORT|dd94de9017e976973769aaf5d426fdb95cab46feda584dbdbc5f3f02bbf8ae8ce77211d7|$BACKEND_FIXTURES_PATH/backend_config.simq1.toml|$BACKEND_FIXTURES_PATH/sim_1q.seed.toml"
+  "sim_2q|$SIMULATORS_PORT|$LOKE_JWT_SECRET|$BACKEND_FIXTURES_PATH/backend_config.simq2.toml|$BACKEND_FIXTURES_PATH/sim_2q.seed.toml"
 )
 # their chip behind the dummy clusters, which the tuner recalibrates from its device config
 SIMULATOR_CONFIGS=(

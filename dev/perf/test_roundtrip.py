@@ -38,9 +38,9 @@ JOBS_PER_KIND = 20
 SAMPLE_SECONDS = 0.2
 # name: (backend, qubits, meas_level, meas_return)
 JOB_KINDS = {
-    "1q_counts": ("qiskit_pulse_1q", 1, 2, "single"),
-    "2q_counts": ("qiskit_pulse_2q", 2, 2, "single"),
-    "2q_iq": ("qiskit_pulse_2q", 2, 1, "single"),
+    "1q_counts": ("sim_1q", 1, 2, "single"),
+    "2q_counts": ("sim_2q", 2, 2, "single"),
+    "2q_iq": ("sim_2q", 2, 1, "single"),
     "loke_counts": ("Loke", 1, 2, "single"),
 }
 PROCESS_ENV_VARS = {

@@ -11,7 +11,7 @@ from tests.utils.jobs import wait_for_final_state
 
 def test_simulator_1_qubit_gate(backend_provider: Provider):
     """Can run a single qubit gate operation on simulator when auth on MSS and backend is ON"""
-    backend = backend_provider.get_backend("qiskit_pulse_1q")
+    backend = backend_provider.get_backend("sim_1q")
     backend.set_options(shots=1024)
 
     qc = circuit.QuantumCircuit(1)
@@ -34,7 +34,7 @@ def test_simulator_1_qubit_gate(backend_provider: Provider):
 
 def test_simulator_2_qubit_gate(backend_provider: Provider):
     """A Bell pair on the 2-qubit simulator reads 00 and 11 about half the time each"""
-    backend = backend_provider.get_backend("qiskit_pulse_2q")
+    backend = backend_provider.get_backend("sim_2q")
     backend.set_options(shots=1024)
 
     qc = circuit.QuantumCircuit(2)
@@ -54,7 +54,7 @@ def test_simulator_2_qubit_gate(backend_provider: Provider):
 def test_simulator_2_qubit_gate_iq_points(backend_provider: Provider):
     """Can return well-seperated clusters of raw iq points for a two-qubit gate operation
     on simulator when auth on MSS and backend is ON"""
-    backend = backend_provider.get_backend("qiskit_pulse_2q")
+    backend = backend_provider.get_backend("sim_2q")
     backend.set_options(shots=1024)
 
     qc = circuit.QuantumCircuit(2)
