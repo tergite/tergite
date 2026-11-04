@@ -28,10 +28,12 @@
 #
 # FRONTEND_PATH="../tergite-frontend" \ # a tergite-frontend checkout; or else FRONTEND_REPO is cloned
 #   FRONTEND_REPO="https://github.com/tergite/tergite-frontend.git" \
-#   FRONTEND_BRANCH="main" \ # the branch or tag of FRONTEND_REPO to clone, or main where it has none
+#   FRONTEND_BRANCH="main" \ # the branch or tag of FRONTEND_REPO to clone, else the newest
+#     release of its minor one, else main
 #   BACKEND_PATH="../tergite-backend" \ # a tergite-backend checkout; or else BACKEND_REPO is cloned
 #   BACKEND_REPO="https://github.com/tergite/tergite-backend.git" \
-#   BACKEND_BRANCH="main" \ # the branch or tag of BACKEND_REPO to clone, or main where it has none
+#   BACKEND_BRANCH="main" \ # the branch or tag of BACKEND_REPO to clone, else the newest
+#     release of its minor one, else main
 #   DEBUG="True" \ # Set 'True' to keep the services running and temp-native/ after the tests, default: ''
 #   PYTEST_TARGET="tests/e2e" \ # what pytest runs against the stack, default: 'tests/e2e'
 #   PYTEST_WORKERS="4" \ # the pytest-xdist workers the tests under tests/e2e run in, default: '4'
@@ -147,8 +149,21 @@ stop_stack() {
   find "$WORK_PATH" -mindepth 1 -maxdepth 1 ! -name venvs ! -name logs ! -name repos -exec rm -rf {} +;
 }
 
-# sets CHECKOUT_PATH to the given checkout, or else to a clone of the repository's branch, or of
-# main where it has no such branch or tag
+# prints the repository's newest release of the minor release the given tag is of, e.g.
+# v2026.11.3 for v2026.11.1, as every release of a minor one works with the others; a final
+# release before any candidate, and nothing for a ref of no minor release
+# usage:
+#   get_minor_tag repo tag
+get_minor_tag() {
+  local tags;
+  [[ "$2" =~ ^(v[0-9]{4}\.[0-9]{2})\. ]] || return 0;
+  tags="$(git ls-remote --tags --refs -q "$1" "refs/tags/${BASH_REMATCH[1]}.*" | sed 's|.*refs/tags/||')";
+  { grep -v -- "-rc" <<< "$tags" | sort -V | tail -n 1 | grep .; } \
+    || { grep -- "-rc" <<< "$tags" | sort -V | tail -n 1; } || true;
+}
+
+# sets CHECKOUT_PATH to the given checkout, or else to a clone of the repository's branch, or
+# of the newest release of its minor release, or of main where it has neither
 # usage:
 #   get_checkout name path repo branch
 get_checkout() {
@@ -157,10 +172,11 @@ get_checkout() {
     return;
   fi
   [[ -n "$3" ]] || exit_with_err "set the path or the repository of $1";
-  local branch="$4";
+  local branch="$4" minor_tag;
   if ! git ls-remote --exit-code -q "$3" "refs/heads/$branch" "refs/tags/$branch" > /dev/null; then
-    echo "$1 has no branch or tag $branch; cloning main";
-    branch=main;
+    minor_tag="$(get_minor_tag "$3" "$branch")";
+    echo "$1 has no branch or tag $branch; cloning ${minor_tag:-main}";
+    branch="${minor_tag:-main}";
   fi
   echo "Cloning $1's $branch..."
   rm -rf "$WORK_PATH/repos/$1";
