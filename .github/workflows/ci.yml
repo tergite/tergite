@@ -32,9 +32,8 @@ jobs:
         run: uv sync --locked
       - name: Lint
         run: |
-          uv run black --check tergite tests dev
-          uv run isort --check-only tergite tests dev
-          uv run pyflakes tergite tests dev
+          uv run ruff format --check
+          uv run ruff check
       - name: Run tests
         run: uv run pytest
 

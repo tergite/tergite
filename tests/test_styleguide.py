@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The house style that black and isort cannot enforce, checked on every test run.
+"""The house style that ruff cannot enforce, checked on every test run.
 
 Ported from tergite-frontend's tests/test_styleguide.py.
 

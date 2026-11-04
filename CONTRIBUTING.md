@@ -113,7 +113,7 @@ uv run pytest
 ```
 
 ``` shell
-uv run black --check tergite tests dev && uv run isort --check-only tergite tests dev && uv run pyflakes tergite tests dev
+uv run ruff format --check && uv run ruff check
 ```
 
 -   Run the example notebooks, with Jupyter alongside

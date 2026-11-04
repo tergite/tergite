@@ -17,14 +17,14 @@ the SDK reads and those they refer to, so that a change elsewhere in the service
 touch the SDK. tests/test_openapi.py fails when a generated file no longer matches its spec.
 """
 import json
+import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, Set
 
-import black
-import isort
 from datamodel_code_generator import DataModelType, InputFileType, generate
+from ruff.__main__ import find_ruff_bin
 
 OPENAPI_DIR = Path(__file__).parent
 ROOT_DIR = OPENAPI_DIR.parents[1]
@@ -104,11 +104,11 @@ def render_models(contract: Contract) -> str:
             collapse_root_models=True,
             use_tuple_for_fixed_items=True,
             disable_timestamp=True,
-            # formatted below, as this repository's black and isort settings would format it
+            # formatted below, as this repository's ruff settings would format it
             formatters=[],
         )
         source = output.read_text()
-    return black.format_str(isort.code(source, profile="black"), mode=black.Mode())
+    return _format(source, contract.models_file)
 
 
 def prune_spec(spec: Dict[str, Any], schemas: Iterable[str]) -> Dict[str, Any]:
@@ -175,6 +175,26 @@ def _get_refs(node: Any) -> Iterable[str]:
     elif isinstance(node, list):
         for item in node:
             yield from _get_refs(item)
+
+
+def _format(source: str, path: Path) -> str:
+    """Sorts the imports of the source and formats it, as ruff would the file at path"""
+    sorted_source = _run_ruff(
+        ["check", "--fix-only", "--select", "I"], source=source, path=path
+    )
+    return _run_ruff(["format"], source=sorted_source, path=path)
+
+
+def _run_ruff(arguments: list[str], source: str, path: Path) -> str:
+    """Runs ruff on the source as the file at path, under this repository's config"""
+    return subprocess.run(
+        [find_ruff_bin(), *arguments, "--stdin-filename", str(path), "-"],
+        input=source,
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=ROOT_DIR,
+    ).stdout
 
 
 if __name__ == "__main__":

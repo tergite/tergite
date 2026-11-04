@@ -7,6 +7,12 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed the linting from black, isort and pyflakes to ruff, which formats, sorts the imports and finds what
+  pyflakes did, and formats the models `dev/openapi/generate.py` writes; contributors run `ruff format` and
+  `ruff check` where they ran the three
+
 ## [2026.11.0-rc.2] - 2026-11-04
 
 ### Changed

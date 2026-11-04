@@ -41,9 +41,8 @@ dev = [
     "pytest>=7.4.2",
     "pytest-xdist>=3.6",
     "scikit-learn~=1.7.0",
-    "black[jupyter]~=25.1.0",
-    "isort~=6.0.1",
-    "pyflakes>=3.2",
+    # formats, sorts the imports and finds what pyflakes did
+    "ruff==0.15.1",
     "pytest-benchmark>=5.1",
     "psutil>=7.0",
     "datamodel-code-generator>=0.34",
@@ -62,9 +61,17 @@ Changelog = "https://github.com/tergite/tergite/blob/main/CHANGELOG.md"
 [tool.setuptools]
 packages = ["tergite"]
 
-[tool.isort]
-profile = "black"
-skip_gitignore = true
+[tool.ruff]
+target-version = "py313"
+# the example scripts and notebooks, which black and isort left alone too
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+# pyflakes' findings and isort's order, as black, isort and pyflakes checked before
+select = ["F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["tergite", "tests", "dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
