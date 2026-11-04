@@ -16,6 +16,7 @@ show that the real stack puts each qubit's outcome in the clbit the circuit name
 qubits with X alone, and the simulated chip is noisy, so each expects its outcome in most
 shots, not all.
 """
+
 from typing import Dict
 
 import numpy as np

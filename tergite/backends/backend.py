@@ -19,6 +19,7 @@
 # Martin Ahindura, 2023, 2025
 # Chalmers Next Labs, 2026
 """The Qiskit backend of a Tergite device, which runs circuits"""
+
 import logging
 import warnings
 from dataclasses import dataclass

@@ -12,6 +12,7 @@
 
 
 """The Qiskit provider of the Tergite quantum computers: start from Tergite"""
+
 from .backends import OpenPulseBackend, OpenQASMBackend, TergiteBackend
 from .jobs import Job
 from .providers import Provider, ProviderFactory

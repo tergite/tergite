@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The transpiler target of a device: its gates, their durations and errors, its qubits"""
+
 import warnings
 from typing import Dict, List, Optional, Tuple
 

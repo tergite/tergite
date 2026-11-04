@@ -1,0 +1,6 @@
+# git blame --ignore-revs-file .git-blame-ignore-revs, or once:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub and GitLab read it on their own.
+
+# Reformat with ruff
+98073a3ae55a935d53f6a3613e109a4756b67731

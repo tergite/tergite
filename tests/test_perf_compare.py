@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Tests for dev/perf/compare.py, which decides whether a refactor step made the SDK slower"""
+
 import pytest
 
 from dev.perf.compare import Measure, is_worse_than_allowed

@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Tests of loading and saving the accounts in the rc file"""
+
 import os
 import stat
 import warnings

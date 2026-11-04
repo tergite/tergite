@@ -15,6 +15,7 @@ The backend returns each shot's bits in the circuit's clbit order, clbit 0 right
 cases pin what the user then reads from job.result(), whatever the payload that carries the
 circuits to the backend.
 """
+
 from typing import Any, List
 
 import numpy as np

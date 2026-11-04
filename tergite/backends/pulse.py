@@ -11,6 +11,7 @@
 # that they have been altered from the originals.
 """Pulse-level jobs: OpenQASM 3 programs with OpenPulse, the defcals a job's gates run
 with, and a device's frames as oqpy frames"""
+
 import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple

@@ -14,6 +14,7 @@
 Its behaviour is covered beside the code it exercises (test_provider.py, test_get_backend.py,
 test_job_execution.py); this file pins the signatures, and what those files leave out.
 """
+
 import inspect
 from typing import Callable
 

@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Tests for what a service of the same minor release may change in the schemas the SDK uses"""
+
 import copy
 
 import pytest
