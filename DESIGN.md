@@ -150,10 +150,12 @@ So a change to a service's DTOs reaches the SDK as a diff to a pinned spec, in r
   monkeypatching the fixture data a handler reads. Shared helpers live in `tests/utils/`, by
   what they do. Pytest turns a `DeprecationWarning` into an error.
 - **e2e.** The script runs MongoDB, MSS and the backends from checkouts, natively, all from
-  fresh data in `temp-native/`: MSS's config, keys and seed, and the simulators' settings, from
-  tergite-frontend's `ui/fixtures`; Loke, a two-qubit dummy device on the quantify executor,
-  from this repo's own configs. It needs a tergite-backend that accepts gate-level jobs. With
-  `IS_END_TO_END=true` pytest collects `tests/e2e` instead of `tests/integration`.
+  fresh data in `temp-native/`: MSS's config, keys and seed from tergite-frontend's
+  `ui/fixtures`; the simulators, `sim_1q` and `sim_2q`, a simulated chip behind dummy clusters,
+  from tergite-backend's `tests/fixtures` as its packages ship them, waiting for the
+  recalibration each starts with; Loke, a two-qubit dummy device on the quantify executor,
+  from this repo's own configs. With `IS_END_TO_END=true` pytest collects `tests/e2e` instead
+  of `tests/integration`.
 - **Performance.** `compare.py` fails a measure more than 10% and its noise floor worse than
   its baseline, or one more HTTP call. Compare runs made on the same machine; a change that
   moves a measure on purpose records new baselines in the same commit, saying why.
@@ -177,7 +179,8 @@ GitLab CI ([.gitlab-ci.yml](.gitlab-ci.yml)) is the source of truth; GitHub Acti
 
 Versions are `{year}.{month}.{patch}`, e.g. `2026.06.0`, released with the rest of the stack.
 A release sets `version` in `pyproject.toml`, runs `uv lock`, and dates the `[Unreleased]`
-section of [CHANGELOG.md](CHANGELOG.md).
+section of [CHANGELOG.md](CHANGELOG.md). A release candidate is `{version}-rc.{n}`, the first
+of a version `rc.0`; its tag is signed, `v` before the version.
 
 ## 8. Working on this repo
 
@@ -278,10 +281,61 @@ uv run pytest > "$LOG" 2>&1; echo "exit=$?" >> "$LOG"
 A pipe reports its last command's status, so `pytest | tail` makes a failing suite read as
 green.
 
-## 9. Known rough edges
+### Python style
 
-- **`provider.job(job_id)` cannot rebuild register names.** MSS keeps neither a job's
-  circuits nor how it was run, so a job got by its id has counts keyed by bare bits, and its
-  shots and measurement level are read from its memory.
+On top of the [style guide](#style-guide) and the [code structure](#code-structure):
+
+- **`black` is authoritative** for formatting, and `isort` sorts imports with
+  `profile = "black"`, so the two agree; neither takes flags.
+- **Constants go at the top of the file**, after the imports. The exception is a constant
+  built from a function or class of the same file, which stays after it.
+- **Data classes are frozen** where nothing mutates them.
+- **Type hints everywhere**, return types included; what crosses a module is a model, never
+  a bare dict.
+- **Docstrings**: one line where one line does; `Args:`, `Returns:` and `Raises:` where a
+  function takes several arguments or raises what its caller handles.
+- **Tests**: shared helpers and fixtures in `tests/utils/`, grouped by what they do; the
+  baseline of `tests/test_styleguide.py` only shrinks.
+
+### Adding things to the SDK — where to start
+
+| Task | Path |
+| --- | --- |
+| A call to MSS or BCC | a module-level function in `tergite/api/mss.py` or `bcc.py`, the client first; a respx route in `tests/integration/conftest.py` |
+| A field MSS or BCC sends | `dev/openapi/sync.sh` against their checkouts, then `python -m dev.openapi.generate`; the diff to the pinned spec is the review |
+| A gate the transpiler may use | `tergite/target.py`, from the calibration; a case in `tests/test_target.py` |
+| A public name | `tergite/__init__.py` and its `__all__`; its signature in `tests/integration/test_public_api.py` |
+| An error a user catches | a subclass of `TergiteError` in `tergite/exc.py` |
+| A test against the real stack | `tests/e2e/`, run by `dev/e2e_native_test.sh` |
+| A measure of speed or calls | `dev/perf/`, and new baselines in the same commit, saying why |
+
+## 9. Decisions
+
+Why the SDK is shaped as it is; each was a choice between alternatives, made in the refactor
+that brought it to Qiskit 2.
+
+- **The SDK sends circuits, not pulses.** Qiskit 2 has no `qiskit.pulse`, so the SDK no longer
+  compiles gates to pulses from the calibration, nor vendors Qiskit to keep a `PulseQobj`: the
+  backend, which has the calibration, compiles OpenQASM 3. `OpenPulseBackend` and
+  `OpenQASMBackend` are one `TergiteBackend`, their names deprecated aliases.
+- **Pulse level is OpenQASM 3 with OpenPulse**, in the same job file: `defcal` blocks replace
+  a gate's pulses within a job, `cal` blocks play on the frames a device publishes. The SDK
+  writes no pulses and checks none: users write them with oqpy or by hand; only a project an
+  admin allowed may send them, and the backend refuses what is beyond its device's limits.
+- **One wire format, released together.** The SDK sends only OpenQASM 3 and the backend of
+  the same release takes only it: an older SDK stops working the day its backend upgrades,
+  which cost less, with few users, than keeping a second payload and the code behind it.
+- **`get_provider(name)` raises for an unknown name**, rather than returning the first saved
+  account, so a typo cannot send jobs to another service.
+- **`Provider.job(job_id)` rebuilds a result from MSS**, which keeps a job's shots,
+  measurement level and circuits' names and classical bits, so the SDK keeps no payload and
+  downloads no logfile to read them back.
+
+## 10. Known rough edges
+
+- **`provider.job(job_id)` cannot rebuild register names.** MSS keeps how a job ran and its
+  circuits' names and classical bits, but not their registers, so a job got by its id has
+  counts keyed by bits; of a job an older backend ran, the shots and measurement level are
+  read from its memory.
 - **The SDK needs a tergite-backend that runs gate-level jobs**; an older backend refuses the
   job file.
