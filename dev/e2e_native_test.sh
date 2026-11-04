@@ -202,31 +202,6 @@ write_env_file() {
   } > "$dir/backend.env";
 }
 
-# waits until the device's first recalibration, which it starts with, has ended, failing if it
-# failed, the backend's process exits or it takes longer than the given seconds
-# usage:
-#   wait_for_recalibration name pid seconds
-wait_for_recalibration() {
-  local deadline=$(( $(date +%s) + $3 )) outcome;
-  while true; do
-    outcome="$("$WORK_PATH/venvs/backend/bin/python" -c '
-import sqlite3, sys
-try:
-    rows = sqlite3.connect(sys.argv[1]).execute(
-        "SELECT status, error FROM recalibration WHERE status IN (\"finished\", \"failed\")"
-    ).fetchall()
-except sqlite3.OperationalError:
-    rows = []
-print(" ".join(str(field) for field in rows[0]) if rows else "")
-' "$WORK_PATH/backends/$1/booking_db.db")";
-    [[ "$outcome" != finished* ]] || return 0;
-    [[ -z "$outcome" ]] || exit_with_log simulators "$1's recalibration failed: $outcome";
-    kill -0 "$2" 2>/dev/null || exit_with_log simulators "the simulators stopped";
-    [[ $(date +%s) -lt $deadline ]] || exit_with_log simulators "$1 did not recalibrate within $3 seconds";
-    sleep 2;
-  done
-}
-
 for port in $MSS_PORT $MONGO_PORT $SIMULATORS_PORT $LOKE_PORT; do
   ! (exec 3<> "/dev/tcp/127.0.0.1/$port") 2> /dev/null || exit_with_err "port $port is in use"
 done
@@ -257,7 +232,7 @@ SIMULATOR_CONFIGS=(
   "BCC_CALIBRATION_SPI_CONFIG_FILE=$BACKEND_FIXTURES_PATH/dummy_spi_config.calib.toml"
 )
 # the frontend's Loke has 8 qubits and is never recalibrated, as its e2e runs no worker; this
-# one is the dummy 2-qubit Loke that this repo's calibration configs recalibrate as it starts
+# one is the dummy 2-qubit Loke that this repo's calibration configs recalibrate
 LOKE="Loke|$LOKE_PORT|$LOKE_JWT_SECRET|$SDK_FIXTURES_PATH/loke.toml|$SDK_FIXTURES_PATH/loke.seed.toml"
 LOKE_CONFIGS=(
   "BCC_QUANTIFY_CONFIG_FILE=$SDK_FIXTURES_PATH/quantify-config.json"
@@ -320,11 +295,6 @@ wait_for_url loke "http://127.0.0.1:$LOKE_PORT/health" $loke_pid 300
 for backend in "${SIMULATORS[@]}"; do
   IFS="|" read -r name _ <<< "$backend"
   wait_for_url simulators "http://127.0.0.1:$MSS_PORT/calibrations/$name" $simulators_pid 300
-done
-# their jobs would otherwise wait behind it longer than the tests wait for them
-for backend in "${SIMULATORS[@]}"; do
-  IFS="|" read -r name _ <<< "$backend"
-  wait_for_recalibration "$name" $simulators_pid 900
 done
 
 echo "Checking that MSS and the backend serve the schemas dev/openapi pins"

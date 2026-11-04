@@ -154,8 +154,8 @@ So a change to a service's DTOs reaches the SDK as a diff to a pinned spec, in r
 - **e2e.** The script runs MongoDB, MSS and the backends from checkouts, natively, all from
   fresh data in `temp-native/`: MSS's config, keys and seed from tergite-frontend's
   `ui/fixtures`; the simulators, `sim_1q` and `sim_2q`, a simulated chip behind dummy clusters,
-  from tergite-backend's `tests/fixtures` as its packages ship them, waiting for the
-  recalibration each starts with; Loke, a two-qubit dummy device on the quantify executor,
+  from tergite-backend's `tests/fixtures` as its packages ship them, starting from their
+  tuner-calibrated seeds; Loke, a two-qubit dummy device on the quantify executor,
   from this repo's own configs. With `IS_END_TO_END=true` pytest collects `tests/e2e` instead
   of `tests/integration`.
 - **Performance.** `compare.py` fails a measure more than 10% and its noise floor worse than
