@@ -12,8 +12,8 @@
 """The results users get for the ways a circuit can measure into its classical bits.
 
 The backend returns each shot's bits in the circuit's clbit order, clbit 0 rightmost. These
-cases pin what the user then reads from job.result(), so that the gate-level payload of
-REFACTOR.md's step 4 can be shown to answer exactly as the pulse payload does.
+cases pin what the user then reads from job.result(), whatever the payload that carries the
+circuits to the backend.
 """
 from typing import Any, List
 

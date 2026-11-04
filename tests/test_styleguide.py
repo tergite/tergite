@@ -172,7 +172,7 @@ VERBS = frozenset(
         "write",
     }
 )
-# names Qiskit's base classes, Pydantic or the public API (REFACTOR.md convention 14) fix
+# names Qiskit's base classes, Pydantic or the public API (DESIGN.md §8, rule 14) fix
 FRAMEWORK_NAMES = frozenset(
     {
         "_default_options",

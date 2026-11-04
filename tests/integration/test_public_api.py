@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The public API users program against, which REFACTOR.md's convention 14 keeps.
+"""The public API users program against, which DESIGN.md's code structure rule 14 keeps.
 
 Its behaviour is covered beside the code it exercises (test_provider.py, test_get_backend.py,
 test_job_execution.py); this file pins the signatures, and what those files leave out.
