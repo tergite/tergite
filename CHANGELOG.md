@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.3] - 2026-11-04
+
 ### Changed
 
 - Changed the linting from black, isort and pyflakes to ruff, which formats, sorts the imports and finds what
