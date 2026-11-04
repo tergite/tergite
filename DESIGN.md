@@ -48,7 +48,9 @@ flowchart LR
 | BCC | the job file (`POST {upload_url}`), cancelling (`POST /jobs/{id}/cancel`), the job's logfile (`GET {download_url}`) |
 
 An account (a service name, MSS's URL, an app token) can be saved in the rc file, an INI file
-of `[service <name>]` sections.
+of `[service <name>]` sections, or set by `TERGITE_API_URL` and `TERGITE_API_TOKEN`: that one,
+named `env`, comes first, so `get_provider()` returns it, and stands in for a saved one of its
+name. Nothing is written to disk for it.
 
 ## 3. A job, end to end
 
@@ -106,7 +108,7 @@ What MSS returns as a job's `result.memory`, one entry per circuit:
 | `tergite/__init__.py` | the public surface, `__all__`, and `Tergite`, the default `ProviderFactory` |
 | `tergite/types/provider_factory.py` | `ProviderFactory`: accounts by service name, the rc file read on first use |
 | `tergite/types/provider.py` | `Provider`: an account's HTTP clients, its backends, `job(job_id)` |
-| `tergite/accounts.py` | `Account`, and `load_accounts` and `save_account` over the rc file |
+| `tergite/accounts.py` | `Account`, `load_accounts` and `save_account` over the rc file, and `get_environment_account` |
 | `tergite/backend.py` | `TergiteBackend`, a Qiskit `BackendV2`; `OpenPulseBackend` and `OpenQASMBackend` are its deprecated names |
 | `tergite/target.py` | `get_target`: a device's transpiler target from its calibration |
 | `tergite/pulse.py` | pulse-level programs' OpenQASM 3 and classical registers, the `defcal`s a job is given, and a device's frames and `defcal`s from its calibration |
