@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.2] - 2026-11-04
+
 ### Changed
 
 - Changed the package's modules into packages by what they do: `providers`, `backends`, `jobs`, `clients.mss` and
