@@ -1,6 +1,5 @@
 # MANIFEST.in
 prune docs
-prune archive
 prune tests
 prune .github
 prune .idea
