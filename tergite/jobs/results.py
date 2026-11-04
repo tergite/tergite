@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The qiskit Result of a job, from the memory the backend returned"""
+
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Sequence

@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Tests of the transpiler target of a device"""
+
 import pytest
 
 from tergite.backends.target import get_target

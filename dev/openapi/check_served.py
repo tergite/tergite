@@ -20,6 +20,7 @@ add optional fields and schemas, and reword descriptions, as the SDK's models al
 fields; it may not drop or retype a field, require one the SDK does not send, or change an
 enum's values.
 """
+
 import json
 import sys
 import urllib.request

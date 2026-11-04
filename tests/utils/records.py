@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Utilities for handling records in tests"""
+
 from typing import Any, Dict, List
 
 

@@ -17,6 +17,7 @@ A measure is worse than allowed when it is more than ALLOWED_WORSENING worse and
 noise floor worse, except HTTP calls, of which one more is a regression. Compare only runs made
 on the same machine.
 """
+
 import json
 import sys
 from dataclasses import dataclass

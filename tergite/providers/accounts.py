@@ -18,6 +18,7 @@
 # Martin Ahindura, 2023
 # Chalmers Next Labs, 2025, 2026
 """The accounts at Tergite services, as saved in the rc file or set in the environment"""
+
 import os
 import re
 import stat

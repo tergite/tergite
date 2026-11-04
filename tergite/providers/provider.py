@@ -21,6 +21,7 @@
 # Adilet Tuleuov, 2024
 
 """Defines the Qiskit provider with which to access the Tergite Quantum Computers"""
+
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from qiskit.providers.providerutils import filter_backends

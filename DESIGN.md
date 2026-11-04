@@ -176,8 +176,8 @@ So a change to a service's DTOs reaches the SDK as a diff to a pinned spec, in r
 - **Performance.** `compare.py` fails a measure more than 10% and its noise floor worse than
   its baseline, or one more HTTP call. Compare runs made on the same machine; a change that
   moves a measure on purpose records new baselines in the same commit, saying why.
-- **Style.** [tests/test_styleguide.py](tests/test_styleguide.py) checks what black, isort and
-  pyflakes cannot (§8). What the code broke when it was added is listed in
+- **Style.** [tests/test_styleguide.py](tests/test_styleguide.py) checks what ruff cannot
+  (§8). What the code broke when it was added is listed in
   `tests/fixtures/styleguide_baseline.txt`, which only shrinks: a fix that is not deleted
   from it fails the test.
 
@@ -187,7 +187,7 @@ GitLab CI ([.gitlab-ci.yml](.gitlab-ci.yml)) is the source of truth; GitHub Acti
 ([.github/workflows](.github/workflows)) mirrors it.
 
 - `test`, on merge requests and `v*` tags: with uv from `uv.lock` on Python 3.13,
-  `black --check`, `isort --check-only` and `pyflakes` over `tergite tests dev`, then `pytest`.
+  `ruff format --check` and `ruff check`, then `pytest`.
 - `e2e`, on merge requests, `main` and `v*` tags: `dev/e2e_native_test.sh` after installing
   MongoDB, against the tergite-frontend and tergite-backend branches or tags of the same name,
   else their newest release of the same minor one, else their `main`: every `v{year}.{month}.x`
@@ -230,8 +230,8 @@ The same as tergite-frontend's:
   file of its own.
 - **Tests**: the name says what it tests; a comment only where the why is not obvious.
 - **The licence header** on every file, with a line per contributing party.
-- **`black` and `isort`** (profile black) format, and `pyflakes` finds unused names; CI fails
-  on any of the three.
+- **`ruff`** formats, sorts the imports and finds unused and undefined names, pyflakes'
+  checks; CI fails on any finding.
 
 `tests/test_styleguide.py` enforces the names, the layout below, banner comments, licence
 headers, type hints and the public surface's `__all__`.
@@ -283,8 +283,7 @@ rules, and code a change touches is brought in line with them.
     `job.download_url` and `job.logfile` keep their signatures. A break comes with a `Changed`
     changelog entry and, where it can, a deprecation warning for one release.
 
-Every commit is checked the same way: `black` and `isort`, `pyflakes tergite tests dev`, then
-`pytest`. A change to how the SDK talks to MSS or BCC also passes `dev/e2e_native_test.sh`,
+Every commit is checked the same way: `ruff format` and `ruff check`, then `pytest`. A change to how the SDK talks to MSS or BCC also passes `dev/e2e_native_test.sh`,
 and a change that may cost time or memory, `dev/perf/record.sh` and `compare.py`.
 
 ### Slow commands
@@ -303,8 +302,8 @@ green.
 
 On top of the [style guide](#style-guide) and the [code structure](#code-structure):
 
-- **`black` is authoritative** for formatting, and `isort` sorts imports with
-  `profile = "black"`, so the two agree; neither takes flags.
+- **`ruff format` is authoritative** for formatting, and `ruff check` sorts the imports; neither
+  takes flags, and `ruff format` and `ruff check --fix` fix what they find.
 - **Constants go at the top of the file**, after the imports. The exception is a constant
   built from a function or class of the same file, which stays after it.
 - **Data classes are frozen** where nothing mutates them.

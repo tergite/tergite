@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The client of MSS: the devices, their calibrations, and the jobs registered on them"""
+
 import warnings
 from typing import Callable, List, Optional
 

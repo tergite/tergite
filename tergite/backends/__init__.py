@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The devices as Qiskit backends: their targets, and the circuits and pulses they run"""
+
 from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackend
 
 __all__ = ["OpenPulseBackend", "OpenQASMBackend", "TergiteBackend"]

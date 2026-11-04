@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The jobs a backend runs, as Qiskit jobs, and their results"""
+
 from .job import Job
 
 __all__ = ["Job"]

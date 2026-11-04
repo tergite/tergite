@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """Tests that the SDK's wire models are what the services' specs generate"""
+
 import pytest
 
 from dev.openapi.generate import CONTRACTS, Contract, render_models
@@ -18,6 +19,6 @@ from dev.openapi.generate import CONTRACTS, Contract, render_models
 @pytest.mark.parametrize("contract", CONTRACTS, ids=lambda c: c.spec_file.name)
 def test_models_match_their_spec(contract: Contract):
     """A changed spec, or a hand-edited model, fails until the models are regenerated"""
-    assert contract.models_file.read_text() == render_models(
-        contract
-    ), f"{contract.models_file.name} is stale: run python -m dev.openapi.generate"
+    assert contract.models_file.read_text() == render_models(contract), (
+        f"{contract.models_file.name} is stale: run python -m dev.openapi.generate"
+    )

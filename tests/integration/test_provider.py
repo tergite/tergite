@@ -24,7 +24,7 @@ def test_use_provider_account(account_data, mock_tergiterc):
 def test_use_provider_account_save(account_data, mock_tergiterc):
     """use_provider_account with save option saves the given provider account"""
     expected_config = (
-        f"[service {account_data['service_name']}]\n" f"url = {account_data['url']}\n"
+        f"[service {account_data['service_name']}]\nurl = {account_data['url']}\n"
     )
     if "token" in account_data:
         expected_config += f"token = {account_data['token']}\n"
