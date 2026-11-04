@@ -20,14 +20,14 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from ..accounts import (
+from ..exc import TergiteError
+from .accounts import (
     TERGITERC_FILE,
     Account,
     get_environment_account,
     load_accounts,
     save_account,
 )
-from ..exc import TergiteError
 from .provider import Provider
 
 

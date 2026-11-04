@@ -12,8 +12,8 @@
 """Tests of the transpiler target of a device"""
 import pytest
 
-from tergite.api.mss_models import Device, DeviceCalibration
-from tergite.target import get_target
+from tergite.backends.target import get_target
+from tergite.clients.mss.models import Device, DeviceCalibration
 from tests.utils.fixtures import load_json_fixture
 
 DEVICES = {d["name"]: d for d in load_json_fixture("many_backends.json")}

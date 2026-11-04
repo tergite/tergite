@@ -28,10 +28,10 @@ from qiskit import QuantumCircuit, qasm3
 from qiskit.providers import BackendV2, Options
 from qiskit.transpiler import Target
 
-from .api import mss
-from .api.job_file import CircuitPayload, JobFile, JobParams
-from .exc import TergiteError
-from .job import Job
+from ..clients.bcc.models import CircuitJobParams, JobFile, QasmCircuit
+from ..exc import TergiteError
+from ..jobs.job import Job
+from ..jobs.results import CircuitHeader
 from .pulse import (
     MIGRATION_GUIDE_URL,
     add_calibrations,
@@ -41,14 +41,13 @@ from .pulse import (
     get_program_info,
     get_program_qasm,
 )
-from .results import CircuitHeader
 from .target import get_target
 
 if TYPE_CHECKING:
     import oqpy
 
-    from .api.mss_models import Device, DeviceCalibration
-    from .types.provider import Provider
+    from ..clients.mss.models import Device, DeviceCalibration
+    from ..providers.provider import Provider
 
 
 class TergiteBackend(BackendV2):
@@ -88,8 +87,8 @@ class TergiteBackend(BackendV2):
     def device_properties(self) -> Optional["DeviceCalibration"]:
         """The latest calibration of the device, or None if it is not characterized"""
         if self._device_properties is None and self.data.characterized:
-            self._device_properties = mss.get_calibration(
-                self.provider.mss_client, backend_name=self.name
+            self._device_properties = self.provider.mss_client.get_calibration(
+                backend_name=self.name
             )
         return self._device_properties
 
@@ -172,8 +171,7 @@ class TergiteBackend(BackendV2):
         if settings["meas_level"] == 2:
             settings["meas_return"] = "single"
 
-        created = mss.create_job(
-            self.provider.mss_client,
+        created = self.provider.mss_client.create_job(
             backend_name=self.name,
             calibration_date=self.last_calibrated,
         )
@@ -302,9 +300,9 @@ def _get_job_file(
 ) -> JobFile:
     return JobFile(
         job_id=job_id,
-        params=JobParams(
+        params=CircuitJobParams(
             circuits=[
-                CircuitPayload(
+                QasmCircuit(
                     name=item.header.name,
                     qasm=add_calibrations(item.qasm, defcals),
                     num_clbits=item.header.memory_slots,

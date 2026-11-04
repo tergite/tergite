@@ -15,12 +15,12 @@ import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple
 
-from .exc import TergiteError
+from ..exc import TergiteError
 
 if TYPE_CHECKING:
     import oqpy
 
-    from .api.mss_models import DeviceCalibration
+    from ..clients.mss.models import DeviceCalibration
 
 OPENPULSE_GRAMMAR = 'defcalgrammar "openpulse";'
 # what a program opens with, before which no defcal it is given may go

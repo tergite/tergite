@@ -4,9 +4,9 @@ import sys
 
 import pytest
 
-from tergite.accounts import Account
 from tergite.exc import TergiteError
-from tergite.types import provider_factory as factory
+from tergite.providers import factory
+from tergite.providers.accounts import Account
 from tests.utils.fixtures import load_json_fixture
 
 _PROVIDER_ACCOUNTS = load_json_fixture("provider_accounts.json")

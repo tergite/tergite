@@ -1133,7 +1133,7 @@ wheels = [
 
 [[package]]
 name = "tergite"
-version = "2026.11.0rc1"
+version = "2026.11.0rc2"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },

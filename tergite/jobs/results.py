@@ -18,7 +18,7 @@ from qiskit import QuantumCircuit
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
-from .exc import ApiError
+from ..exc import ApiError
 
 
 @dataclass(frozen=True)

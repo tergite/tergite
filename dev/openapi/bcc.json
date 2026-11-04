@@ -104,6 +104,49 @@
         "title": "CancellationDetails",
         "type": "object"
       },
+      "CircuitJobParams": {
+        "additionalProperties": false,
+        "description": "The params of a gate-level job: its circuits and how to measure them\n\nmeas_return applies to meas_level 1 only; meas_level 2 returns every shot.",
+        "properties": {
+          "circuits": {
+            "items": {
+              "$ref": "#/components/schemas/QasmCircuit"
+            },
+            "minItems": 1,
+            "title": "Circuits",
+            "type": "array"
+          },
+          "meas_level": {
+            "default": 2,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Meas Level",
+            "type": "integer"
+          },
+          "meas_return": {
+            "default": "single",
+            "enum": [
+              "single",
+              "avg"
+            ],
+            "title": "Meas Return",
+            "type": "string"
+          },
+          "shots": {
+            "exclusiveMinimum": 0,
+            "title": "Shots",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "circuits",
+          "shots"
+        ],
+        "title": "CircuitJobParams",
+        "type": "object"
+      },
       "GeneralMessage": {
         "description": "A general message object sent on the API",
         "properties": {
@@ -295,6 +338,25 @@
           "actual_duration"
         ],
         "title": "Job",
+        "type": "object"
+      },
+      "JobFile": {
+        "additionalProperties": false,
+        "description": "The expected structure of the job file: the OpenQASM 3 circuits of a gate-level job",
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "params": {
+            "$ref": "#/components/schemas/CircuitJobParams"
+          }
+        },
+        "required": [
+          "job_id",
+          "params"
+        ],
+        "title": "JobFile",
         "type": "object"
       },
       "JobResult": {
@@ -569,6 +631,38 @@
           }
         },
         "title": "PaginatedListResponse[UserProfile]",
+        "type": "object"
+      },
+      "QasmCircuit": {
+        "additionalProperties": false,
+        "description": "A circuit of a gate-level job, written in OpenQASM 3",
+        "properties": {
+          "metadata": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Metadata",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "num_clbits": {
+            "minimum": 0,
+            "title": "Num Clbits",
+            "type": "integer"
+          },
+          "qasm": {
+            "title": "Qasm",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "qasm",
+          "num_clbits"
+        ],
+        "title": "QasmCircuit",
         "type": "object"
       },
       "RecalibrationInfo": {
@@ -944,7 +1038,7 @@
   "info": {
     "description": "Interfaces Quantum processor via REST API",
     "title": "Backend Control Computer",
-    "version": "v2026.11.0-rc.3"
+    "version": "v2026.11.0-rc.7"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1310,6 +1404,11 @@
         "requestBody": {
           "content": {
             "multipart/form-data": {
+              "encoding": {
+                "upload_file": {
+                  "contentType": "application/json"
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/Body_submit_job_jobs_post"
               }

@@ -18,6 +18,7 @@ from qiskit import QuantumCircuit, qasm3, transpile
 from qiskit.providers import JobStatus
 
 from tergite import Tergite, TergiteBackend
+from tergite.clients.bcc.models import MeasReturn
 from tergite.exc import ApiError, JobFailedError, TergiteError
 from tests.utils.uploads import get_uploaded_job_file
 
@@ -48,7 +49,7 @@ def test_run_uploads_the_circuits_as_openqasm3(api, backend_name):
     assert [c.qasm for c in job_file.params.circuits] == [qasm3.dumps(circuit)]
     assert [c.num_clbits for c in job_file.params.circuits] == [1]
     assert (job_file.params.shots, job_file.params.meas_level) == (123, 2)
-    assert job_file.params.meas_return == "single"
+    assert job_file.params.meas_return == MeasReturn.single
 
 
 def test_run_takes_the_backends_options(api):
@@ -59,7 +60,11 @@ def test_run_takes_the_backends_options(api):
     backend.run(_get_x_circuit(backend))
 
     params = get_uploaded_job_file(api).params
-    assert (params.shots, params.meas_level, params.meas_return) == (77, 1, "avg")
+    assert (params.shots, params.meas_level, params.meas_return) == (
+        77,
+        1,
+        MeasReturn.avg,
+    )
 
 
 def test_run_several_circuits_as_one_job(api):

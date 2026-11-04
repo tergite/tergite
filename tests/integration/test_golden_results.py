@@ -22,6 +22,7 @@ import pytest
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Tergite
+from tergite.clients.bcc.models import MeasReturn
 from tests.utils.uploads import get_uploaded_job_file
 
 from .conftest import API_URL, TEST_CALIBRATIONS_MAP, TEST_JOB_ID
@@ -136,7 +137,7 @@ def test_counts_ask_for_every_shot(api, meas_return):
 
     _run_with_memory(api, [qc], memory=[["0x0", "0x1"]], **options)
 
-    assert get_uploaded_job_file(api).params.meas_return == "single"
+    assert get_uploaded_job_file(api).params.meas_return == MeasReturn.single
 
 
 def _run_with_memory(

@@ -26,13 +26,13 @@ from qiskit.providers import JobV1
 from qiskit.providers.jobstatus import JOB_FINAL_STATES, JobStatus
 from qiskit.result import Result
 
-from .api import bcc, mss, mss_models
-from .api.job_file import JobFile
-from .exc import ApiError, JobFailedError
+from ..clients.bcc.models import JobFile
+from ..clients.mss import models as mss_models
+from ..exc import ApiError, JobFailedError
 from .results import CircuitHeader, get_result
 
 if TYPE_CHECKING:
-    from .backend import TergiteBackend
+    from ..backends.backend import TergiteBackend
 
 STATUS_MAP = {
     mss_models.JobStatus.pending: JobStatus.QUEUED,
@@ -104,7 +104,7 @@ class Job(JobV1):
     def remote_data(self) -> Optional[mss_models.Job]:
         """The representation of the job in the remote API"""
         if self._status not in JOB_FINAL_STATES:
-            self._remote_data = mss.get_job(self._provider.mss_client, self.job_id())
+            self._remote_data = self._provider.mss_client.get_job(self.job_id())
         return self._remote_data
 
     def status(self) -> JobStatus:
@@ -129,8 +129,7 @@ class Job(JobV1):
         if self._access_token is None:
             raise ValueError("This job is not submittable. It lacks an access token")
 
-        bcc.upload_job(
-            self._provider.bcc_client,
+        self._provider.bcc_client.upload_job(
             url=self.upload_url,
             job_file=job_file,
             access_token=self._access_token,
@@ -148,8 +147,7 @@ class Job(JobV1):
         """The path to the logfile of this job when it is completed"""
         if self._logfile is None and self.status() in JOB_FINAL_STATES:
             if self.download_url:
-                self._logfile = bcc.download_logfile(
-                    self._provider.bcc_client,
+                self._logfile = self._provider.bcc_client.download_logfile(
                     url=self.download_url,
                     job_id=self.job_id(),
                     access_token=self._access_token,
@@ -166,8 +164,7 @@ class Job(JobV1):
         if self.upload_url is None:
             raise ValueError("This job is not cancellable. It lacks an upload_url")
 
-        bcc.cancel_job(
-            self._provider.bcc_client,
+        self._provider.bcc_client.cancel_job(
             upload_url=self.upload_url,
             job_id=self.job_id(),
             access_token=self._access_token,

@@ -9,4 +9,4 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The SDK's side of the HTTP APIs of MSS and the backends"""
+"""The HTTP clients of MSS and the backends: the wire, its models, and no Qiskit"""

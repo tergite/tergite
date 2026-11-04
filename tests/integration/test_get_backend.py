@@ -14,7 +14,7 @@ import pytest
 from qiskit.providers import QiskitBackendNotFoundError
 
 from tergite import OpenPulseBackend, OpenQASMBackend, Provider, Tergite, TergiteBackend
-from tergite.api.mss_models import Device
+from tergite.clients.mss.models import Device
 from tests.utils.records import get_record
 
 from .conftest import (
