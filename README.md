@@ -242,7 +242,9 @@ job = backend.run(program)
   same frame rather than alongside it.
 - **A phase or frequency change** takes 4 ns of its frame, which qiskit counts as none.
 
-- You can look at the [examples folder](./examples) for more samples.
+- [examples/scripts/pulse_level.py](./examples/scripts/pulse_level.py) runs a gate with a
+  `defcal` of its own and a `cal` block that captures, and the [examples folder](./examples) has
+  more samples.
 
 ## Examples and demos
 
