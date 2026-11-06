@@ -7,6 +7,18 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.4] - 2026-11-06
+
+### Changed
+
+- Changed the README to a short quick start, with accounts, running circuits and pulses each in a page under `docs/`,
+  and the testing and code conventions moved from DESIGN.md to CONTRIBUTING.md
+
+### Fixed
+
+- Fixed the README's examples printing `None` for a job not yet done, as `job.result()` does not wait; they now call
+  `job.wait_for_final_state()` first
+
 ## [2026.11.0-rc.3] - 2026-11-04
 
 ### Changed
