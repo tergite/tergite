@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.4] - 2026-11-06
+
 ### Changed
 
 - Changed the README to a short quick start, with accounts, running circuits and pulses each in a page under `docs/`,
