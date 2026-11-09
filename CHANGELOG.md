@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.5] - 2026-11-09
+
 ### Added
 
 - Added `backend.pulse_limits`, the amplitudes, energies and durations a device's pulse-level jobs are kept to, where
