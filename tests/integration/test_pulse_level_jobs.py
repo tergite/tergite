@@ -17,9 +17,10 @@ import pytest
 from qiskit import QuantumCircuit, transpile
 
 from tergite import Tergite, TergiteBackend
+from tergite.backends import PulseLimits
 from tests.utils.uploads import get_uploaded_job_file
 
-from .conftest import API_URL, TEST_CALIBRATIONS_MAP
+from .conftest import API_URL, BACKENDS_LIST, TEST_CALIBRATIONS_MAP
 
 CAPTURE_PROGRAM = """OPENQASM 3.0;
 defcalgrammar "openpulse";
@@ -45,6 +46,15 @@ FRAMES = [
     {"name": "q00_readout", "kind": "readout", "qubits": [0], "frequency": 6.8e9},
 ]
 DEFCALS = [{"gate": "x", "qubits": [0], "program": X_DEFCAL}]
+PULSE_LIMITS = {
+    "max_amplitude": {"drive": 0.5, "readout": 0.3},
+    "max_frequency_offset": 20e6,
+    "max_energy_per_shot": {"drive": 1e-8, "readout": 1e-7},
+    "max_energy_per_job": {"drive": 1e-4, "readout": 1e-3},
+    "max_pulse_duration": 50e-6,
+    "max_samples_per_waveform": 16384,
+    "max_capture_duration": 16e-6,
+}
 
 
 def test_run_uploads_a_program_as_it_is(api):
@@ -156,6 +166,24 @@ def test_a_device_that_takes_no_pulse_level_jobs_has_no_frames_or_calibrations(a
     backend = _get_backend()
 
     assert (backend.frames, backend.calibrations) == ({}, {})
+
+
+def test_pulse_limits_are_those_mss_lists_with_the_device(api):
+    devices = [
+        {**v, "pulse_limits": PULSE_LIMITS} if v["name"] == "loke" else v
+        for v in BACKENDS_LIST
+    ]
+    api.get(f"{API_URL}/devices/").respond(
+        json={"data": devices, "skip": 0, "limit": None}
+    )
+
+    limits = _get_backend().pulse_limits
+
+    assert limits == PulseLimits(**PULSE_LIMITS)
+
+
+def test_a_device_that_takes_no_pulse_level_jobs_has_no_pulse_limits(api):
+    assert _get_backend().pulse_limits is None
 
 
 def _get_backend() -> TergiteBackend:

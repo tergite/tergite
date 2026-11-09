@@ -14,6 +14,30 @@ pip install 'tergite[pulse]'
 - The device must take them. Its operators set limits on amplitude, energy, frequency and
   duration; the backend checks each job against them and refuses it with the reason.
 
+## The device's limits
+
+`backend.pulse_limits` gives those limits, or `None` for a device that takes no pulse-level
+jobs. The limits by kind of frame (`drive`, `readout`, `coupler`) leave out a kind that may
+not be played at all.
+
+```python
+limits = backend.pulse_limits
+print(limits.max_amplitude)   # {'drive': 0.5, 'readout': 0.3}
+```
+
+| Limit | Unit | What it bounds |
+| --- | --- | --- |
+| `max_amplitude` | fraction of full scale, by kind | the largest \|sample\| of a waveform |
+| `max_frequency_offset` | Hz | how far `set_frequency`/`shift_frequency` move a frame from its calibrated frequency |
+| `max_energy_per_shot` | full scale² · s, by kind | the sum of \|sample\|² · dt on one frame in one shot |
+| `max_energy_per_job` | full scale² · s, by kind | the same over the job: per-shot energy × shots, summed over circuits |
+| `max_pulse_duration` | s | a circuit's pulse-level blocks in one shot |
+| `max_samples_per_waveform` | samples | one waveform, as played |
+| `max_capture_duration` | s | one capture |
+
+For a sense of the energies: a constant pulse of 0.3 for 100 ns is 0.3² × 100e-9 = 9e-9; at
+1000 shots in each of two circuits, the job puts 1.8e-5 on that frame.
+
 ## Frames and the device's own gates
 
 Pulses play on the frames the device publishes, such as `q00_drive`, `q00_readout` and

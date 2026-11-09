@@ -45,6 +45,13 @@ def test_loke_publishes_its_frames_and_defcals(pulse_backend):
     assert {("x", (0,)), ("sx", (0,)), ("rz", (0,)), ("x", (1,))} <= set(calibrations)
 
 
+def test_loke_publishes_its_pulse_limits(pulse_backend):
+    limits = pulse_backend.pulse_limits
+
+    assert limits.max_amplitude == {"drive": 0.8, "readout": 0.5, "coupler": 0.5}
+    assert limits.max_frequency_offset == 50e6
+
+
 def test_a_circuit_runs_with_its_own_defcal(pulse_backend):
     drive = pulse_backend.frames["q00_drive"]
     defcals = oqpy.Program()

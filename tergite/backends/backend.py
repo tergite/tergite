@@ -35,12 +35,14 @@ from ..jobs.job import Job
 from ..jobs.results import CircuitHeader
 from .pulse import (
     MIGRATION_GUIDE_URL,
+    PulseLimits,
     add_calibrations,
     get_calibration_qasm,
     get_calibrations,
     get_frames,
     get_program_info,
     get_program_qasm,
+    get_pulse_limits,
 )
 from .target import get_target
 
@@ -112,6 +114,12 @@ class TergiteBackend(BackendV2):
         from its latest calibration, which a job may run its gates with, as they are or
         changed; none if it takes no pulse-level jobs"""
         return get_calibrations(self.device_properties)
+
+    @property
+    def pulse_limits(self) -> Optional[PulseLimits]:
+        """What the device's pulse-level jobs may play, beyond which the backend refuses a
+        job, as MSS listed the device when this backend was got; none if it takes none"""
+        return get_pulse_limits(self.data)
 
     @property
     def meas_map(self) -> List[List[int]]:

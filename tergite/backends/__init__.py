@@ -12,5 +12,6 @@
 """The devices as Qiskit backends: their targets, and the circuits and pulses they run"""
 
 from .backend import OpenPulseBackend, OpenQASMBackend, TergiteBackend
+from .pulse import PulseLimits
 
-__all__ = ["OpenPulseBackend", "OpenQASMBackend", "TergiteBackend"]
+__all__ = ["OpenPulseBackend", "OpenQASMBackend", "PulseLimits", "TergiteBackend"]

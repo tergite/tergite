@@ -21,7 +21,7 @@ from ..exc import TergiteError
 if TYPE_CHECKING:
     import oqpy
 
-    from ..clients.mss.models import DeviceCalibration
+    from ..clients.mss.models import Device, DeviceCalibration
 
 OPENPULSE_GRAMMAR = 'defcalgrammar "openpulse";'
 # what a program opens with, before which no defcal it is given may go
@@ -45,6 +45,28 @@ class ProgramInfo:
     def num_clbits(self) -> int:
         """The number of the program's classical bits"""
         return sum(size for _, size in self.creg_sizes)
+
+
+@dataclass(frozen=True)
+class PulseLimits:
+    """What a device's pulse-level jobs may play, as its operators set them: the backend
+    refuses a job beyond any of them. The limits by kind of frame, drive, readout or coupler,
+    leave out a kind that may not be played at all"""
+
+    # the largest |sample| of a waveform, as a fraction of full scale
+    max_amplitude: Dict[str, float]
+    # Hz a frame may move from its calibrated frequency
+    max_frequency_offset: float
+    # the sum of |sample|^2 * dt on one frame in one shot, in full scale^2 s
+    max_energy_per_shot: Dict[str, float]
+    # that energy over the job: per-shot energy times shots, summed over its circuits
+    max_energy_per_job: Dict[str, float]
+    # s of a circuit's pulse-level blocks in one shot
+    max_pulse_duration: float
+    # the samples of one waveform, as played, at 1 ns each
+    max_samples_per_waveform: int
+    # s of one capture
+    max_capture_duration: float
 
 
 def get_program_qasm(program: Any) -> str:
@@ -194,6 +216,35 @@ def get_calibrations(
     """
     defcals = (calibration.defcals if calibration else None) or []
     return {(defcal.gate, tuple(defcal.qubits)): defcal.program for defcal in defcals}
+
+
+def get_pulse_limits(device: "Device") -> Optional[PulseLimits]:
+    """Gets the limits of a device's pulse-level jobs
+
+    Args:
+        device: the device as MSS lists it
+
+    Returns:
+        the limits, by kind of frame where they are by kind; none for a device that takes
+        no pulse-level jobs, or whose MSS does not serve its limits
+    """
+    limits = device.pulse_limits
+    if limits is None:
+        return None
+    return PulseLimits(
+        max_amplitude=_get_by_kind(limits.max_amplitude),
+        max_frequency_offset=limits.max_frequency_offset,
+        max_energy_per_shot=_get_by_kind(limits.max_energy_per_shot),
+        max_energy_per_job=_get_by_kind(limits.max_energy_per_job),
+        max_pulse_duration=limits.max_pulse_duration,
+        max_samples_per_waveform=limits.max_samples_per_waveform,
+        max_capture_duration=limits.max_capture_duration,
+    )
+
+
+def _get_by_kind(limits: Dict[Any, float]) -> Dict[str, float]:
+    """The limits keyed by their kind of frame's name, e.g. drive"""
+    return {kind.value: limit for kind, limit in limits.items()}
 
 
 def _is_oqpy_program(program: Any) -> bool:
