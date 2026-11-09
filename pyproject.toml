@@ -15,7 +15,7 @@ authors = [
 maintainers = [
     {name = "Chalmers Next Labs AB", email = "contact@quantum.chalmersnextlabs.se"}
 ]
-version = "2026.11.0-rc.4"
+version = "2026.11.0-rc.5"
 description = "The SDK in the Tergite software stack for connecting to the Swedish quantum computer"
 readme = "README.md"
 requires-python = ">=3.13"

@@ -7,6 +7,17 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.5] - 2026-11-09
+
+### Added
+
+- Added `backend.pulse_limits`, the amplitudes, energies and durations a device's pulse-level jobs are kept to, where
+  before a user learnt a limit only from a job refused for going beyond it
+
+### Changed
+
+- Changed the wire models to MSS's and the backend's current specs, which add a device's `pulse_limits`
+
 ## [2026.11.0-rc.4] - 2026-11-06
 
 ### Changed

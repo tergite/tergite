@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import Enum, IntEnum
 from typing import Any
 
-from pydantic import AwareDatetime, BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, Field, conint, constr
 
 
 class CalibrationUnit(Enum):
@@ -44,6 +44,15 @@ class CalibrationValue(BaseModel):
     date: str | None = Field(None, title="Date")
     unit: CalibrationUnit
     value: float | str | int = Field(..., title="Value")
+
+
+class CircuitSource(BaseModel):
+    """
+    A circuit as its author wrote it: OpenQASM 3, OpenPulse included
+    """
+
+    name: constr(min_length=1, max_length=64) = Field(..., title="Name")
+    qasm: constr(min_length=1, max_length=200000) = Field(..., title="Qasm")
 
 
 class CouplersCalibration(BaseModel):
@@ -80,42 +89,6 @@ class CreatedJobResponse(BaseModel):
     access_token: str = Field(..., title="Access Token")
     job_id: str = Field(..., title="Job Id")
     upload_url: str = Field(..., title="Upload Url")
-
-
-class Device(BaseModel):
-    """
-    The Schema for the devices
-    """
-
-    basis_gates: list[str] = Field(..., title="Basis Gates")
-    characterized: bool = Field(..., title="Characterized")
-    coordinates: list[tuple[int, int]] = Field(..., title="Coordinates")
-    coupling_dict: dict[str, str | list[str]] = Field(..., title="Coupling Dict")
-    coupling_map: list[tuple[int, int]] = Field(..., title="Coupling Map")
-    created_at: str | None = Field(None, title="Created At")
-    description: str | None = Field(None, title="Description")
-    dt: float | None = Field(None, title="Dt")
-    dtm: float | None = Field(None, title="Dtm")
-    gates: dict[str, Any] | None = Field(None, title="Gates")
-    id: str = Field(..., title="Id")
-    is_active: bool | None = Field(None, title="Is Active")
-    is_online: bool = Field(..., title="Is Online")
-    is_simulator: bool = Field(..., title="Is Simulator")
-    last_online: str | None = Field(None, title="Last Online")
-    meas_lo_freq: list[int] | None = Field(None, title="Meas Lo Freq")
-    meas_map: list[list[int]] = Field(..., title="Meas Map")
-    name: str = Field(..., title="Name")
-    number_of_couplers: int | None = Field(0, title="Number Of Couplers")
-    number_of_qubits: int = Field(..., title="Number Of Qubits")
-    number_of_resonators: int | None = Field(0, title="Number Of Resonators")
-    open_pulse: bool = Field(..., title="Open Pulse")
-    qubit_ids: list[str] | None = Field([], title="Qubit Ids")
-    qubit_ids_coupler_map: list[tuple[tuple[int, int], int]] | None = Field(
-        [], title="Qubit Ids Coupler Map"
-    )
-    qubit_lo_freq: list[int] | None = Field(None, title="Qubit Lo Freq")
-    updated_at: str | None = Field(None, title="Updated At")
-    version: str = Field(..., title="Version")
 
 
 class GateDefcal(BaseModel):
@@ -160,6 +133,19 @@ class JobResultCircuit(BaseModel):
     num_clbits: int = Field(..., title="Num Clbits")
 
 
+class JobSource(BaseModel):
+    """
+    The circuits and settings a job was submitted with, kept so it can be run again
+    """
+
+    circuits: list[CircuitSource] = Field(
+        ..., max_length=20, min_length=1, title="Circuits"
+    )
+    meas_level: MeasLevel | None = Field(2, title="Meas Level")
+    meas_return: MeasReturn | None = Field("single", title="Meas Return")
+    shots: conint(le=1000000, gt=0) = Field(..., title="Shots")
+
+
 class JobStatus(Enum):
     """
     The status of a job
@@ -172,12 +158,6 @@ class JobStatus(Enum):
     cancelled = "cancelled"
 
 
-class PaginatedListResponseDevice(BaseModel):
-    data: list[Device] | None = Field([], title="Data", validate_default=True)
-    limit: int | None = Field(None, title="Limit")
-    skip: int | None = Field(0, title="Skip")
-
-
 class PulseFrameKind(Enum):
     """
     What a frame plays on: a qubit's drive or readout line, or a coupler's flux line
@@ -186,6 +166,47 @@ class PulseFrameKind(Enum):
     drive = "drive"
     readout = "readout"
     coupler = "coupler"
+
+
+class PulseLimits(BaseModel):
+    """
+    What a device's pulse-level jobs may play, as its operators set them; a kind of frame
+    that a limit by kind leaves out may not be played at all
+    """
+
+    max_amplitude: dict[PulseFrameKind, float] = Field(
+        ...,
+        description="the largest |sample| of a waveform, as a fraction of full scale",
+        title="Max Amplitude",
+    )
+    max_capture_duration: float = Field(
+        ..., description="seconds of one capture", title="Max Capture Duration"
+    )
+    max_energy_per_job: dict[PulseFrameKind, float] = Field(
+        ...,
+        description="the energy on one frame over the job, in full scale^2 s",
+        title="Max Energy Per Job",
+    )
+    max_energy_per_shot: dict[PulseFrameKind, float] = Field(
+        ...,
+        description="the sum of |sample|^2 * dt on one frame in one shot, in full scale^2 s",
+        title="Max Energy Per Shot",
+    )
+    max_frequency_offset: float = Field(
+        ...,
+        description="hertz a frame may move from its calibrated frequency",
+        title="Max Frequency Offset",
+    )
+    max_pulse_duration: float = Field(
+        ...,
+        description="seconds of a circuit's pulse-level blocks in one shot",
+        title="Max Pulse Duration",
+    )
+    max_samples_per_waveform: int = Field(
+        ...,
+        description="the samples of one waveform, as played",
+        title="Max Samples Per Waveform",
+    )
 
 
 class QubitCalibration(BaseModel):
@@ -241,6 +262,43 @@ class TimestampPair(BaseModel):
     started: AwareDatetime | None = Field(None, title="Started")
 
 
+class Device(BaseModel):
+    """
+    The Schema for the devices
+    """
+
+    basis_gates: list[str] = Field(..., title="Basis Gates")
+    characterized: bool = Field(..., title="Characterized")
+    coordinates: list[tuple[int, int]] = Field(..., title="Coordinates")
+    coupling_dict: dict[str, str | list[str]] = Field(..., title="Coupling Dict")
+    coupling_map: list[tuple[int, int]] = Field(..., title="Coupling Map")
+    created_at: str | None = Field(None, title="Created At")
+    description: str | None = Field(None, title="Description")
+    dt: float | None = Field(None, title="Dt")
+    dtm: float | None = Field(None, title="Dtm")
+    gates: dict[str, Any] | None = Field(None, title="Gates")
+    id: str = Field(..., title="Id")
+    is_active: bool | None = Field(None, title="Is Active")
+    is_online: bool = Field(..., title="Is Online")
+    is_simulator: bool = Field(..., title="Is Simulator")
+    last_online: str | None = Field(None, title="Last Online")
+    meas_lo_freq: list[int] | None = Field(None, title="Meas Lo Freq")
+    meas_map: list[list[int]] = Field(..., title="Meas Map")
+    name: str = Field(..., title="Name")
+    number_of_couplers: int | None = Field(0, title="Number Of Couplers")
+    number_of_qubits: int = Field(..., title="Number Of Qubits")
+    number_of_resonators: int | None = Field(0, title="Number Of Resonators")
+    open_pulse: bool = Field(..., title="Open Pulse")
+    pulse_limits: PulseLimits | None = None
+    qubit_ids: list[str] | None = Field([], title="Qubit Ids")
+    qubit_ids_coupler_map: list[tuple[tuple[int, int], int]] | None = Field(
+        [], title="Qubit Ids Coupler Map"
+    )
+    qubit_lo_freq: list[int] | None = Field(None, title="Qubit Lo Freq")
+    updated_at: str | None = Field(None, title="Updated At")
+    version: str = Field(..., title="Version")
+
+
 class JobResult(BaseModel):
     """
     The results of the job
@@ -265,6 +323,12 @@ class JobTimestamps(BaseModel):
     post_processing: TimestampPair | None = None
     pre_processing: TimestampPair | None = None
     registration: TimestampPair | None = None
+
+
+class PaginatedListResponseDevice(BaseModel):
+    data: list[Device] | None = Field([], title="Data", validate_default=True)
+    limit: int | None = Field(None, title="Limit")
+    skip: int | None = Field(0, title="Skip")
 
 
 class PulseFrame(BaseModel):
@@ -326,6 +390,7 @@ class Job(BaseModel):
     job_id: str | None = Field(None, title="Job Id")
     project_id: str | None = Field(None, title="Project Id")
     result: JobResult | None = None
+    source: JobSource | None = None
     status: JobStatus | None = "pending"
     timestamps: JobTimestamps | None = None
     updated_at: str | None = Field(None, title="Updated At")

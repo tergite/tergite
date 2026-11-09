@@ -193,6 +193,16 @@
               }
             ]
           },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "timestamps": {
             "anyOf": [
               {
@@ -213,6 +223,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/JobResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobSource"
               },
               {
                 "type": "null"
@@ -396,6 +416,29 @@
           }
         },
         "title": "CancellationDetails",
+        "type": "object"
+      },
+      "CircuitSource": {
+        "description": "A circuit as its author wrote it: OpenQASM 3, OpenPulse included",
+        "properties": {
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "qasm": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Qasm",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "qasm"
+        ],
+        "title": "CircuitSource",
         "type": "object"
       },
       "CountsResponse": {
@@ -882,6 +925,16 @@
             "title": "Open Pulse",
             "type": "boolean"
           },
+          "pulse_limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PulseLimits"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "qubit_ids": {
             "default": [],
             "items": {
@@ -1307,6 +1360,16 @@
               }
             ]
           },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "status": {
             "$ref": "#/components/schemas/JobStatus",
             "default": "pending"
@@ -1490,6 +1553,50 @@
         "title": "JobResultCircuit",
         "type": "object"
       },
+      "JobSource": {
+        "description": "The circuits and settings a job was submitted with, kept so it can be run again",
+        "properties": {
+          "circuits": {
+            "items": {
+              "$ref": "#/components/schemas/CircuitSource"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Circuits",
+            "type": "array"
+          },
+          "meas_level": {
+            "default": 2,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Meas Level",
+            "type": "integer"
+          },
+          "meas_return": {
+            "default": "single",
+            "enum": [
+              "single",
+              "avg"
+            ],
+            "title": "Meas Return",
+            "type": "string"
+          },
+          "shots": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000.0,
+            "title": "Shots",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "shots",
+          "circuits"
+        ],
+        "title": "JobSource",
+        "type": "object"
+      },
       "JobStatus": {
         "description": "The status of a job",
         "enum": [
@@ -1513,6 +1620,61 @@
           "status"
         ],
         "title": "JobStatusResponse",
+        "type": "object"
+      },
+      "JobSubmission": {
+        "description": "A job as the dashboard submits it, for the project it is billed to",
+        "properties": {
+          "circuits": {
+            "items": {
+              "$ref": "#/components/schemas/CircuitSource"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Circuits",
+            "type": "array"
+          },
+          "device": {
+            "title": "Device",
+            "type": "string"
+          },
+          "meas_level": {
+            "default": 2,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Meas Level",
+            "type": "integer"
+          },
+          "meas_return": {
+            "default": "single",
+            "enum": [
+              "single",
+              "avg"
+            ],
+            "title": "Meas Return",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[0-9a-f]{24}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "shots": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000.0,
+            "title": "Shots",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "shots",
+          "circuits",
+          "project_id",
+          "device"
+        ],
+        "title": "JobSubmission",
         "type": "object"
       },
       "JobTimestamps": {
@@ -2475,6 +2637,75 @@
         "title": "PulseFrameKind",
         "type": "string"
       },
+      "PulseLimits": {
+        "description": "What a device's pulse-level jobs may play, as its operators set them; a kind of frame\nthat a limit by kind leaves out may not be played at all",
+        "properties": {
+          "max_amplitude": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "the largest |sample| of a waveform, as a fraction of full scale",
+            "propertyNames": {
+              "$ref": "#/components/schemas/PulseFrameKind"
+            },
+            "title": "Max Amplitude",
+            "type": "object"
+          },
+          "max_capture_duration": {
+            "description": "seconds of one capture",
+            "title": "Max Capture Duration",
+            "type": "number"
+          },
+          "max_energy_per_job": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "the energy on one frame over the job, in full scale^2 s",
+            "propertyNames": {
+              "$ref": "#/components/schemas/PulseFrameKind"
+            },
+            "title": "Max Energy Per Job",
+            "type": "object"
+          },
+          "max_energy_per_shot": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "the sum of |sample|^2 * dt on one frame in one shot, in full scale^2 s",
+            "propertyNames": {
+              "$ref": "#/components/schemas/PulseFrameKind"
+            },
+            "title": "Max Energy Per Shot",
+            "type": "object"
+          },
+          "max_frequency_offset": {
+            "description": "hertz a frame may move from its calibrated frequency",
+            "title": "Max Frequency Offset",
+            "type": "number"
+          },
+          "max_pulse_duration": {
+            "description": "seconds of a circuit's pulse-level blocks in one shot",
+            "title": "Max Pulse Duration",
+            "type": "number"
+          },
+          "max_samples_per_waveform": {
+            "description": "the samples of one waveform, as played",
+            "title": "Max Samples Per Waveform",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_amplitude",
+          "max_frequency_offset",
+          "max_energy_per_shot",
+          "max_energy_per_job",
+          "max_pulse_duration",
+          "max_samples_per_waveform",
+          "max_capture_duration"
+        ],
+        "title": "PulseLimits",
+        "type": "object"
+      },
       "QubitCalibration": {
         "description": "Schema for the calibration data of the qubit",
         "properties": {
@@ -3359,7 +3590,7 @@
   "info": {
     "description": "A frontend to all our quantum backends",
     "title": "Main Service Server",
-    "version": "2026.11.0-rc.5"
+    "version": "2026.11.0-rc.10"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -6267,6 +6498,23 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PulseLimits"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Pulse Limits"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -7255,6 +7503,154 @@
           }
         ],
         "summary": "Get My Jobs",
+        "tags": [
+          "jobs"
+        ]
+      },
+      "post": {
+        "description": "Runs OpenQASM 3 circuits on a device, as a job billed to one of the user's projects\n\nMSS uploads the job to the device's backend itself; the backend reads the circuits and\nrefuses one it cannot run, and a job it refuses is not kept.\n\nArgs:\n    database: the database where the jobs, projects and devices are stored\n    user: the current user\n    payload: the circuits, their settings, the device and the project\n\nReturns:\n    the job, pending\n\nRaises:\n    401: the project is inactive, or the user is not its member\n    400: MSS knows no backend for the device, or the device has no calibration, or\n        the backend refused the job file otherwise, e.g. beyond its pulse limits\n    403: the project has no QPU seconds left, or may not send pulse-level programs\n    404: no such device\n    422: a circuit the backend cannot run, at body.circuits.<index>.qasm, with the line\n        and column, from 1, in its ctx when known\n    503: the device is unavailable",
+        "operationId": "submit_my_job_me_jobs__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobSubmission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Submit My Job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/me/jobs/{job_id}": {
+      "get": {
+        "description": "Gets one of the user's jobs, with its source if it was submitted from the dashboard\n\nArgs:\n    database: the database where the jobs are stored\n    user: the current user\n    job_id: the id of the job\n\nReturns:\n    the job, without its backend token\n\nRaises:\n    404: no such job, or not the user's",
+        "operationId": "get_my_job_me_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get My Job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/me/jobs/{job_id}/logfile": {
+      "get": {
+        "description": "Downloads one of the user's jobs' logfile, which MSS fetches from the backend\n\nArgs:\n    database: the database where the jobs are stored\n    user: the current user\n    job_id: the id of the job\n\nReturns:\n    the job's HDF5 logfile\n\nRaises:\n    404: no such job, not the user's, or it has no logfile yet\n    503: the device is unavailable",
+        "operationId": "get_my_job_logfile_me_jobs__job_id__logfile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/x-hdf5": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get My Job Logfile",
         "tags": [
           "jobs"
         ]

@@ -79,6 +79,9 @@ class JobStatus(Enum):
 class QasmCircuit(BaseModel):
     """
     A circuit of a gate-level job, written in OpenQASM 3
+
+    num_clbits, if given, must be the number of classical bits its OpenQASM declares;
+    if not, it is that number.
     """
 
     model_config = ConfigDict(
@@ -86,7 +89,7 @@ class QasmCircuit(BaseModel):
     )
     metadata: dict[str, Any] | None = Field({}, title="Metadata")
     name: str = Field(..., title="Name")
-    num_clbits: conint(ge=0) = Field(..., title="Num Clbits")
+    num_clbits: conint(ge=0) | None = Field(None, title="Num Clbits")
     qasm: str = Field(..., title="Qasm")
 
 

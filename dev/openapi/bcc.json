@@ -689,6 +689,17 @@
             "title": "Open Pulse",
             "type": "boolean"
           },
+          "pulse_limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PulseLimits"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "qubit_ids": {
             "default": [],
             "items": {
@@ -1048,6 +1059,62 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InvalidCircuitDetail": {
+        "description": "Why a job file's circuit was refused at upload\n\nline, from 1, and column, from 0, are those of a syntax error outside the circuit's\ncal blocks, and None for any other error.",
+        "properties": {
+          "circuit_index": {
+            "title": "Circuit Index",
+            "type": "integer"
+          },
+          "column": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "circuit_index",
+          "line",
+          "column"
+        ],
+        "title": "InvalidCircuitDetail",
+        "type": "object"
+      },
+      "InvalidCircuitResponse": {
+        "description": "The body of the 422 that refuses a job file's circuit at upload",
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/InvalidCircuitDetail"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "InvalidCircuitResponse",
         "type": "object"
       },
       "Job": {
@@ -1521,9 +1588,91 @@
         "title": "PulseFrame",
         "type": "object"
       },
+      "PulseLimits": {
+        "additionalProperties": false,
+        "description": "What a device's pulse-level jobs may play, which its operators set in the backend\nconfig's pulse_limits: amplitudes as fractions of full scale, energies in full scale\nsquared times seconds, on one frame. A kind of frame a limit by kind leaves out may not\nbe played",
+        "properties": {
+          "max_amplitude": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "number"
+            },
+            "propertyNames": {
+              "enum": [
+                "drive",
+                "readout",
+                "coupler"
+              ]
+            },
+            "title": "Max Amplitude",
+            "type": "object"
+          },
+          "max_capture_duration": {
+            "minimum": 0,
+            "title": "Max Capture Duration",
+            "type": "number"
+          },
+          "max_energy_per_job": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "number"
+            },
+            "propertyNames": {
+              "enum": [
+                "drive",
+                "readout",
+                "coupler"
+              ]
+            },
+            "title": "Max Energy Per Job",
+            "type": "object"
+          },
+          "max_energy_per_shot": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "number"
+            },
+            "propertyNames": {
+              "enum": [
+                "drive",
+                "readout",
+                "coupler"
+              ]
+            },
+            "title": "Max Energy Per Shot",
+            "type": "object"
+          },
+          "max_frequency_offset": {
+            "minimum": 0,
+            "title": "Max Frequency Offset",
+            "type": "number"
+          },
+          "max_pulse_duration": {
+            "minimum": 0,
+            "title": "Max Pulse Duration",
+            "type": "number"
+          },
+          "max_samples_per_waveform": {
+            "minimum": 0,
+            "title": "Max Samples Per Waveform",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_amplitude",
+          "max_frequency_offset",
+          "max_energy_per_shot",
+          "max_energy_per_job",
+          "max_pulse_duration",
+          "max_samples_per_waveform",
+          "max_capture_duration"
+        ],
+        "title": "PulseLimits",
+        "type": "object"
+      },
       "QasmCircuit": {
         "additionalProperties": false,
-        "description": "A circuit of a gate-level job, written in OpenQASM 3",
+        "description": "A circuit of a gate-level job, written in OpenQASM 3\n\nnum_clbits, if given, must be the number of classical bits its OpenQASM declares;\nif not, it is that number.",
         "properties": {
           "metadata": {
             "additionalProperties": true,
@@ -1536,9 +1685,17 @@
             "type": "string"
           },
           "num_clbits": {
-            "minimum": 0,
-            "title": "Num Clbits",
-            "type": "integer"
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Num Clbits"
           },
           "qasm": {
             "title": "Qasm",
@@ -1547,8 +1704,7 @@
         },
         "required": [
           "name",
-          "qasm",
-          "num_clbits"
+          "qasm"
         ],
         "title": "QasmCircuit",
         "type": "object"
@@ -2286,7 +2442,7 @@
   "info": {
     "description": "Interfaces Quantum processor via REST API",
     "title": "Backend Control Computer",
-    "version": "v2026.11.0-rc.7"
+    "version": "v2026.11.0-rc.13"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2679,11 +2835,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/InvalidCircuitResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "A circuit the device cannot run, as one that is not valid OpenQASM 3"
           }
         },
         "summary": "Submit Job"
