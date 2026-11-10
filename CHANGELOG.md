@@ -7,6 +7,11 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed a job whose upload the backend refused, as for an instruction it cannot run, staying `pending` at MSS for
+  good; `backend.run` now deletes it at MSS before raising
+
 ## [2026.11.0-rc.5] - 2026-11-09
 
 ### Added

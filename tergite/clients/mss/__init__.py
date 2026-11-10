@@ -121,6 +121,18 @@ class MssClient:
         raise_for_error(response, "error retrieving job data")
         return models.Job.model_validate(response.json())
 
+    def delete_job(self, job_id: str) -> None:
+        """Deletes the job at MSS, and at its backend if the backend has it
+
+        Args:
+            job_id: the id of the job
+
+        Raises:
+            ApiError: unable to delete job at the remote API: {detail}
+        """
+        response = self._http.delete(f"/jobs/{job_id}")
+        raise_for_error(response, "unable to delete job at the remote API")
+
     def _authenticate(self, request: httpx.Request) -> httpx.Request:
         """Adds the account's app token, as it is now, to the request"""
         token = self._get_token()
