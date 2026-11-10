@@ -11,6 +11,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 - Fixed a job whose upload the backend refused, as for an instruction it cannot run, staying `pending` at MSS for
   good; `backend.run` now deletes it at MSS before raising
+- Fixed `job.submit` uploading a job that was already submitted, as its check for one passed until the job's status
+  was read; it now raises `ValueError`
 
 ## [2026.11.0-rc.5] - 2026-11-09
 

@@ -114,7 +114,7 @@ class Job(JobV1):
         return self._status
 
     def submit(self, job_file: JobFile) -> None:
-        """Uploads the job file to the backend, which runs it
+        """Uploads the job file to the backend, which runs it, once
 
         Args:
             job_file: the circuits, and how to run and measure them
@@ -135,6 +135,7 @@ class Job(JobV1):
             job_file=job_file,
             access_token=self._access_token,
         )
+        self._status = JobStatus.QUEUED
 
     @property
     def download_url(self) -> Optional[str]:

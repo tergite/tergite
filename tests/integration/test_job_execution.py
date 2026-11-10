@@ -198,6 +198,19 @@ def test_a_job_whose_upload_fails_is_deleted_from_mss(api):
     assert deletion.call_count == 1
 
 
+def test_a_submitted_job_is_not_submitted_again(api):
+    backend = _get_backend("loke")
+    job = backend.run(_get_x_circuit(backend))
+
+    with pytest.raises(ValueError, match="already submitted"):
+        job.submit(get_uploaded_job_file(api))
+
+    uploads = [
+        call for call in api.calls if call.request.url == f"{QUANTUM_COMPUTER_URL}/jobs"
+    ]
+    assert len(uploads) == 1
+
+
 @pytest.mark.parametrize("api_fixture", ["api", "bearer_auth_api"])
 def test_job_cancel(api_fixture, request):
     """job.cancel() asks the backend to cancel the job, with the job's token"""
