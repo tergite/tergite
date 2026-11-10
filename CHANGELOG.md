@@ -7,6 +7,8 @@ and this project follows versions of format `{year}.{month}.{patch_number}`.
 
 ## [Unreleased]
 
+## [2026.11.0-rc.6] - 2026-11-10
+
 ### Fixed
 
 - Fixed a job whose upload the backend refused, as for an instruction it cannot run, staying `pending` at MSS for
