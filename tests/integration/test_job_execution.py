@@ -28,6 +28,7 @@ from .conftest import (
     API_URL,
     GOOD_BACKENDS,
     INVALID_API_TOKENS,
+    QUANTUM_COMPUTER_URL,
     TEST_CALIBRATIONS_MAP,
     TEST_JOB_ID,
     TEST_JOB_RESULTS,
@@ -179,6 +180,35 @@ def test_job_status_invalid_bearer_auth(bearer_auth_api, token):
 
     with pytest.raises(ApiError, match="error retrieving job data: Unauthorized"):
         job.status()
+
+
+def test_a_job_whose_upload_fails_is_deleted_from_mss(api):
+    """MSS registered it, but the backend never took it, so no backend would end it"""
+    api.post(f"{QUANTUM_COMPUTER_URL}/jobs").respond(
+        422, json={"detail": "unknown gate"}
+    )
+    deletion = api.delete(f"{API_URL}/jobs/{TEST_JOB_ID}").respond(
+        json={"status": "success", "detail": f"Job of id {TEST_JOB_ID} deleted"}
+    )
+    backend = _get_backend("loke")
+
+    with pytest.raises(ApiError, match="unknown gate"):
+        backend.run(_get_x_circuit(backend))
+
+    assert deletion.call_count == 1
+
+
+def test_a_submitted_job_is_not_submitted_again(api):
+    backend = _get_backend("loke")
+    job = backend.run(_get_x_circuit(backend))
+
+    with pytest.raises(ValueError, match="already submitted"):
+        job.submit(get_uploaded_job_file(api))
+
+    uploads = [
+        call for call in api.calls if call.request.url == f"{QUANTUM_COMPUTER_URL}/jobs"
+    ]
+    assert len(uploads) == 1
 
 
 @pytest.mark.parametrize("api_fixture", ["api", "bearer_auth_api"])

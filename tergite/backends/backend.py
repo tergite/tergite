@@ -164,7 +164,8 @@ class TergiteBackend(BackendV2):
                 instruction the target lacks, or a calibration is neither text nor has
                 to_qasm()
             ApiError: MSS or the backend refused the job, e.g. a pulse-level job of a
-                project without pulse access or beyond the device's limits
+                project without pulse access or beyond the device's limits; a job the
+                backend refused is deleted at MSS
         """
         entries = _get_entry_list(run_input)
         defcals = [get_calibration_qasm(calibration) for calibration in calibrations]
@@ -195,9 +196,27 @@ class TergiteBackend(BackendV2):
             access_token=created.access_token,
             calibration_date=self.last_calibrated,
         )
-        job.submit(_get_job_file(created.job_id, items, defcals, settings))
+        try:
+            job.submit(_get_job_file(created.job_id, items, defcals, settings))
+        except Exception:
+            # MSS keeps a job it registered pending, though no backend took it to end it
+            self._delete_registered_job(created.job_id)
+            raise
         logging.info(f"Tergite: Job {job.job_id()} has been successfully submitted")
         return job
+
+    def _delete_registered_job(self, job_id: str) -> None:
+        """Deletes the job at MSS, logging a failure, so that what failed before is raised
+
+        A job no backend took would otherwise stay pending at MSS for good. An MSS that
+        passes on its backend's 404 for such a job refuses the deletion.
+        """
+        try:
+            self.provider.mss_client.delete_job(job_id)
+        except Exception as exp:
+            logging.warning(
+                f"Tergite: could not delete the unsubmitted job {job_id}: {exp}"
+            )
 
     def _get_job_item(self, entry: Any, index: int) -> "_JobItem":
         """Gets what a job runs of a circuit, checked against the target, or of a program
